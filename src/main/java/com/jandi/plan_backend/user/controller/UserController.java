@@ -17,11 +17,11 @@ public class UserController {
         this.userService = userService;
     }
 
-    /** 회원가입 -> 인증번호 이메일 전송 */
+    /** 회원가입 -> 인증 링크 이메일 전송 */
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody UserRegisterDTO dto) {
         userService.registerUser(dto);
-        return ResponseEntity.ok("회원가입 완료! 이메일을 확인하고 인증번호를 입력하세요.");
+        return ResponseEntity.ok("회원가입 완료! 이메일의 링크를 클릭하면 인증이 완료됩니다.");
     }
 
     /** 로그인 */
@@ -31,14 +31,14 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
 
-    /** 인증번호 검증 -> 이메일 인증 */
+    /** 인증 링크 클릭 -> 이메일 인증 */
     @GetMapping("/verify")
-    public ResponseEntity<?> verify(@RequestParam("code") String code) {
-        boolean result = userService.verifyEmailCode(code);
+    public ResponseEntity<?> verifyByToken(@RequestParam("token") String token) {
+        boolean result = userService.verifyEmailByToken(token);
         if (result) {
-            return ResponseEntity.ok("이메일 인증 성공!");
+            return ResponseEntity.ok("이메일 인증이 완료되었습니다!");
         }
-        return ResponseEntity.badRequest().body("인증번호가 유효하지 않습니다.");
+        return ResponseEntity.badRequest().body("인증에 실패했습니다. 토큰이 유효하지 않거나 만료되었습니다.");
     }
 
     /** 비밀번호 찾기 (임시 비밀번호 발급) */
