@@ -25,8 +25,9 @@ jobs:
       # 3. Gradle 빌드
       - name: Build with Gradle
         run: |
-          chmod +x gradlew # ./gradlew: Permission denied 오류 수정을 위한 권한 부여
-          ./gradlew clean build --scan
+          chmod +x gradlew
+          # Ensure environment variables for DB are set if your code uses them during tests
+          ./gradlew clean build --info --stacktrace
 
       # 4. GCP 인증 (서비스 계정 키 JSON)
       - name: Authenticate to GCP
