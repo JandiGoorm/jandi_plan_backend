@@ -1,0 +1,63 @@
+name: CI-CD for Spring Boot
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. 소스 체크아웃
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      # 2. JDK 설정
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: 17
+
+      # 3. Gradle 빌드
+      - name: Build with Gradle
+        run: |
+          ./gradlew clean build
+
+      # 4. GCP 인증 (서비스 계정 키 JSON)
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      # 5. gcloud 프로젝트 설정
+      - name: Configure gcloud
+        run: gcloud config set project planbackend-450513
+
+      # 6. Docker 인증 (Artifact Registry)
+      - name: Configure Docker auth for Artifact Registry
+        run: gcloud auth configure-docker asia-northeast3-docker.pkg.dev
+
+      # 7. Docker 빌드
+      - name: Build Docker image
+        run: |
+          docker build -t asia-northeast3-docker.pkg.dev/planbackend-450513/plan-backend-ar/my-spring-image:$GITHUB_SHA .
+
+      # 8. Docker 푸시
+      - name: Push Docker image
+        run: |
+          docker push asia-northeast3-docker.pkg.dev/planbackend-450513/plan-backend-ar/my-spring-image:$GITHUB_SHA
+
+      # 9. Cloud Run 배포 (Seoul region: asia-northeast3)
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy ${{ secrets.CLOUD_RUN_SERVICE }} \
+            --image asia-northeast3-docker.pkg.dev/planbackend-450513/plan-backend-ar/my-spring-image:$GITHUB_SHA \
+            --platform managed \
+            --region asia-northeast3 \
+            --service-account cloud-run-deployer@planbackend-450513.iam.gserviceaccount.com \
+            --allow-unauthenticated \
+            --set-env-vars DB_URL=${{ secrets.DB_URL }},DB_USERNAME=${{ secrets.DB_USERNAME }},DB_PASSWORD=${{ secrets.DB_PASSWORD }},MAIL_USERNAME=${{ secrets.MAIL_USERNAME }},MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
