@@ -66,6 +66,6 @@ jobs:
             --image asia-northeast3-docker.pkg.dev/planbackend-450513/plan-backend-ar/my-spring-image:$GITHUB_SHA \
             --platform managed \
             --region asia-northeast3 \
-            --service-account cloud-run-deployer@planbackend-450513.iam.gserviceaccount.com \
+            --service-account planbacked@planbackend-450513.iam.gserviceaccount.com \
             --allow-unauthenticated \
             --set-env-vars DB_URL=${{ secrets.DB_URL }},DB_USERNAME=${{ secrets.DB_USERNAME }},DB_PASSWORD=${{ secrets.DB_PASSWORD }},MAIL_USERNAME=${{ secrets.MAIL_USERNAME }},MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
