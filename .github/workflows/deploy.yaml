@@ -24,6 +24,12 @@ jobs:
 
       # 3. Gradle 빌드
       - name: Build with Gradle
+        env:
+          DB_URL: ${{ secrets.DB_URL }}
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
         run: |
           chmod +x gradlew
           # Ensure environment variables for DB are set if your code uses them during tests
