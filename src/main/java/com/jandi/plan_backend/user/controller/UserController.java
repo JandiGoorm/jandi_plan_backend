@@ -7,6 +7,8 @@ import com.jandi.plan_backend.user.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
@@ -43,7 +45,8 @@ public class UserController {
 
     /** 비밀번호 찾기 (임시 비밀번호 발급) */
     @PostMapping("/forgot")
-    public ResponseEntity<?> forgotPassword(@RequestParam("email") String email) {
+    public ResponseEntity<?> forgotPassword(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
         userService.forgotPassword(email);
         return ResponseEntity.ok("임시 비밀번호가 발급되었습니다. 이메일을 확인하세요.");
     }
