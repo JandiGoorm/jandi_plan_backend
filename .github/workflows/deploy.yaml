@@ -1,7 +1,5 @@
-# CI/CD for Spring Boot 파이프라인
 name: CI-CD for Spring Boot
 
-# 'master' 브랜치에 push나 pull_request 발생 시 실행됨
 on:
   push:
     branches: [ "master" ]
@@ -24,8 +22,7 @@ jobs:
           distribution: 'temurin'
           java-version: 17
 
-      # 3. Gradle로 빌드 실행
-      # 빌드 시 DB와 MAIL 관련 환경변수를 secrets에서 불러옴
+      # 3. Gradle 빌드 (빌드 시 DB, MAIL, GCP_SA_KEY_BASE64 환경변수 사용)
       - name: Build with Gradle
         env:
           DB_URL: ${{ secrets.DB_URL }}
@@ -33,40 +30,40 @@ jobs:
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
           MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
-          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+          GCP_SA_KEY_BASE64: ${{ secrets.GCP_SA_KEY_BASE64 }}
         run: |
           chmod +x gradlew  # gradlew 파일에 실행 권한 부여
-          ./gradlew clean build --info --stacktrace  # 클린 빌드, 상세 정보 출력
+          ./gradlew clean build --info --stacktrace
 
-      # 4. GCP 인증 - 서비스 계정 키(JSON) 이용
+      # 4. Base64 인코딩된 GCP 서비스 계정 키 디코딩
+      - name: Decode GCP SA Key
+        run: echo "${{ secrets.GCP_SA_KEY_BASE64 }}" | base64 --decode > key.json
+
+      # 5. GCP 인증 - 디코딩한 키 파일(key.json) 이용
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v1
         with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
+          credentials_file_path: key.json
 
-      # 5. gcloud 프로젝트 설정
+      # 6. gcloud 프로젝트 설정
       - name: Configure gcloud
         run: gcloud config set project planbackend-450513
 
-      # 6. Docker 인증 - Artifact Registry에 접근하기 위해 설정
+      # 7. Docker 인증 - Artifact Registry 접근
       - name: Configure Docker auth for Artifact Registry
         run: gcloud auth configure-docker asia-northeast3-docker.pkg.dev
 
-      # 7. Docker 이미지 빌드
-      # 커밋 SHA를 태그로 사용해서 이미지 버전 관리
+      # 8. Docker 이미지 빌드 (커밋 SHA를 태그로 사용)
       - name: Build Docker image
         run: |
           docker build -t asia-northeast3-docker.pkg.dev/planbackend-450513/plan-backend-ar/my-spring-image:$GITHUB_SHA .
 
-      # 8. Docker 이미지 Artifact Registry에 푸시
+      # 9. Docker 이미지 Artifact Registry에 푸시
       - name: Push Docker image
         run: |
           docker push asia-northeast3-docker.pkg.dev/planbackend-450513/plan-backend-ar/my-spring-image:$GITHUB_SHA
 
-      # 9. Cloud Run에 배포
-      # secrets에 저장된 서비스 이름과 환경변수(DB, MAIL)를 적용해서 배포
-      # 빌드 시 넣는 환경변수는 빌드와 테스트 과정에만 쓰이는 값들이고, Docker 이미지 안에 자동으로 포함되지 않는다.
-      # 즉, 애플리케이션이 런타임에 환경변수 값을 필요로 한다면 Cloud Run 배포 시에도 다시 설정해줘야한다.
+      # 10. Cloud Run에 배포 (환경 변수에 GCP_SA_KEY_BASE64 포함)
       - name: Deploy to Cloud Run
         run: |
           gcloud run deploy ${{ secrets.CLOUD_RUN_SERVICE }} \
@@ -75,4 +72,4 @@ jobs:
             --region asia-northeast3 \
             --service-account planbackend@planbackend-450513.iam.gserviceaccount.com \
             --allow-unauthenticated \
-            --set-env-vars "DB_URL=${{ secrets.DB_URL }},DB_USERNAME=${{ secrets.DB_USERNAME }},DB_PASSWORD=${{ secrets.DB_PASSWORD }},MAIL_USERNAME=${{ secrets.MAIL_USERNAME }},MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }},GCP_SA_KEY=${{ secrets.GCP_SA_KEY }}"
+            --set-env-vars DB_URL=${{ secrets.DB_URL }},DB_USERNAME=${{ secrets.DB_USERNAME }},DB_PASSWORD=${{ secrets.DB_PASSWORD }},MAIL_USERNAME=${{ secrets.MAIL_USERNAME }},MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }},GCP_SA_KEY_BASE64=${{ secrets.GCP_SA_KEY_BASE64 }}
