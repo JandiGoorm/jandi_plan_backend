@@ -50,17 +50,9 @@ public class ImageController {
         }
         log.info("사용자 '{}'가 파일 '{}' 업로드 요청", userDetails.getUsername(), file.getOriginalFilename());
 
-        try {
-            // 서비스 클래스로 파일 업로드 처리 후 공개 URL 받아옴
-            String publicUrl = googleCloudStorageService.uploadFile(file);
-            log.info("파일 업로드 성공, 공개 URL: {}", publicUrl);
-            return ResponseEntity.ok(publicUrl);
-        } catch (IOException e) {
-            // 파일 업로드 중 에러 발생 시 500 에러 응답 반환
-            log.error("파일 업로드 실패: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("파일 업로드 실패: " + e.getMessage());
-        }
+        String result = googleCloudStorageService.uploadFile(file);
+        log.info("Upload result: {}", result);
+        return ResponseEntity.ok(result);
     }
 
     /**

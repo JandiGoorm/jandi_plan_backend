@@ -33,7 +33,7 @@ jobs:
           GCP_SA_KEY_BASE64: ${{ secrets.GCP_SA_KEY_BASE64 }}
         run: |
           chmod +x gradlew  # gradlew 파일에 실행 권한 부여
-          ./gradlew clean build --info --stacktrace
+          ./gradlew clean build --stacktrace
 
       # 4. GCP 인증 - 서비스 계정 키(JSON) 이용
       - name: Authenticate to GCP
