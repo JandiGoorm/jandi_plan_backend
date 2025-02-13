@@ -1,22 +1,32 @@
 package com.jandi.plan_backend.user.controller;
 
-import com.jandi.plan_backend.user.dto.UserLoginDTO;
-import com.jandi.plan_backend.user.dto.UserRegisterDTO;
-import com.jandi.plan_backend.user.entity.User;
+import com.jandi.plan_backend.user.dto.*;
 import com.jandi.plan_backend.user.service.UserService;
+import com.jandi.plan_backend.user.security.JwtTokenProvider;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
 
     private final UserService userService;
+    private final AuthenticationManager authenticationManager;
+    private final JwtTokenProvider jwtTokenProvider;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService,
+                          AuthenticationManager authenticationManager,
+                          JwtTokenProvider jwtTokenProvider) {
         this.userService = userService;
+        this.authenticationManager = authenticationManager;
+        this.jwtTokenProvider = jwtTokenProvider;
     }
 
     /** 회원가입 -> 인증 링크 이메일 전송 */
@@ -26,14 +36,19 @@ public class UserController {
         return ResponseEntity.ok("회원가입 완료! 이메일의 링크를 클릭하면 인증이 완료됩니다.");
     }
 
-    /** 로그인 */
+    /** 로그인 - JWT 토큰 발급 */
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody UserLoginDTO dto) {
-        User user = userService.login(dto);
-        return ResponseEntity.ok(user);
+    public ResponseEntity<AuthResponse> login(@RequestBody UserLoginDTO userLoginDTO) {
+        log.info("Login attempt for email: {}", userLoginDTO.getEmail());
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(userLoginDTO.getEmail(), userLoginDTO.getPassword())
+        );
+        String token = jwtTokenProvider.createToken(userLoginDTO.getEmail());
+        log.info("User {} logged in successfully, JWT token generated", userLoginDTO.getEmail());
+        return ResponseEntity.ok(new AuthResponse(token));
     }
 
-    /** 인증 링크 클릭 -> 이메일 인증 */
+    /** 이메일 인증 */
     @GetMapping("/verify")
     public ResponseEntity<?> verifyByToken(@RequestParam("token") String token) {
         boolean result = userService.verifyEmailByToken(token);

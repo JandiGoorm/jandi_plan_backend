@@ -3,15 +3,6 @@ package com.jandi.plan_backend.user.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 
-/**
- * 대륙별 주요 여행지 테이블 (major_destination)
- *
- * destination_id (PK, auto-increment)
- * continent_id (FK → continent.continent_id)
- * name
- * description
- * image_url
- */
 @Entity
 @Table(name = "major_destination")
 @Data
@@ -21,9 +12,12 @@ public class MajorDestination {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer destinationId;
 
+    /**
+     * 나라(Country)와 다대일 관계 (여러 여행지가 하나의 나라에 속함)
+     */
     @ManyToOne
-    @JoinColumn(name = "continent_id", nullable = false)
-    private Continent continent;
+    @JoinColumn(name = "country_id", nullable = false)
+    private Country country;
 
     @Column(nullable = false, length = 100)
     private String name;
@@ -33,4 +27,7 @@ public class MajorDestination {
 
     @Column(length = 255)
     private String imageUrl;
+
+    @Column(nullable = false)
+    private Integer searchCount = 0;
 }
