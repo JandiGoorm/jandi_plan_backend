@@ -35,35 +35,31 @@ jobs:
           chmod +x gradlew  # gradlew 파일에 실행 권한 부여
           ./gradlew clean build --info --stacktrace
 
-      # 4. Base64 인코딩된 GCP 서비스 계정 키 디코딩
-      - name: Decode GCP SA Key
-        run: echo "${{ secrets.GCP_SA_KEY_BASE64 }}" | base64 --decode > key.json
-
-      # 5. GCP 인증 - 디코딩한 키 파일(key.json) 이용
+      # 4. GCP 인증 - 서비스 계정 키(JSON) 이용
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v1
         with:
-          credentials_file_path: key.json
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      # 6. gcloud 프로젝트 설정
+      # 5. gcloud 프로젝트 설정
       - name: Configure gcloud
         run: gcloud config set project planbackend-450513
 
-      # 7. Docker 인증 - Artifact Registry 접근
+      # 6. Docker 인증 - Artifact Registry 접근
       - name: Configure Docker auth for Artifact Registry
         run: gcloud auth configure-docker asia-northeast3-docker.pkg.dev
 
-      # 8. Docker 이미지 빌드 (커밋 SHA를 태그로 사용)
+      # 7. Docker 이미지 빌드 (커밋 SHA를 태그로 사용)
       - name: Build Docker image
         run: |
           docker build -t asia-northeast3-docker.pkg.dev/planbackend-450513/plan-backend-ar/my-spring-image:$GITHUB_SHA .
 
-      # 9. Docker 이미지 Artifact Registry에 푸시
+      # 8. Docker 이미지 Artifact Registry에 푸시
       - name: Push Docker image
         run: |
           docker push asia-northeast3-docker.pkg.dev/planbackend-450513/plan-backend-ar/my-spring-image:$GITHUB_SHA
 
-      # 10. Cloud Run에 배포 (환경 변수에 GCP_SA_KEY_BASE64 포함)
+      # 9. Cloud Run에 배포 (환경 변수에 GCP_SA_KEY_BASE64 포함)
       - name: Deploy to Cloud Run
         run: |
           gcloud run deploy ${{ secrets.CLOUD_RUN_SERVICE }} \
