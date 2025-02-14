@@ -10,13 +10,13 @@ import java.time.LocalDateTime;
  */
 @Getter
 public class CommunityDTO {
-    private Integer postId;
-    private UserCommunityDTO user;
-    private LocalDateTime createdAt;
-    private String title;
-    private String contents;
-    private Integer likeCount;
-    private Integer commentCount;
+    private final Integer postId;
+    private final UserCommunityDTO user;
+    private final LocalDateTime createdAt;
+    private final String title;
+    private final String contents;
+    private final Integer likeCount;
+    private final Integer commentCount;
 
     public CommunityDTO(Community community) {
         this.postId = community.getPostId();
