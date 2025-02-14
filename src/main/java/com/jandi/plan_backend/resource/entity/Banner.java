@@ -19,13 +19,13 @@ import java.time.LocalDateTime;
  * Lombok의 @Data 어노테이션은 자동으로 getter, setter, equals, hashCode, toString 메서드를 생성함.
  */
 @Entity
-@Table(name = "advertise")
+@Table(name = "Banner")
 @Data
-public class Advertise {
+public class Banner {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer advertiseId;
+    private Integer BannerId;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
