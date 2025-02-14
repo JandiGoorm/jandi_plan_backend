@@ -52,4 +52,8 @@ public class Comments {
     // 댓글에 달린 좋아요 수.
     @Column(nullable = false)
     private Integer likeCount;
+
+    // 댓글에 달린 답글 수.
+    @Column(nullable = false)
+    private Integer repliesCount;
 }
