@@ -52,8 +52,14 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 // 요청에 대한 접근 권한 설정
                 .authorizeHttpRequests(authorize -> authorize
-                        // 로그인과 회원가입 엔드포인트는 인증 없이 접근 허용
-                        .requestMatchers("/api/users/login", "/api/users/register").permitAll()
+                        // 인증 없이 접근 가능한 엔드 포인트
+                        // -> 로그인, 회원 가입, 게시판, 공지 사항
+                        .requestMatchers(
+                                "/api/users/login",
+                                "/api/users/register",
+                                "api/community/posts",
+                                "/api/notice/list"
+                        ).permitAll()
                         // 그 외의 모든 요청은 인증 필요
                         .anyRequest().authenticated()
                 )
