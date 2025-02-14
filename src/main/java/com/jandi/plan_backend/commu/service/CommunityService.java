@@ -17,7 +17,7 @@ public class CommunityService {
     private final CommunityRepository communityRepository;
     private final CommentRepository commentRepository;
 
-    // 생성자를 통해 필요한 의존성들을 주입받음.
+    // CommunityRepository와 CommentRepository를 생성자 주입받음.
     public CommunityService(CommunityRepository communityRepository, CommentRepository commentRepository) {
         this.communityRepository = communityRepository;
         this.commentRepository = commentRepository;
