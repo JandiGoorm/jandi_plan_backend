@@ -47,4 +47,7 @@ public class Community {
     // 게시글의 좋아요 수. null 값은 허용되지 않음.
     @Column(nullable = false)
     private Integer likeCount;
+
+    @Column(nullable = false)
+    private Integer commentCount; //댓글 수
 }
