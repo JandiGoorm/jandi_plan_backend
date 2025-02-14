@@ -1,6 +1,6 @@
 package com.jandi.plan_backend.commu.controller;
 
-import com.jandi.plan_backend.commu.dto.CommunityDTO;
+import com.jandi.plan_backend.commu.dto.CommunityListDTO;
 import com.jandi.plan_backend.commu.service.CommunityService;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
@@ -23,7 +23,7 @@ public class CommunityController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        Page<CommunityDTO> postsPage = communityService.getAllPosts(page, size);
+        Page<CommunityListDTO> postsPage = communityService.getAllPosts(page, size);
 
         return Map.of(
                 "pageInfo", Map.of(

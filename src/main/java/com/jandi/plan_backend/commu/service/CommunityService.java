@@ -1,6 +1,6 @@
 package com.jandi.plan_backend.commu.service;
 
-import com.jandi.plan_backend.commu.dto.CommunityDTO;
+import com.jandi.plan_backend.commu.dto.CommunityListDTO;
 import com.jandi.plan_backend.commu.entity.Community;
 import com.jandi.plan_backend.commu.repository.CommunityRepository;
 import org.springframework.data.domain.Page;
@@ -19,7 +19,7 @@ public class CommunityService {
     }
 
     /** 페이지 단위로 게시물 리스트 조회 */
-    public Page<CommunityDTO> getAllPosts(int page, int size) {
+    public Page<CommunityListDTO> getAllPosts(int page, int size) {
 
         //페이지 범위 오류 처리
         long totalCount = communityRepository.count(); // 전체 게시물 개수
@@ -31,6 +31,6 @@ public class CommunityService {
         Pageable pageable = PageRequest.of(page, size);  // 페이지네이션 적용
         Page<Community> postsPage = communityRepository.findAll(pageable);
 
-        return postsPage.map(CommunityDTO::new);
+        return postsPage.map(CommunityListDTO::new);
     }
 }
