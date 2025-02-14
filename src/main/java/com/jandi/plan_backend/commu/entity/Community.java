@@ -40,4 +40,7 @@ public class Community {
 
     @Column(nullable = false)
     private Integer likeCount;
+
+    @Column(nullable = false)
+    private Integer commentCount; //댓글 수
 }
