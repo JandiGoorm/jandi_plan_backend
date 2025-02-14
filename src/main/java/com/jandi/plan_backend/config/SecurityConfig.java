@@ -59,7 +59,7 @@ public class SecurityConfig {
                                 "/api/users/login",
                                 "/api/users/register",
                                 "api/community/posts", "api/community/comments",
-                                "/api/notice/list"
+                                "/api/notice/lists"
                         ).permitAll()
                         // 그 외의 모든 요청은 인증 필요
                         .anyRequest().authenticated()

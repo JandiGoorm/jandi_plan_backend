@@ -17,7 +17,7 @@ public class NoticeController {
     }
 
     /**페이지 단위로 공지글 리스트 조회*/
-    @GetMapping("/list")
+    @GetMapping("/lists")
     public Map<String, Object> getAllNotices(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
