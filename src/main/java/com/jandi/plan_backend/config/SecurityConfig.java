@@ -54,11 +54,11 @@ public class SecurityConfig {
                 // 요청에 대한 접근 권한 설정
                 .authorizeHttpRequests(authorize -> authorize
                         // 인증 없이 접근 가능한 엔드 포인트
-                        // -> 로그인, 회원 가입, 게시판, 공지 사항
+                        // -> 로그인, 회원 가입, 게시판 목록 및 댓글보기, 공지 사항
                         .requestMatchers(
                                 "/api/users/login",
                                 "/api/users/register",
-                                "api/community/posts",
+                                "api/community/posts", "api/community/comments",
                                 "/api/notice/list"
                         ).permitAll()
                         // 그 외의 모든 요청은 인증 필요
