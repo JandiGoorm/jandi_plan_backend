@@ -1,14 +1,11 @@
 package com.jandi.plan_backend.resource.controller;
 
-import com.jandi.plan_backend.resource.entity.Banner;
+import com.jandi.plan_backend.resource.dto.BannerListDTO;
 import com.jandi.plan_backend.resource.service.BannerService;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -24,7 +21,7 @@ public class BannerController {
     /**배너 목록 조회*/
     @GetMapping("/lists")
     public Map<String, Object> getAllBannersFormatted() {
-        List<Banner> banners = bannerService.getAllBanners();
+        List<BannerListDTO> banners = bannerService.getAllBanners();
 
         return Map.of(
                 "bannerInfo", Map.of("size", banners.size()), //배너 정보

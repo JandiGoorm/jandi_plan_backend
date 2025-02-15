@@ -1,10 +1,11 @@
 package com.jandi.plan_backend.resource.service;
 
-import com.jandi.plan_backend.resource.entity.Banner;
+import com.jandi.plan_backend.resource.dto.BannerListDTO;
 import com.jandi.plan_backend.resource.repository.BannerRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class BannerService {
@@ -15,8 +16,13 @@ public class BannerService {
         this.bannerRepository = bannerRepository;
     }
 
-    /**전체 배너 목록 조회*/
-    public List<Banner> getAllBanners() {
-        return bannerRepository.findAll();
+    /**
+     * 전체 배너 목록 조회
+     */
+    public List<BannerListDTO> getAllBanners() {
+        //return bannerRepository.findAll();
+        return bannerRepository.findAll().stream()
+                .map(BannerListDTO::new)
+                .collect(Collectors.toList());
     }
 }
