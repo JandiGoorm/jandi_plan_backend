@@ -2,6 +2,7 @@ package com.jandi.plan_backend.commu.service;
 
 import com.jandi.plan_backend.commu.dto.ParentCommentDTO;
 import com.jandi.plan_backend.commu.dto.CommunityListDTO;
+import com.jandi.plan_backend.commu.dto.repliesDTO;
 import com.jandi.plan_backend.commu.repository.CommentRepository;
 import com.jandi.plan_backend.commu.repository.CommunityRepository;
 import org.springframework.data.domain.Page;
@@ -14,7 +15,7 @@ public class CommunityService {
     private final CommunityRepository communityRepository;
     private final CommentRepository commentRepository;
 
-    // CommunityRepository와 CommentRepository를 생성자 주입받음.
+    // 생성자를 통해 필요한 의존성들을 주입받음.
     public CommunityService(CommunityRepository communityRepository, CommentRepository commentRepository) {
         this.communityRepository = communityRepository;
         this.commentRepository = commentRepository;
@@ -39,5 +40,20 @@ public class CommunityService {
         return PaginationService.getPagedData(page, size, totalCount,
                 pageable -> commentRepository.findByCommunityPostIdAndParentCommentIsNull(postId, pageable),
                 ParentCommentDTO::new);
+    }
+
+    /** 특정 댓글의 답글만 조회 */
+    public Page<repliesDTO> getReplies(Integer parentCommentId, int page, int size) {
+        //commentId 관련 오류 처리
+        if (parentCommentId == null) {
+            throw new RuntimeException("parentCommentId를 지정하지 않았습니다.");
+        }else if(!communityRepository.existsById(parentCommentId)){
+            throw new RuntimeException("존재하지 않는 댓글입니다.");
+        }
+
+        long totalCount = commentRepository.countByParentCommentCommentId(parentCommentId);
+        return PaginationService.getPagedData(page, size, totalCount,
+                pageable -> commentRepository.findByParentCommentCommentId(parentCommentId, pageable),
+                repliesDTO::new);
     }
 }
