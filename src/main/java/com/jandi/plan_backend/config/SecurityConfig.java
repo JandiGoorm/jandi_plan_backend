@@ -56,10 +56,10 @@ public class SecurityConfig {
                         // 인증 없이 접근 가능한 엔드 포인트
                         // -> 로그인, 회원 가입, 게시판 관련, 공지 사항, 배너
                         .requestMatchers(
-                                "/api/users/login",
-                                "/api/users/register",
-                                "api/community/**",
+                                "/api/users/login", "/api/users/register",
                                 "/api/notice/lists",
+                                "/api/images/url",
+                                "api/community/**",
                                 "/api/banner/*"
                         ).permitAll()
                         // 그 외의 모든 요청은 인증 필요
