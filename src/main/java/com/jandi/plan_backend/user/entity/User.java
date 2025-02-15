@@ -88,4 +88,11 @@ public class User {
      */
     @Column
     private LocalDateTime tokenExpires;
+
+    /**
+     * 부적절 게시물 작성자 여부.
+     * 기본값은 0. 값이 1일 때 부적절 유저로 간주하여 게시물 작성 제한
+     */
+    @Column
+    private Boolean Reported;
 }
