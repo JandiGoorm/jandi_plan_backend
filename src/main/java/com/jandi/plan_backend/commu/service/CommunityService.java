@@ -2,13 +2,9 @@ package com.jandi.plan_backend.commu.service;
 
 import com.jandi.plan_backend.commu.dto.ParentCommentDTO;
 import com.jandi.plan_backend.commu.dto.CommunityListDTO;
-import com.jandi.plan_backend.commu.entity.Comments;
-import com.jandi.plan_backend.commu.entity.Community;
 import com.jandi.plan_backend.commu.repository.CommentRepository;
 import com.jandi.plan_backend.commu.repository.CommunityRepository;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import com.jandi.plan_backend.util.service.PaginationService;
 
