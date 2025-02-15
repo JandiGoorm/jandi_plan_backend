@@ -1,5 +1,6 @@
 package com.jandi.plan_backend.commu.service;
 
+import com.jandi.plan_backend.commu.dto.CommunityItemDTO;
 import com.jandi.plan_backend.commu.dto.ParentCommentDTO;
 import com.jandi.plan_backend.commu.dto.CommunityListDTO;
 import com.jandi.plan_backend.commu.dto.repliesDTO;
@@ -8,6 +9,8 @@ import com.jandi.plan_backend.commu.repository.CommunityRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import com.jandi.plan_backend.util.service.PaginationService;
+
+import java.util.Optional;
 
 @Service
 public class CommunityService {
@@ -26,6 +29,18 @@ public class CommunityService {
         long totalCount = communityRepository.count();
         return PaginationService.getPagedData(page, size, totalCount, communityRepository::findAll, CommunityListDTO::new);
     }
+
+    /** 특정 게시물의 정보 조회 */
+    public CommunityItemDTO getPostItem(Integer postId) {
+        if (postId == null) {
+            throw new IllegalArgumentException("postId를 지정하지 않았습니다.");
+        }
+
+        return communityRepository.findByPostId(postId)
+                .map(CommunityItemDTO::new)
+                .orElseThrow(() -> new RuntimeException("해당 게시글이 존재하지 않습니다."));
+    }
+
 
     /** 특정 게시물의 부모 댓글(최상위 댓글)만 조회 */
     public Page<ParentCommentDTO> getParentComments(Integer postId, int page, int size) {

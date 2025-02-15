@@ -1,5 +1,6 @@
 package com.jandi.plan_backend.commu.controller;
 
+import com.jandi.plan_backend.commu.dto.CommunityItemDTO;
 import com.jandi.plan_backend.commu.dto.ParentCommentDTO;
 import com.jandi.plan_backend.commu.dto.CommunityListDTO;
 import com.jandi.plan_backend.commu.dto.repliesDTO;
@@ -8,6 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/community")
@@ -36,6 +38,14 @@ public class CommunityController {
                 ),
                 "items", postsPage.getContent()   // 현재 페이지의 게시물 데이터
         );
+    }
+
+    /**
+     * 특정 게시물의 정보 조회
+     */
+    @GetMapping("/post")
+    public CommunityItemDTO getPost(@RequestParam Integer postId) {
+        return communityService.getPostItem(postId);
     }
 
     /** 페이지 단위로 특정 게시물의 댓글만 조회 */
