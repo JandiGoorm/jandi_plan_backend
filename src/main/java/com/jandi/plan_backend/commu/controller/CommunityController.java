@@ -105,7 +105,7 @@ public class CommunityController {
         );
     }
 
-    @PostMapping("/posts/write")
+    @PostMapping("/posts/write/post")
     public ResponseEntity<?> writePost(
             @RequestHeader("Authorization") String token, // 헤더의 Authorization에서 JWT 토큰 받기
             @RequestBody CommunityWritePostDTO postDTO // JSON 형식으로 게시글 작성 정보 받기
