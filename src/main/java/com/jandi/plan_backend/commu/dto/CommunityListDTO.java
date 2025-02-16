@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 
 /**
  * 게시물 리스트 조회 시 가져올 게시물 관련 DTO
+ * 리스트로 조회 시 content는 필요없으므로 제외하고, 댓글 수를 포함한 나머지 정보를 전달한다
  */
 @Getter
 public class CommunityListDTO {

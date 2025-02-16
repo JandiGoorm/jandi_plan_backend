@@ -5,6 +5,10 @@ import lombok.Getter;
 
 import java.time.LocalDateTime;
 
+/**
+ * 특정 게시글 정보 조회 시 가져올 게시물 관련 DTO
+ * 게시글만 조회 시 댓글 수를 제외하고, 내용을 포함한 전반적인 정보를 전달한다
+ */
 @Getter
 public class CommunityItemDTO {
     private final Integer postId;

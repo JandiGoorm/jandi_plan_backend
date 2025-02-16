@@ -1,11 +1,14 @@
 package com.jandi.plan_backend.commu.controller;
 
-import com.jandi.plan_backend.commu.dto.CommunityItemDTO;
-import com.jandi.plan_backend.commu.dto.ParentCommentDTO;
-import com.jandi.plan_backend.commu.dto.CommunityListDTO;
-import com.jandi.plan_backend.commu.dto.repliesDTO;
+import com.jandi.plan_backend.commu.dto.*;
+import com.jandi.plan_backend.commu.entity.Community;
 import com.jandi.plan_backend.commu.service.CommunityService;
+import com.jandi.plan_backend.user.dto.AuthResponse;
+import com.jandi.plan_backend.user.security.JwtTokenProvider;
+import io.jsonwebtoken.Jwt;
 import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -16,9 +19,12 @@ import java.util.Optional;
 public class CommunityController {
 
     private final CommunityService communityService;
+    private final JwtTokenProvider jwtTokenProvider; // 추가
 
-    public CommunityController(CommunityService communityService) {
+
+    public CommunityController(CommunityService communityService, JwtTokenProvider jwtTokenProvider) {
         this.communityService = communityService;
+        this.jwtTokenProvider = jwtTokenProvider;
     }
 
     /** 페이지 단위로 게시물 리스트 조회 */
@@ -40,9 +46,7 @@ public class CommunityController {
         );
     }
 
-    /**
-     * 특정 게시물의 정보 조회
-     */
+    /** 특정 게시물의 정보 조회 */
     @GetMapping("/post")
     public CommunityItemDTO getPost(@RequestParam Integer postId) {
         return communityService.getPostItem(postId);
@@ -86,5 +90,20 @@ public class CommunityController {
                 ),
                 "items", repliesPage.getContent()
         );
+    }
+
+    @PostMapping("/posts/write")
+    public ResponseEntity<?> writePost(
+            @RequestHeader("Authorization") String token, // 헤더의 Authorization에서 JWT 토큰 받기
+            @RequestBody CommunityWritePostDTO postDTO // JSON 형식으로 게시글 작성 정보 받기
+    ){
+
+        // Jwt 토큰으로부터 유저 이메일 추출
+        String jwtToken = token.replace("Bearer ", "");
+        String userEmail = jwtTokenProvider.getEmail(jwtToken);
+
+        // 게시글 저장 및 반환
+        CommunityWriteRespDTO savedPost = communityService.writePost(postDTO, userEmail);
+        return ResponseEntity.ok(savedPost);
     }
 }

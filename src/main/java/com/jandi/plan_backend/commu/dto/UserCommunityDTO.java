@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 /**
- * 게시물 리스트 조회 시 가져올 게시자 관련 DTO
+ * 게시물 조회 시 가져올 작성자 관련 DTO
  * 비밀번호를 포함한 유저의 모든 정보를 보내지 않도록 DTO로 조정
  */
 public class UserCommunityDTO {
