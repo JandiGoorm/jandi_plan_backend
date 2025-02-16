@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import com.jandi.plan_backend.util.service.PaginationService;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 public class CommunityService {
@@ -29,10 +30,10 @@ public class CommunityService {
     }
 
     /** 특정 게시글 조회 */
-    public CommunityItemDTO getSpecPost(Integer postId) {
-        return communityRepository.findByPostId(postId)
-                .map(CommunityItemDTO::new)
-                .orElseThrow(() -> new RuntimeException("해당 게시글이 존재하지 않습니다."));
+    public Optional<CommunityItemDTO> getSpecPost(Integer postId) {
+        validatePostExists(postId); //게시글의 존재 여부 검증
+
+        return communityRepository.findByPostId(postId).map(CommunityItemDTO::new);
     }
 
     /** 게시글 목록 전체 조회 */
@@ -46,10 +47,7 @@ public class CommunityService {
 
     /** 댓글 목록 조회 */
     public Page<ParentCommentDTO> getAllComments(Integer postId, int page, int size) {
-        //postId 관련 오류 처리
-        if(!communityRepository.existsById(postId)){
-            throw new BadRequestExceptionMessage("존재하지 않는 게시물입니다.");
-        }
+        validatePostExists(postId); //게시글의 존재 여부 검증
 
         long totalCount = commentRepository.countByCommunityPostIdAndParentCommentIsNull(postId);
         return PaginationService.getPagedData(page, size, totalCount,
@@ -58,26 +56,20 @@ public class CommunityService {
     }
 
     /** 답글 목록 조회 */
-    public Page<repliesDTO> getAllReplies(Integer parentCommentId, int page, int size) {
-        //commentId 관련 오류 처리
-        if(!communityRepository.existsById(parentCommentId)){
-            throw new BadRequestExceptionMessage("존재하지 않는 댓글입니다.");
-        }
+    public Page<repliesDTO> getAllReplies(Integer commentId, int page, int size) {
+        validateCommentExists(commentId); //댓글의 존재 여부 검증
 
-        long totalCount = commentRepository.countByParentCommentCommentId(parentCommentId);
+        long totalCount = commentRepository.countByParentCommentCommentId(commentId);
         return PaginationService.getPagedData(page, size, totalCount,
-                pageable -> commentRepository.findByParentCommentCommentId(parentCommentId, pageable),
+                pageable -> commentRepository.findByParentCommentCommentId(commentId, pageable),
                 repliesDTO::new);
     }
 
     /** 게시글 작성 */
     public CommunityWriteRespDTO writePost(CommunityWritePostDTO postDTO, String userEmail) {
-        // 사용자 관련 오류 처리
-        User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 사용자입니다."));
-        if(user.getReported()){
-            throw new BadRequestExceptionMessage("비정상적인 활동이 반복되어 게시글 작성이 제한되었습니다.");
-        }
+        //유저 검증
+        User user = validateUserExists(userEmail);
+        validateUserRestricted(user);
 
         // Community 엔티티 생성 및 저장
         Community community = new Community();
@@ -91,5 +83,33 @@ public class CommunityService {
 
         // DB 저장
         return new CommunityWriteRespDTO(community);
+    }
+
+    /** 검증 검사 */
+    // 게시글의 존재 여부 검증
+    private void validatePostExists(Integer postId) {
+        if (!communityRepository.existsById(postId)) {
+            throw new BadRequestExceptionMessage("존재하지 않는 게시물입니다.");
+        }
+    }
+
+    // 댓글의 존재 여부 검증
+    private void validateCommentExists(Integer commentId) {
+        if (!commentRepository.existsById(commentId)) {
+            throw new BadRequestExceptionMessage("존재하지 않는 댓글입니다.");
+        }
+    }
+
+    // 사용자의 존재 여부 검증
+    private User validateUserExists(String userEmail) {
+        return userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new BadRequestExceptionMessage("존재하지 않는 사용자입니다."));
+    }
+
+    // 사용자 활동 제한 여부 검증
+    private void validateUserRestricted(User user) {
+        if (user.getReported()) {
+            throw new BadRequestExceptionMessage("비정상적인 활동이 반복되어 게시글 작성이 제한되었습니다.");
+        }
     }
 }
