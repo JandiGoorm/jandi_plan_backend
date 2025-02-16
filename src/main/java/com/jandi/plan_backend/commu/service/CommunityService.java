@@ -67,11 +67,11 @@ public class CommunityService {
 
     /** 게시글 작성 */
     public CommunityWriteRespDTO writePost(CommunityWritePostDTO postDTO, String userEmail) {
-        //유저 검증
+        // 유저 검증
         User user = validateUserExists(userEmail);
         validateUserRestricted(user);
 
-        // Community 엔티티 생성 및 저장
+        // 게시글 생성
         Community community = new Community();
         community.setUser(user);
         community.setTitle(postDTO.getTitle());
@@ -79,13 +79,13 @@ public class CommunityService {
         community.setCreatedAt(LocalDateTime.now());
         community.setLikeCount(0);
         community.setCommentCount(0);
-        communityRepository.save(community);
 
-        // DB 저장
+        // DB 저장 및 반환
+        communityRepository.save(community);
         return new CommunityWriteRespDTO(community);
     }
 
-    /** 검증 검사 */
+    /** 검증 검사 메서드*/
     // 게시글의 존재 여부 검증
     private void validatePostExists(Integer postId) {
         if (!communityRepository.existsById(postId)) {
