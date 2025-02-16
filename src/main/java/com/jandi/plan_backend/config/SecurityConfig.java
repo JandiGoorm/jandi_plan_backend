@@ -59,8 +59,8 @@ public class SecurityConfig {
                                 "/api/users/login", "/api/users/register",
                                 "/api/notice/lists",
                                 "/api/images/url",
-                                "api/community/**",
-                                "/api/banner/*"
+                                "api/community/*",
+                                "/api/banner/lists"
                         ).permitAll()
                         // 그 외의 모든 요청은 인증 필요
                         .anyRequest().authenticated()
