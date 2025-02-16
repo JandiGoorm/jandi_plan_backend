@@ -37,7 +37,7 @@ public class CommunityController {
 
     //특정 게시글 조회
     public Map<String, Object> getSpecPost(Integer postId){
-        return Map.of("items", communityService.getPostItem(postId));
+        return Map.of("items", communityService.getSpecPost(postId));
     }
 
     //게시글 목록 전체 조회
@@ -77,7 +77,7 @@ public class CommunityController {
 
     // 댓글 목록 조회
     public Map<String, Object> getAllComments(int postId, int page, int size){
-        Page<ParentCommentDTO> parentCommentsPage = communityService.getParentComments(postId, page, size);
+        Page<ParentCommentDTO> parentCommentsPage = communityService.getAllComments(postId, page, size);
 
         return Map.of(
                 "pageInfo", Map.of(
@@ -92,7 +92,7 @@ public class CommunityController {
 
     // 답글 목록 조회
     public Map<String, Object> getAllReplies( int commentId, int page, int size){
-        Page<repliesDTO> repliesPage = communityService.getReplies(commentId, page, size);
+        Page<repliesDTO> repliesPage = communityService.getAllReplies(commentId, page, size);
 
         return Map.of(
                 "pageInfo", Map.of(
