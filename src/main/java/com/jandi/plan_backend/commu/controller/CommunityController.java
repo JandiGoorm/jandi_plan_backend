@@ -27,12 +27,23 @@ public class CommunityController {
         this.jwtTokenProvider = jwtTokenProvider;
     }
 
-    /** 페이지 단위로 게시물 리스트 조회 */
+    /** 게시물 조회 API*/
     @GetMapping("/posts")
-    public Map<String, Object> getAllPosts(
+    public Map<String, Object> getPosts(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
-    ) {
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) Integer postId
+    ){
+        return postId != null ? getSpecPost(postId) : getAllPosts(page, size);
+    }
+
+    //특정 게시글 조회
+    public Map<String, Object> getSpecPost(Integer postId){
+        return Map.of("items", communityService.getPostItem(postId));
+    }
+
+    //게시글 목록 전체 조회
+    public Map<String, Object> getAllPosts(int page, int size){
         Page<CommunityListDTO> postsPage = communityService.getAllPosts(page, size);
 
         return Map.of(
@@ -44,12 +55,6 @@ public class CommunityController {
                 ),
                 "items", postsPage.getContent()   // 현재 페이지의 게시물 데이터
         );
-    }
-
-    /** 특정 게시물의 정보 조회 */
-    @GetMapping("/post")
-    public CommunityItemDTO getPost(@RequestParam Integer postId) {
-        return communityService.getPostItem(postId);
     }
 
     /** 페이지 단위로 특정 게시물의 댓글만 조회 */
