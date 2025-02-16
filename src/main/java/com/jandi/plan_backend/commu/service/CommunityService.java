@@ -1,6 +1,7 @@
 package com.jandi.plan_backend.commu.service;
 
 import com.jandi.plan_backend.commu.dto.*;
+import com.jandi.plan_backend.commu.entity.Comments;
 import com.jandi.plan_backend.commu.entity.Community;
 import com.jandi.plan_backend.commu.repository.CommentRepository;
 import com.jandi.plan_backend.commu.repository.CommunityRepository;
@@ -31,9 +32,10 @@ public class CommunityService {
 
     /** 특정 게시글 조회 */
     public Optional<CommunityItemDTO> getSpecPost(Integer postId) {
-        validatePostExists(postId); //게시글의 존재 여부 검증
+        //게시글의 존재 여부 검증
+        Optional<Community> post = Optional.ofNullable(validatePostExists(postId));
 
-        return communityRepository.findByPostId(postId).map(CommunityItemDTO::new);
+        return post.map(CommunityItemDTO::new);
     }
 
     /** 게시글 목록 전체 조회 */
@@ -85,19 +87,54 @@ public class CommunityService {
         return new CommunityWriteRespDTO(community);
     }
 
-    /** 검증 검사 메서드*/
-    // 게시글의 존재 여부 검증
-    private void validatePostExists(Integer postId) {
-        if (!communityRepository.existsById(postId)) {
-            throw new BadRequestExceptionMessage("존재하지 않는 게시물입니다.");
+    /** 댓글 작성 */
+    public CommentWriteRespDTO writeComment(CommentWritePostDTO commentDTO, String userEmail){
+        // 유저 검증
+        User user = validateUserExists(userEmail);
+        validateUserRestricted(user);
+
+        // 게시글 검증
+        Community post = validatePostExists(commentDTO.getPostId());
+
+        // 댓글 검증
+        Comments parentComment = (commentDTO.getParentCommentId() == null) ?
+                null : validateCommentExists(commentDTO.getParentCommentId());
+
+        // 댓글 생성
+        Comments comment = new Comments();
+        comment.setCommunity(post);
+        comment.setParentComment(parentComment);
+        comment.setUserId(user.getUserId());
+        comment.setCreatedAt(LocalDateTime.now());
+        comment.setContents(commentDTO.getContents());
+        comment.setLikeCount(0);
+        comment.setRepliesCount(0);
+
+
+        // 댓글 저장
+        commentRepository.save(comment);
+        if(parentComment != null) { //답글인 경우 상위 댓글의 repliesCount 증가
+            parentComment.setRepliesCount(parentComment.getRepliesCount() + 1);
         }
+
+        return new CommentWriteRespDTO(comment);
+    }
+
+    /**
+     * 검증 검사 메서드
+     *
+     * @return
+     */
+    // 게시글의 존재 여부 검증
+    private Community validatePostExists(Integer postId) {
+        return communityRepository.findByPostId(postId)
+                .orElseThrow(() -> new BadRequestExceptionMessage("존재하지 않는 게시글입니다."));
     }
 
     // 댓글의 존재 여부 검증
-    private void validateCommentExists(Integer commentId) {
-        if (!commentRepository.existsById(commentId)) {
-            throw new BadRequestExceptionMessage("존재하지 않는 댓글입니다.");
-        }
+    private Comments validateCommentExists(Integer commentId) {
+        return (Comments) commentRepository.findByCommentId(commentId)
+                .orElseThrow(() -> new BadRequestExceptionMessage("존재하지 않는 댓글입니다."));
     }
 
     // 사용자의 존재 여부 검증

@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Optional;
+
 public interface CommentRepository extends JpaRepository<Comments, Integer> {
 
     //특정 게시글의 부모 댓글만 조회하는 메서드
@@ -20,4 +22,7 @@ public interface CommentRepository extends JpaRepository<Comments, Integer> {
 
     //특정 댓글에 속한 자식 답글의 수를 반환하는 메서드
     long countByParentCommentCommentId(Integer commentId);
+
+    //댓글이 존재하는지 조회하는 메서드
+    Optional<Object> findByCommentId(Integer commentId);
 }
