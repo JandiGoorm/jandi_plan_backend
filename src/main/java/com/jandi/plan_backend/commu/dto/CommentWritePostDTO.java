@@ -1,7 +1,5 @@
 package com.jandi.plan_backend.commu.dto;
 
-import com.jandi.plan_backend.commu.entity.Comments;
-import com.jandi.plan_backend.commu.entity.Community;
 import lombok.Data;
 
 /**

@@ -8,7 +8,6 @@ import java.time.LocalDateTime;
 @Data
 public class CommentWriteRespDTO {
     private final Integer commentId;
-    private final ParentCommentDTO parentComment;
     private final Integer userId;
     private final LocalDateTime createdAt;
     private final String contents;
@@ -22,6 +21,5 @@ public class CommentWriteRespDTO {
         this.contents = comment.getContents();
         this.likeCount = comment.getLikeCount();
         this.repliesCount = comment.getRepliesCount();
-        this.parentComment = new ParentCommentDTO(comment.getParentComment());
     }
 }

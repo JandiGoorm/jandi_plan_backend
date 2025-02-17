@@ -113,6 +113,7 @@ public class CommunityService {
 
         // 댓글 저장
         commentRepository.save(comment);
+        post.setCommentCount(post.getCommentCount() + 1); //게시글의 댓글 수 증가
         if(parentComment != null) { //답글인 경우 상위 댓글의 repliesCount 증가
             parentComment.setRepliesCount(parentComment.getRepliesCount() + 1);
         }
@@ -120,11 +121,7 @@ public class CommunityService {
         return new CommentWriteRespDTO(comment);
     }
 
-    /**
-     * 검증 검사 메서드
-     *
-     * @return
-     */
+    /** 검증 검사 메서드 */
     // 게시글의 존재 여부 검증
     private Community validatePostExists(Integer postId) {
         return communityRepository.findByPostId(postId)
