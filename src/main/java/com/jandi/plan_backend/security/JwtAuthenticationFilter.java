@@ -1,4 +1,4 @@
-package com.jandi.plan_backend.user.security;
+package com.jandi.plan_backend.security;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;

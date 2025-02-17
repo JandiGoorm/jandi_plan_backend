@@ -5,7 +5,7 @@ import com.jandi.plan_backend.user.dto.UserLoginDTO;
 import com.jandi.plan_backend.user.dto.UserRegisterDTO;
 import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.user.repository.UserRepository;
-import com.jandi.plan_backend.user.security.JwtTokenProvider;
+import com.jandi.plan_backend.security.JwtTokenProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

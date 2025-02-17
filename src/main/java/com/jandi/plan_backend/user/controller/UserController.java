@@ -2,7 +2,7 @@ package com.jandi.plan_backend.user.controller;
 
 import com.jandi.plan_backend.user.dto.*;
 import com.jandi.plan_backend.user.service.UserService;
-import com.jandi.plan_backend.user.security.JwtTokenProvider;
+import com.jandi.plan_backend.security.JwtTokenProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
