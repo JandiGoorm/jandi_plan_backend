@@ -15,48 +15,60 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.cors.CorsConfigurationSource;
+import java.util.List;
 
-/*
- * Spring Security 관련 설정을 담당하는 클래스.
- * JWT를 사용한 인증 방식과 stateless 세션 정책을 적용함.
- */
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
-    // JWT 토큰 생성/검증 담당 객체
     private final JwtTokenProvider jwtTokenProvider;
-    // 사용자 정보를 DB에서 로드하는 서비스
     private final CustomUserDetailsService customUserDetailsService;
 
-    /*
-     * 생성자에서 JwtTokenProvider와 CustomUserDetailsService를 주입받음.
-     * 이 두 객체는 JWT 기반 인증 처리에 필요함.
+    /**
+     * 생성자 주입: JWT 토큰 생성/검증과 사용자 정보 로드를 위한 CustomUserDetailsService를 주입받습니다.
      */
     public SecurityConfig(JwtTokenProvider jwtTokenProvider, CustomUserDetailsService customUserDetailsService) {
         this.jwtTokenProvider = jwtTokenProvider;
         this.customUserDetailsService = customUserDetailsService;
     }
 
-    /*
-     * HTTP 보안 설정을 담당하는 SecurityFilterChain 빈 정의.
-     * - 세션을 사용하지 않고, 모든 요청에 대해 JWT 토큰을 통한 인증을 적용함.
-     * - 로그인 및 회원가입 요청은 인증 없이 접근 허용.
-     * - JwtAuthenticationFilter를 UsernamePasswordAuthenticationFilter 앞에 배치함.
+    /**
+     * CORS 설정을 위한 CorsConfigurationSource 빈.
+     * - 모든 오리진("*")을 허용하지만, 실제 프로덕션 환경에서는 특정 오리진만 허용하도록 설정해야 합니다.
+     * - 모든 HTTP 메서드와 헤더를 허용하며, 쿠키와 인증 정보를 포함한 요청도 허용합니다.
+     */
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOriginPatterns(List.of("*")); // 필요 시 "http://localhost:3000" 등 구체적으로 설정
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true); // 쿠키 및 인증 정보 허용
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
+
+    /**
+     * HTTP 보안 설정을 담당하는 SecurityFilterChain 빈.
+     * - lambda 스타일로 CORS 설정을 적용하고, stateless 세션 정책 및 CSRF 비활성화를 적용합니다.
+     * - 특정 엔드포인트에 대해 인증 없이 접근을 허용하고, 나머지 요청은 인증을 요구합니다.
+     * - JWT 인증 필터를 UsernamePasswordAuthenticationFilter 이전에 추가합니다.
      */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // CORS 설정 활성화 (기본 설정 적용)
-                .cors().and()
+                // lambda 스타일로 커스텀 CORS 설정 적용
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 // 세션을 사용하지 않도록 설정 (stateless)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                // CSRF 보호 비활성화 (API 서버에서는 불필요)
+                // CSRF 보호 비활성화 (API 서버에서는 필요 없음)
                 .csrf(AbstractHttpConfigurer::disable)
                 // 요청에 대한 접근 권한 설정
                 .authorizeHttpRequests(authorize -> authorize
-                        // 인증 없이 접근 가능한 엔드 포인트
-                        // -> 로그인, 회원 가입, 게시판 관련, 공지 사항, 배너
                         .requestMatchers(
                                 "/api/users/login", "/api/users/register", "/api/users/forgot",
                                 "/api/notice/lists",
@@ -64,28 +76,26 @@ public class SecurityConfig {
                                 "api/community/posts", "api/community/comments",
                                 "/api/banner/lists"
                         ).permitAll()
-                        // 그 외의 모든 요청은 인증 필요
                         .anyRequest().authenticated()
                 )
                 // JWT 인증 필터를 UsernamePasswordAuthenticationFilter 전에 추가
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, customUserDetailsService),
                         UsernamePasswordAuthenticationFilter.class);
-        // 구성한 보안 설정을 빌드해서 반환
         return http.build();
     }
 
-    /*
-     * 인증 관리자를 빈으로 등록.
-     * AuthenticationConfiguration을 이용해 AuthenticationManager를 가져옴.
+    /**
+     * 인증 관리자(AuthenticationManager)를 빈으로 등록.
+     * AuthenticationConfiguration을 통해 자동으로 구성된 AuthenticationManager를 반환합니다.
      */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
         return authConfig.getAuthenticationManager();
     }
 
-    /*
-     * 비밀번호 암호화를 위해 BCryptPasswordEncoder를 빈으로 등록.
-     * 회원가입이나 로그인 시 비밀번호 비교에 사용됨.
+    /**
+     * BCryptPasswordEncoder를 빈으로 등록.
+     * 회원가입이나 로그인 시 비밀번호 암호화 및 비교에 사용됩니다.
      */
     @Bean
     public PasswordEncoder passwordEncoder() {
