@@ -121,11 +121,7 @@ public class CommunityService {
         return new CommentWriteRespDTO(comment);
     }
 
-    /**
-     * 검증 검사 메서드
-     *
-     * @return
-     */
+    /** 검증 검사 메서드 */
     // 게시글의 존재 여부 검증
     private Community validatePostExists(Integer postId) {
         return communityRepository.findByPostId(postId)
