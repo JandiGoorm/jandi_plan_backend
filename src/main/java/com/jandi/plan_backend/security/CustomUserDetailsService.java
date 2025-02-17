@@ -1,6 +1,5 @@
-package com.jandi.plan_backend.security.service;
+package com.jandi.plan_backend.security;
 
-import com.jandi.plan_backend.security.entity.CustomUserDetails;
 import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.user.repository.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;

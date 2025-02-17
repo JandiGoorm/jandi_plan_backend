@@ -1,6 +1,6 @@
 package com.jandi.plan_backend.config;
 
-import com.jandi.plan_backend.security.service.CustomUserDetailsService;
+import com.jandi.plan_backend.security.CustomUserDetailsService;
 import com.jandi.plan_backend.security.JwtAuthenticationFilter;
 import com.jandi.plan_backend.security.JwtTokenProvider;
 import org.springframework.context.annotation.Bean;

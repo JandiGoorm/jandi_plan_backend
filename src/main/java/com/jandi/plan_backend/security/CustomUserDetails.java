@@ -1,4 +1,4 @@
-package com.jandi.plan_backend.security.entity;
+package com.jandi.plan_backend.security;
 
 import com.jandi.plan_backend.user.entity.User;
 import org.springframework.security.core.GrantedAuthority;
