@@ -20,6 +20,9 @@ public class ImageService {
     private final GoogleCloudStorageService googleCloudStorageService;
     private final ImageRepository imageRepository;
 
+    // 공개 URL 접두어 (버킷명에 맞게 수정 가능)
+    private final String publicUrlPrefix = "https://storage.googleapis.com/plan-storage/";
+
     public ImageService(GoogleCloudStorageService googleCloudStorageService, ImageRepository imageRepository) {
         this.googleCloudStorageService = googleCloudStorageService;
         this.imageRepository = imageRepository;
@@ -42,7 +45,7 @@ public class ImageService {
             errorDto.setMessage(uploadResult);
             return errorDto;
         }
-        // 업로드 성공: 인코딩된 파일명 추출 (예: "883120d6-4cc8-4928-ac94-25f3f50e07db_unnamed.png")
+        // 업로드 성공: 인코딩된 파일명 추출 (예: "c85ea963-8d42-4f2e-83c7-e0087bead6f4_unnamed.png")
         String storedFileName = uploadResult.replace("파일 업로드 성공: ", "").trim();
 
         // Image 엔티티 생성 및 DB 저장 (파일명만 저장)
@@ -55,10 +58,13 @@ public class ImageService {
 
         image = imageRepository.save(image);
 
+        // 전체 공개 URL 구성 (접두어 + 파일명)
+        String fullPublicUrl = publicUrlPrefix + image.getImageUrl();
+
         // 응답 DTO 생성
         ImageResponseDto responseDto = new ImageResponseDto();
         responseDto.setImageId(image.getImageId());
-        responseDto.setImageUrl(image.getImageUrl());
+        responseDto.setImageUrl(fullPublicUrl);
         responseDto.setMessage("이미지 업로드 및 DB 저장 성공");
         return responseDto;
     }
@@ -71,8 +77,7 @@ public class ImageService {
      */
     public String getPublicUrlByImageId(Integer imageId) {
         Optional<Image> imageOptional = imageRepository.findById(imageId);
-        // DB에 저장된 파일명 앞에 접두어를 붙여 최종 공개 URL 생성
-        return imageOptional.map(img -> "https://storage.googleapis.com/plan-storage/" + img.getImageUrl())
+        return imageOptional.map(img -> publicUrlPrefix + img.getImageUrl())
                 .orElse(null);
     }
 }

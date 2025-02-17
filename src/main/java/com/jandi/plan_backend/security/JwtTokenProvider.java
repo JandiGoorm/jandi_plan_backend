@@ -1,4 +1,4 @@
-package com.jandi.plan_backend.user.security;
+package com.jandi.plan_backend.security;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;

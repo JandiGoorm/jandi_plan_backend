@@ -1,8 +1,8 @@
 package com.jandi.plan_backend.config;
 
-import com.jandi.plan_backend.user.security.CustomUserDetailsService;
-import com.jandi.plan_backend.user.security.JwtAuthenticationFilter;
-import com.jandi.plan_backend.user.security.JwtTokenProvider;
+import com.jandi.plan_backend.security.CustomUserDetailsService;
+import com.jandi.plan_backend.security.JwtAuthenticationFilter;
+import com.jandi.plan_backend.security.JwtTokenProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -56,7 +56,7 @@ public class SecurityConfig {
                         // 인증 없이 접근 가능한 엔드 포인트
                         // -> 로그인, 회원 가입, 게시판 관련, 공지 사항, 배너
                         .requestMatchers(
-                                "/api/users/login", "/api/users/register",
+                                "/api/users/login", "/api/users/register", "/api/users/forgot",
                                 "/api/notice/lists",
                                 "/api/images/url",
                                 "api/community/posts", "api/community/comments",
