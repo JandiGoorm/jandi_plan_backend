@@ -42,28 +42,43 @@ public class UserService {
     }
 
     public User registerUser(UserRegisterDTO dto) {
+        // 이미 존재하는 이메일인지 체크
         if (userRepository.existsByEmail(dto.getEmail())) {
             throw new RuntimeException("이미 존재하는 이메일입니다.");
         }
+
+        // 새로운 사용자 객체 생성 후 입력값 세팅
         User user = new User();
         user.setUserName(dto.getUserName());
         user.setFirstName(dto.getFirstName());
         user.setLastName(dto.getLastName());
         user.setEmail(dto.getEmail());
+        // 비밀번호는 암호화 후 저장
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
         user.setCreatedAt(LocalDateTime.now());
         user.setUpdatedAt(LocalDateTime.now());
         user.setVerified(false);
+        // reported 속성 기본값을 false로 설정
+        user.setReported(false);
+
+        // 이메일 인증을 위한 고유 토큰 생성
         String token = UUID.randomUUID().toString();
         user.setVerificationToken(token);
+        // 토큰 만료 시간은 현재 시각에서 24시간 후로 설정
         user.setTokenExpires(LocalDateTime.now().plusHours(24));
+
+        // 사용자 정보를 DB에 저장
         userRepository.save(user);
 
+        // 인증 URL 생성
         String verifyLink = verifyUrl + "?token=" + token;
         String subject = "[회원가입] 이메일 인증 안내";
-        String text = "안녕하세요.\n" +
-                "아래 링크를 클릭하면 이메일 인증이 완료됩니다.\n\n" +
-                verifyLink + "\n\n인증은 24시간 이내에 완료해주세요.";
+        // 이메일 본문 내용 구성
+        String text = "안녕하세요.\n"
+                + "아래 링크를 클릭하면 이메일 인증이 완료됩니다.\n\n"
+                + verifyLink
+                + "\n\n인증은 24시간 이내에 완료해주세요.";
+        // 이메일 발송
         emailService.sendSimpleMail(user.getEmail(), subject, text);
 
         return user;
