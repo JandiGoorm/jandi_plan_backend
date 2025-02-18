@@ -3,7 +3,6 @@ package com.jandi.plan_backend.resource.controller;
 import com.jandi.plan_backend.resource.dto.*;
 import com.jandi.plan_backend.resource.service.BannerService;
 import com.jandi.plan_backend.security.JwtTokenProvider;
-import com.jandi.plan_backend.storage.dto.ImageResponseDto;
 import com.jandi.plan_backend.storage.service.ImageService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,15 +16,13 @@ import java.util.Map;
 public class BannerController {
     private final BannerService bannerService;
     private final JwtTokenProvider jwtTokenProvider; // JWT 토큰 관련
-    private final ImageService imageService;
 
     public BannerController(BannerService bannerService, JwtTokenProvider jwtTokenProvider, ImageService imageService) {
         this.bannerService = bannerService;
         this.jwtTokenProvider = jwtTokenProvider;
-        this.imageService = imageService;
     }
 
-    /**배너 목록 조회*/
+    /** 배너 목록 조회 API */
     @GetMapping("/lists")
     public Map<String, Object> getAllBannersFormatted() {
         List<BannerListDTO> banners = bannerService.getAllBanners();
@@ -36,7 +33,7 @@ public class BannerController {
         );
     }
 
-    /** 배너 추가 */
+    /** 배너 작성 API */
     @PostMapping("/lists")
     public ResponseEntity writeBanner(
             @RequestHeader("Authorization") String token, // 헤더의 Authorization에서 JWT 토큰 받기
