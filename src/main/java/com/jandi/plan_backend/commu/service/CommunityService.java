@@ -28,9 +28,7 @@ public class CommunityService {
         this.validationUtil = validationUtil;
     }
 
-    /**
-     * 특정 게시글 조회
-     */
+    /** 특정 게시글 조회 */
     public Optional<CommunityItemDTO> getSpecPost(Integer postId) {
         //게시글의 존재 여부 검증
         Optional<Community> post = Optional.ofNullable(validationUtil.validatePostExists(postId));
@@ -38,9 +36,7 @@ public class CommunityService {
         return post.map(CommunityItemDTO::new);
     }
 
-    /**
-     * 게시글 목록 전체 조회
-     */
+    /** 게시글 목록 전체 조회 */
     public Page<CommunityListDTO> getAllPosts(int page, int size) {
         long totalCount = communityRepository.count();
         return PaginationService.getPagedData(page, size, totalCount,
@@ -49,9 +45,7 @@ public class CommunityService {
     }
 
 
-    /**
-     * 댓글 목록 조회
-     */
+    /** 댓글 목록 조회 */
     public Page<ParentCommentDTO> getAllComments(Integer postId, int page, int size) {
         validationUtil.validatePostExists(postId); //게시글의 존재 여부 검증
 
@@ -61,9 +55,7 @@ public class CommunityService {
                 ParentCommentDTO::new);
     }
 
-    /**
-     * 답글 목록 조회
-     */
+    /** 답글 목록 조회 */
     public Page<repliesDTO> getAllReplies(Integer commentId, int page, int size) {
         validationUtil.validateCommentExists(commentId); //댓글의 존재 여부 검증
 
@@ -73,9 +65,7 @@ public class CommunityService {
                 repliesDTO::new);
     }
 
-    /**
-     * 게시글 작성
-     */
+    /** 게시글 작성 */
     public CommunityWriteRespDTO writePost(CommunityWritePostDTO postDTO, String userEmail) {
         // 유저 검증
         User user = validationUtil.validateUserExists(userEmail);
@@ -95,9 +85,7 @@ public class CommunityService {
         return new CommunityWriteRespDTO(community);
     }
 
-    /**
-     * 댓글 작성
-     */
+    /** 댓글 작성 */
     public CommentWriteRespDTO writeComment(CommentWritePostDTO commentDTO, String userEmail) {
         // 유저 검증
         User user = validationUtil.validateUserExists(userEmail);
@@ -129,5 +117,24 @@ public class CommunityService {
         }
 
         return new CommentWriteRespDTO(comment);
+    }
+
+    /** 게시물 수정 */
+    public CommunityWriteRespDTO updatePost(CommunityWritePostDTO postDTO, Integer postId, String userEmail) {
+        //게시글 검증
+        Community post = validationUtil.validatePostExists(postId);
+
+        // 유저 검증
+        User user = validationUtil.validateUserExists(userEmail);
+        validationUtil.validateUserRestricted(user);
+        validationUtil.validateUserIsAuthorOfPost(user, post);
+
+        // 게시글 수정: 빈 값이 아닐 때만 수정되게 함
+        if(postDTO.getTitle()!=null) post.setTitle(postDTO.getTitle());
+        if(postDTO.getContent()!=null) post.setContents(postDTO.getContent());
+
+        // DB 저장 및 반환
+        communityRepository.save(post);
+        return new CommunityWriteRespDTO(post);
     }
 }

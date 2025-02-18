@@ -9,6 +9,8 @@ import com.jandi.plan_backend.user.repository.UserRepository;
 import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
 import org.springframework.stereotype.Component;
 
+import java.util.Objects;
+
 /** 검증 검사 Util*/
 @Component
 public class ValidationUtil {
@@ -49,10 +51,22 @@ public class ValidationUtil {
                 .orElseThrow(() -> new BadRequestExceptionMessage("존재하지 않는 게시글입니다."));
     }
 
+    // 게시물의 작성자인지 검증
+    public void validateUserIsAuthorOfPost(User user, Community post) {
+        if(!Objects.equals(user.getUserId(), post.getUser().getUserId()))
+            throw new BadRequestExceptionMessage("작성자 본인만 수정할 수 있습니다.");
+    }
+
     /** commentRepository 관련 검증 */
     // 댓글의 존재 여부 검증
     public Comments validateCommentExists(Integer commentId) {
         return (Comments) commentRepository.findByCommentId(commentId)
                 .orElseThrow(() -> new BadRequestExceptionMessage("존재하지 않는 댓글입니다."));
+    }
+
+    // 댓글의 작성자인지 검증
+    public void validateUserIsAuthorOfComment(User user, Comments comment) {
+        if(!Objects.equals(user.getUserId(), comment.getUserId()))
+            throw new BadRequestExceptionMessage("작성자 본인만 수정할 수 있습니다.");
     }
 }
