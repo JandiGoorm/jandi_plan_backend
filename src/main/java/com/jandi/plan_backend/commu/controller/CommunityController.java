@@ -102,6 +102,7 @@ public class CommunityController {
         );
     }
 
+    /** 게시글 작성 API */
     @PostMapping("/write/post")
     public ResponseEntity<?> writePost(
             @RequestHeader("Authorization") String token, // 헤더의 Authorization에서 JWT 토큰 받기
@@ -116,6 +117,7 @@ public class CommunityController {
         return ResponseEntity.ok(savedPost);
     }
 
+    /** 댓글 및 답글 작성 API */
     @PostMapping("/write/comment")
     public ResponseEntity<?> writeComment(
             @RequestHeader("Authorization") String token, // 헤더의 Authorization에서 JWT 토큰 받기
