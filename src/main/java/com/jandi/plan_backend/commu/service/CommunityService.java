@@ -109,12 +109,13 @@ public class CommunityService {
         comment.setRepliesCount(0);
 
 
-        // 댓글 저장
-        commentRepository.save(comment);
+        // 댓글 저장 및 카운트 반영
         post.setCommentCount(post.getCommentCount() + 1); //게시글의 댓글 수 증가
         if (parentComment != null) { //답글인 경우 상위 댓글의 repliesCount 증가
             parentComment.setRepliesCount(parentComment.getRepliesCount() + 1);
         }
+        commentRepository.save(comment);
+        communityRepository.save(post);
 
         return new CommentWriteRespDTO(comment);
     }
