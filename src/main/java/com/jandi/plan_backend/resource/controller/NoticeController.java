@@ -4,7 +4,7 @@ import com.jandi.plan_backend.resource.dto.NoticeListDTO;
 import com.jandi.plan_backend.resource.dto.NoticeWritePostDTO;
 import com.jandi.plan_backend.resource.dto.NoticeWriteRespDTO;
 import com.jandi.plan_backend.resource.service.NoticeService;
-import com.jandi.plan_backend.user.security.JwtTokenProvider;
+import com.jandi.plan_backend.security.JwtTokenProvider;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

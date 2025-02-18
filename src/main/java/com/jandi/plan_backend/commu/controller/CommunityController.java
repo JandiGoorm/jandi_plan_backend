@@ -2,7 +2,7 @@ package com.jandi.plan_backend.commu.controller;
 
 import com.jandi.plan_backend.commu.dto.*;
 import com.jandi.plan_backend.commu.service.CommunityService;
-import com.jandi.plan_backend.user.security.JwtTokenProvider;
+import com.jandi.plan_backend.security.JwtTokenProvider;
 import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +16,6 @@ public class CommunityController {
 
     private final CommunityService communityService;
     private final JwtTokenProvider jwtTokenProvider; // 추가
-
 
     public CommunityController(CommunityService communityService, JwtTokenProvider jwtTokenProvider) {
         this.communityService = communityService;
@@ -54,8 +53,6 @@ public class CommunityController {
                 "items", postsPage.getContent()   // 현재 페이지의 게시물 데이터
         );
     }
-
-
 
     /** 댓글 조회 API */
     @GetMapping("/comments")
@@ -110,7 +107,6 @@ public class CommunityController {
             @RequestHeader("Authorization") String token, // 헤더의 Authorization에서 JWT 토큰 받기
             @RequestBody CommunityWritePostDTO postDTO // JSON 형식으로 게시글 작성 정보 받기
     ){
-
         // Jwt 토큰으로부터 유저 이메일 추출
         String jwtToken = token.replace("Bearer ", "");
         String userEmail = jwtTokenProvider.getEmail(jwtToken);
