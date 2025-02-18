@@ -137,4 +137,22 @@ public class CommunityService {
         communityRepository.save(post);
         return new CommunityWriteRespDTO(post);
     }
+
+    /** 댓글 수정 */
+    public CommentWriteRespDTO updateComment(CommentWritePostDTO commentDTO, Integer commentId, String userEmail) {
+        // 댓글 검증
+        Comments comment = validationUtil.validateCommentExists(commentId);
+
+        // 유저 검증
+        User user = validationUtil.validateUserExists(userEmail);
+        validationUtil.validateUserRestricted(user);
+        validationUtil.validateUserIsAuthorOfComment(user, comment);
+
+        //댓글 수정: 빈 값이 아닐 때만 수정되게 함
+        if(commentDTO.getContents()!=null) comment.setContents(commentDTO.getContents());
+
+        // DB 저장 및 반환
+        commentRepository.save(comment);
+        return new CommentWriteRespDTO(comment);
+    }
 }

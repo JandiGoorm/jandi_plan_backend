@@ -148,4 +148,20 @@ public class CommunityController {
         CommunityWriteRespDTO updatedPost = communityService.updatePost(postDTO, postId, userEmail);
         return ResponseEntity.ok(updatedPost);
     }
+
+    /** 댓글 및 답글 수정 API */
+    @PatchMapping("/update/comments/{commentId}")
+    public ResponseEntity<?> updateComment(
+            @PathVariable Integer commentId, //쿼리파라미터로 게시물 고유 번호 받기
+            @RequestHeader("Authorization") String token, // 헤더의 Authorization에서 JWT 토큰 받기
+            @RequestBody CommentWritePostDTO commentDTO // JSON 형식으로 게시글 작성 정보 받기
+    ){
+        // Jwt 토큰으로부터 유저 이메일 추출
+        String jwtToken = token.replace("Bearer ", "");
+        String userEmail = jwtTokenProvider.getEmail(jwtToken);
+
+        // 게시물 수정 및 반환
+        CommentWriteRespDTO updatedPost = communityService.updateComment(commentDTO, commentId, userEmail);
+        return ResponseEntity.ok(updatedPost);
+    }
 }
