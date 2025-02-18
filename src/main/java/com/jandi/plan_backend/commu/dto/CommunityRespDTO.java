@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
  * 게시글 및 작성자 정보를 넘겨준다
  */
 @Data
-public class CommunityWriteRespDTO {
+public class CommunityRespDTO {
     private Integer postId;
     private String title;
     private String content;
@@ -19,7 +19,7 @@ public class CommunityWriteRespDTO {
     private int commentCount;
     private UserCommunityDTO user; // 유저 정보 중 민감 정보 제외
 
-    public CommunityWriteRespDTO(Community community) {
+    public CommunityRespDTO(Community community) {
         this.postId = community.getPostId();
         this.title = community.getTitle();
         this.content = community.getContents();

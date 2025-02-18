@@ -7,7 +7,7 @@ import lombok.Data;
  * 게시글 제목과 내용을 저장한다
  */
 @Data
-public class CommunityWritePostDTO {
+public class CommunityReqDTO {
     private final String title;
     private final String content;
 }

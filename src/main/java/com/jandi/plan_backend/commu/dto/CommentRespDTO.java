@@ -6,7 +6,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-public class CommentWriteRespDTO {
+public class CommentRespDTO {
     private final Integer commentId;
     private final Integer userId;
     private final LocalDateTime createdAt;
@@ -14,7 +14,7 @@ public class CommentWriteRespDTO {
     private final Integer likeCount;
     private final Integer repliesCount; //답글 수
 
-    public CommentWriteRespDTO(Comments comment) {
+    public CommentRespDTO(Comments comment) {
         this.commentId = comment.getCommentId();
         this.userId = comment.getUserId();
         this.createdAt = comment.getCreatedAt();

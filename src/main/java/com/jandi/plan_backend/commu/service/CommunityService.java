@@ -6,8 +6,7 @@ import com.jandi.plan_backend.commu.entity.Community;
 import com.jandi.plan_backend.commu.repository.CommentRepository;
 import com.jandi.plan_backend.commu.repository.CommunityRepository;
 import com.jandi.plan_backend.user.entity.User;
-import com.jandi.plan_backend.user.repository.UserRepository;
-import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
+import com.jandi.plan_backend.util.ValidationUtil;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import com.jandi.plan_backend.util.service.PaginationService;
@@ -20,20 +19,19 @@ public class CommunityService {
 
     private final CommunityRepository communityRepository;
     private final CommentRepository commentRepository;
-    private final UserRepository userRepository;
-
+    private final ValidationUtil validationUtil;
 
     // 생성자를 통해 필요한 의존성들을 주입받음.
-    public CommunityService(CommunityRepository communityRepository, CommentRepository commentRepository, UserRepository userRepository) {
+    public CommunityService(CommunityRepository communityRepository, CommentRepository commentRepository, ValidationUtil validationUtil) {
         this.communityRepository = communityRepository;
         this.commentRepository = commentRepository;
-        this.userRepository = userRepository;
+        this.validationUtil = validationUtil;
     }
 
     /** 특정 게시글 조회 */
     public Optional<CommunityItemDTO> getSpecPost(Integer postId) {
         //게시글의 존재 여부 검증
-        Optional<Community> post = Optional.ofNullable(validatePostExists(postId));
+        Optional<Community> post = Optional.ofNullable(validationUtil.validatePostExists(postId));
 
         return post.map(CommunityItemDTO::new);
     }
@@ -49,7 +47,7 @@ public class CommunityService {
 
     /** 댓글 목록 조회 */
     public Page<ParentCommentDTO> getAllComments(Integer postId, int page, int size) {
-        validatePostExists(postId); //게시글의 존재 여부 검증
+        validationUtil.validatePostExists(postId); //게시글의 존재 여부 검증
 
         long totalCount = commentRepository.countByCommunityPostIdAndParentCommentIsNull(postId);
         return PaginationService.getPagedData(page, size, totalCount,
@@ -59,7 +57,7 @@ public class CommunityService {
 
     /** 답글 목록 조회 */
     public Page<repliesDTO> getAllReplies(Integer commentId, int page, int size) {
-        validateCommentExists(commentId); //댓글의 존재 여부 검증
+        validationUtil.validateCommentExists(commentId); //댓글의 존재 여부 검증
 
         long totalCount = commentRepository.countByParentCommentCommentId(commentId);
         return PaginationService.getPagedData(page, size, totalCount,
@@ -68,10 +66,10 @@ public class CommunityService {
     }
 
     /** 게시글 작성 */
-    public CommunityWriteRespDTO writePost(CommunityWritePostDTO postDTO, String userEmail) {
+    public CommunityRespDTO writePost(CommunityReqDTO postDTO, String userEmail) {
         // 유저 검증
-        User user = validateUserExists(userEmail);
-        validateUserRestricted(user);
+        User user = validationUtil.validateUserExists(userEmail);
+        validationUtil.validateUserRestricted(user);
 
         // 게시글 생성
         Community community = new Community();
@@ -84,66 +82,94 @@ public class CommunityService {
 
         // DB 저장 및 반환
         communityRepository.save(community);
-        return new CommunityWriteRespDTO(community);
+        return new CommunityRespDTO(community);
     }
 
     /** 댓글 작성 */
-    public CommentWriteRespDTO writeComment(CommentWritePostDTO commentDTO, String userEmail){
+    public CommentRespDTO writeComment(CommentReqDTO commentDTO, Integer postId, String userEmail) {
         // 유저 검증
-        User user = validateUserExists(userEmail);
-        validateUserRestricted(user);
+        User user = validationUtil.validateUserExists(userEmail);
+        validationUtil.validateUserRestricted(user);
 
         // 게시글 검증
-        Community post = validatePostExists(commentDTO.getPostId());
+        Community post = validationUtil.validatePostExists(postId);
+
+        //추가된 답글 반환
+        return saveComment(user, null, post, commentDTO.getContents());
+    }
+
+    /** 답글 작성 */
+    public CommentRespDTO writeReplies(CommentReqDTO commentDTO, Integer commentId, String userEmail) {
+        // 유저 검증
+        User user = validationUtil.validateUserExists(userEmail);
+        validationUtil.validateUserRestricted(user);
 
         // 댓글 검증
-        Comments parentComment = (commentDTO.getParentCommentId() == null) ?
-                null : validateCommentExists(commentDTO.getParentCommentId());
+        Comments parentComment = validationUtil.validateCommentExists(commentId);
+        Community post = parentComment.getCommunity();
 
-        // 댓글 생성
+        //추가된 답글 반환
+        return saveComment(user, parentComment, post, commentDTO.getContents());
+    }
+
+    // 대댓글 실제 저장
+    private CommentRespDTO saveComment(User user, Comments parentComment, Community post, String content){
+        // 댓글 생성 및 저장
         Comments comment = new Comments();
         comment.setCommunity(post);
         comment.setParentComment(parentComment);
         comment.setUserId(user.getUserId());
         comment.setCreatedAt(LocalDateTime.now());
-        comment.setContents(commentDTO.getContents());
+        comment.setContents(content);
         comment.setLikeCount(0);
         comment.setRepliesCount(0);
-
-
-        // 댓글 저장
         commentRepository.save(comment);
-        post.setCommentCount(post.getCommentCount() + 1); //게시글의 댓글 수 증가
-        if(parentComment != null) { //답글인 경우 상위 댓글의 repliesCount 증가
+
+        //카운트 반영
+        if(parentComment != null){ // 부모 댓글의 답글 수 증가
             parentComment.setRepliesCount(parentComment.getRepliesCount() + 1);
+            commentRepository.save(parentComment);
         }
+        post.setCommentCount(post.getCommentCount() + 1); // 게시글의 댓글 수 증가
+        communityRepository.save(post);
 
-        return new CommentWriteRespDTO(comment);
+        return new CommentRespDTO(comment);
     }
 
-    /** 검증 검사 메서드 */
-    // 게시글의 존재 여부 검증
-    private Community validatePostExists(Integer postId) {
-        return communityRepository.findByPostId(postId)
-                .orElseThrow(() -> new BadRequestExceptionMessage("존재하지 않는 게시글입니다."));
+    /** 게시물 수정 */
+    public CommunityRespDTO updatePost(CommunityReqDTO postDTO, Integer postId, String userEmail) {
+        //게시글 검증
+        Community post = validationUtil.validatePostExists(postId);
+
+        // 유저 검증
+        User user = validationUtil.validateUserExists(userEmail);
+        validationUtil.validateUserRestricted(user);
+        validationUtil.validateUserIsAuthorOfPost(user, post);
+
+        // 게시글 수정: 빈 값이 아닐 때만 수정되게 함
+        if(postDTO.getTitle()!=null) post.setTitle(postDTO.getTitle());
+        if(postDTO.getContent()!=null) post.setContents(postDTO.getContent());
+
+        // DB 저장 및 반환
+        communityRepository.save(post);
+        return new CommunityRespDTO(post);
     }
 
-    // 댓글의 존재 여부 검증
-    private Comments validateCommentExists(Integer commentId) {
-        return (Comments) commentRepository.findByCommentId(commentId)
-                .orElseThrow(() -> new BadRequestExceptionMessage("존재하지 않는 댓글입니다."));
-    }
+    /** 댓글 수정 */
+    public CommentRespDTO updateComment(CommentReqDTO commentDTO, Integer commentId, String userEmail) {
+        // 댓글 검증
+        Comments comment = validationUtil.validateCommentExists(commentId);
 
-    // 사용자의 존재 여부 검증
-    private User validateUserExists(String userEmail) {
-        return userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new BadRequestExceptionMessage("존재하지 않는 사용자입니다."));
-    }
+        // 유저 검증
+        User user = validationUtil.validateUserExists(userEmail);
+        validationUtil.validateUserRestricted(user);
+        validationUtil.validateUserIsAuthorOfComment(user, comment);
 
-    // 사용자 활동 제한 여부 검증
-    private void validateUserRestricted(User user) {
-        if (user.getReported()) {
-            throw new BadRequestExceptionMessage("비정상적인 활동이 반복되어 게시글 작성이 제한되었습니다.");
-        }
+        //댓글 수정: 빈 값이 아닐 때만 수정되게 함
+        if(commentDTO.getContents()!=null) comment.setContents(commentDTO.getContents());
+
+        // DB 저장 및 반환
+        commentRepository.save(comment);
+        return new CommentRespDTO(comment);
     }
 }
