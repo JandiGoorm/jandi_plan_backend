@@ -6,23 +6,19 @@ import com.jandi.plan_backend.resource.dto.NoticeWriteRespDTO;
 import com.jandi.plan_backend.resource.entity.Notice;
 import com.jandi.plan_backend.resource.repository.NoticeRepository;
 import com.jandi.plan_backend.user.entity.User;
-import com.jandi.plan_backend.user.repository.UserRepository;
 import com.jandi.plan_backend.util.ValidationUtil;
-import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
 import com.jandi.plan_backend.util.service.PaginationService;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
-@Slf4j
 @Service
 public class NoticeService {
     private final NoticeRepository noticeRepository;
     private final ValidationUtil validationUtil;
 
-    public NoticeService(NoticeRepository noticeRepository, UserRepository userRepository, ValidationUtil validationUtil) {
+    public NoticeService(NoticeRepository noticeRepository, ValidationUtil validationUtil) {
         this.noticeRepository = noticeRepository;
         this.validationUtil = validationUtil;
     }

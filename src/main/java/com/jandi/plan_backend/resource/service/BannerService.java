@@ -1,17 +1,12 @@
 package com.jandi.plan_backend.resource.service;
 
-import com.jandi.plan_backend.commu.entity.Comments;
-import com.jandi.plan_backend.commu.entity.Community;
 import com.jandi.plan_backend.resource.dto.BannerListDTO;
 import com.jandi.plan_backend.resource.dto.BannerWritePostDTO;
 import com.jandi.plan_backend.resource.dto.BannerWriteRespDTO;
 import com.jandi.plan_backend.resource.entity.Banner;
 import com.jandi.plan_backend.resource.repository.BannerRepository;
-import com.jandi.plan_backend.storage.entity.Image;
 import com.jandi.plan_backend.user.entity.User;
-import com.jandi.plan_backend.user.repository.UserRepository;
 import com.jandi.plan_backend.util.ValidationUtil;
-import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -25,7 +20,7 @@ public class BannerService {
 
 
     //생성자를 통한 의존성 주입
-    public BannerService(BannerRepository bannerRepository, UserRepository userRepository, ValidationUtil validationUtil) {
+    public BannerService(BannerRepository bannerRepository, ValidationUtil validationUtil) {
         this.bannerRepository = bannerRepository;
         this.validationUtil = validationUtil;
     }

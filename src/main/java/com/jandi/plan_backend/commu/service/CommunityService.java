@@ -6,7 +6,6 @@ import com.jandi.plan_backend.commu.entity.Community;
 import com.jandi.plan_backend.commu.repository.CommentRepository;
 import com.jandi.plan_backend.commu.repository.CommunityRepository;
 import com.jandi.plan_backend.user.entity.User;
-import com.jandi.plan_backend.user.repository.UserRepository;
 import com.jandi.plan_backend.util.ValidationUtil;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
@@ -23,7 +22,7 @@ public class CommunityService {
     private final ValidationUtil validationUtil;
 
     // 생성자를 통해 필요한 의존성들을 주입받음.
-    public CommunityService(CommunityRepository communityRepository, CommentRepository commentRepository, UserRepository userRepository, ValidationUtil validationUtil) {
+    public CommunityService(CommunityRepository communityRepository, CommentRepository commentRepository, ValidationUtil validationUtil) {
         this.communityRepository = communityRepository;
         this.commentRepository = commentRepository;
         this.validationUtil = validationUtil;
