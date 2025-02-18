@@ -61,13 +61,13 @@ public class ImageController {
 
     /**
      * 이미지 공개 URL 조회 API.
-     * 이미지 ID를 받아 DB에 저장된 파일명을 기반으로 공개 URL을 반환합니다.
+     * 이미지 ID를 경로 변수로 받아, DB에 저장된 파일명을 기반으로 공개 URL을 반환합니다.
      *
-     * @param imageId 조회할 이미지의 ID
+     * @param imageId 조회할 이미지의 ID (경로 변수)
      * @return {"imageUrl": "https://storage.googleapis.com/plan-storage/{파일명}"} 형태의 JSON 응답
      */
-    @GetMapping("/url")
-    public ResponseEntity<?> getPublicUrl(@RequestParam("imageId") Integer imageId) {
+    @GetMapping("/{imageId}")
+    public ResponseEntity<?> getPublicUrl(@PathVariable("imageId") Integer imageId) {
         String publicUrl = imageService.getPublicUrlByImageId(imageId);
         if (publicUrl == null) {
             log.warn("이미지 조회 실패: 이미지 ID {}에 해당하는 이미지가 없음", imageId);
