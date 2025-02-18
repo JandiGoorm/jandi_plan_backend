@@ -3,7 +3,6 @@ package com.jandi.plan_backend.commu.controller;
 import com.jandi.plan_backend.commu.dto.*;
 import com.jandi.plan_backend.commu.service.CommunityService;
 import com.jandi.plan_backend.security.JwtTokenProvider;
-import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,25 +21,12 @@ public class CommunityController {
         this.jwtTokenProvider = jwtTokenProvider;
     }
 
-    /** 게시물 조회 API*/
+    /** 게시물 목록 조회 API*/
     @GetMapping("/posts")
     public Map<String, Object> getPosts(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) Integer postId
+            @RequestParam(defaultValue = "10") int size
     ){
-        return postId != null ?
-                getSpecPost(postId) : //postId 입력 시 특정 게시글 조회
-                getAllPosts(page, size); //postId 미입력 시 게시글 목록 전체 조회
-    }
-
-    //특정 게시글 조회
-    public Map<String, Object> getSpecPost(Integer postId){
-        return Map.of("items", communityService.getSpecPost(postId));
-    }
-
-    //게시글 목록 전체 조회
-    public Map<String, Object> getAllPosts(int page, int size){
         Page<CommunityListDTO> postsPage = communityService.getAllPosts(page, size);
 
         return Map.of(
@@ -54,26 +40,21 @@ public class CommunityController {
         );
     }
 
+    /** 특정 게시물 조회 API*/
+    @GetMapping("/posts/{postId}")
+    public Map<String, Object> getPosts(
+            @PathVariable Integer postId //경로 변수로 게시물 고유 번호 받기
+    ){
+        return Map.of("items", communityService.getSpecPost(postId));
+    }
+
     /** 댓글 조회 API */
-    @GetMapping("/comments")
+    @GetMapping("/comments/{postId}")
     public Map<String, Object> getComments(
-            @RequestParam(required = false) Integer postId,
-            @RequestParam(required = false) Integer commentId,
+            @PathVariable Integer postId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ){
-        if(postId != null){
-            return getAllComments(postId, page, size); //postId 입력 시 해당 게시글의 댓글 목록 조회
-        }else if(commentId != null){
-            return getAllReplies(commentId, page, size); //commentId 입력 시 해당 댓글의 답글 목록 조회
-        }
-
-        //아무 파라미터도 넘기지 않았을 때 에러 처리
-        throw new BadRequestExceptionMessage("postId 또는 commentId를 반드시 입력해야 합니다.");
-    }
-
-    // 댓글 목록 조회
-    public Map<String, Object> getAllComments(int postId, int page, int size){
         Page<ParentCommentDTO> parentCommentsPage = communityService.getAllComments(postId, page, size);
 
         return Map.of(
@@ -87,8 +68,13 @@ public class CommunityController {
         );
     }
 
-    // 답글 목록 조회
-    public Map<String, Object> getAllReplies( int commentId, int page, int size){
+    /** 답글 조회 API */
+    @GetMapping("/replies/{commentId}")
+    public Map<String, Object> getReplies(
+            @PathVariable Integer commentId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ){
         Page<repliesDTO> repliesPage = communityService.getAllReplies(commentId, page, size);
 
         return Map.of(

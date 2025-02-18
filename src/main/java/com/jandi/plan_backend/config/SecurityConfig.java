@@ -73,7 +73,8 @@ public class SecurityConfig {
                                 "/api/users/login", "/api/users/register", "/api/users/forgot",
                                 "/api/notice/lists",
                                 "/api/images/url",
-                                "api/community/posts", "api/community/comments",
+                                "api/community/posts", "api/community/posts/*",
+                                "api/community/comments/{postId}", "api/community/replies/{commentId}",
                                 "/api/banner/lists"
                         ).permitAll()
                         .anyRequest().authenticated()
