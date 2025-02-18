@@ -15,7 +15,7 @@ import java.util.Map;
 @RequestMapping("/api/notice")
 public class NoticeController {
     private final NoticeService noticeService;
-    private final JwtTokenProvider jwtTokenProvider; // 추가
+    private final JwtTokenProvider jwtTokenProvider; // JWT 토큰 관련
 
 
     public NoticeController(NoticeService noticeService, JwtTokenProvider jwtTokenProvider) {
