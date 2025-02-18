@@ -140,7 +140,7 @@ public class CommunityController {
     /** 게시물 수정 API */
     @PatchMapping("/posts/{postId}")
     public ResponseEntity<?> updatePost(
-            @PathVariable Integer postId, //쿼리파라미터로 게시물 고유 번호 받기
+            @PathVariable Integer postId, //경로 변수로 변경할 게시글 아이디 받기
             @RequestHeader("Authorization") String token, // 헤더의 Authorization에서 JWT 토큰 받기
             @RequestBody CommunityWritePostDTO postDTO // JSON 형식으로 게시글 작성 정보 받기
     ){
@@ -156,7 +156,7 @@ public class CommunityController {
     /** 댓글 및 답글 수정 API */
     @PatchMapping("/comments/{commentId}")
     public ResponseEntity<?> updateComment(
-            @PathVariable Integer commentId, //쿼리파라미터로 게시물 고유 번호 받기
+            @PathVariable Integer commentId, //경로 변수로 변경할 댓글/답글 아이디 받기
             @RequestHeader("Authorization") String token, // 헤더의 Authorization에서 JWT 토큰 받기
             @RequestBody CommentWritePostDTO commentDTO // JSON 형식으로 게시글 작성 정보 받기
     ){
