@@ -7,6 +7,7 @@ import com.jandi.plan_backend.resource.entity.Notice;
 import com.jandi.plan_backend.resource.repository.NoticeRepository;
 import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.user.repository.UserRepository;
+import com.jandi.plan_backend.util.ValidationUtil;
 import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
 import com.jandi.plan_backend.util.service.PaginationService;
 import lombok.extern.slf4j.Slf4j;
@@ -19,12 +20,11 @@ import java.time.LocalDateTime;
 @Service
 public class NoticeService {
     private final NoticeRepository noticeRepository;
-    private final UserRepository userRepository;
+    private final ValidationUtil validationUtil;
 
-
-    public NoticeService(NoticeRepository noticeRepository, UserRepository userRepository) {
+    public NoticeService(NoticeRepository noticeRepository, UserRepository userRepository, ValidationUtil validationUtil) {
         this.noticeRepository = noticeRepository;
-        this.userRepository = userRepository;
+        this.validationUtil = validationUtil;
     }
 
     /** 공지글 목록 조회*/
@@ -36,8 +36,8 @@ public class NoticeService {
     /** 공지글 작성 */
     public NoticeWriteRespDTO writeNotice(NoticeWritePostDTO noticeDTO, String email) {
         // 유저 검증
-        User user = validateUserExists(email);
-        validateUserIsAdmin(user);
+        User user = validationUtil.validateUserExists(email);
+        validationUtil.validateUserIsAdmin(user);
 
         // 공지글 생성
         Notice notice = new Notice();
@@ -49,18 +49,4 @@ public class NoticeService {
         noticeRepository.save(notice);
         return new NoticeWriteRespDTO(notice);
     }
-
-    // 사용자의 존재 여부 검증
-    private User validateUserExists(String userEmail) {
-        return userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new BadRequestExceptionMessage("존재하지 않는 사용자입니다."));
-    }
-
-    // 유저가 관리자인지 검증
-    private void validateUserIsAdmin(User user) {
-        if(user.getUserId() != 1)
-            throw new BadRequestExceptionMessage("공지사항을 작성할 권한이 없습니다");
-    }
-
-
 }
