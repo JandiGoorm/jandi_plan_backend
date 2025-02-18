@@ -60,7 +60,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/users/login", "/api/users/register", "/api/users/forgot",
                                 "/api/notice/lists",
-                                "/api/images/url",
+                                "/api/images/url/**",
                                 "api/community/posts", "api/community/comments",
                                 "/api/banner/lists"
                         ).permitAll()
