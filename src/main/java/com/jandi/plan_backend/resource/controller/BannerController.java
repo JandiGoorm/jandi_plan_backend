@@ -31,7 +31,7 @@ public class BannerController {
         );
     }
 
-    @PostMapping("/write/banner")
+    @PostMapping("/lists")
     public ResponseEntity writeBanner(
             @RequestHeader("Authorization") String token, // 헤더의 Authorization에서 JWT 토큰 받기
             @RequestBody BannerWritePostDTO bannerDTO // JSON 형식으로 배너글 작성 정보 받기

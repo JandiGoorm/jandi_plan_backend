@@ -43,7 +43,7 @@ public class NoticeController {
     }
 
     /** 공지사항 추가 API */
-    @PostMapping("/write/notice")
+    @PostMapping("/lists")
     public ResponseEntity<?> writeNotice(
             @RequestHeader("Authorization") String token, // 헤더의 Authorization에서 JWT 토큰 받기
             @RequestBody NoticeWritePostDTO noticeDTO // JSON 형식으로 공지글 작성 정보 받기
