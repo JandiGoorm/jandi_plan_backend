@@ -86,35 +86,51 @@ public class CommunityService {
     }
 
     /** 댓글 작성 */
-    public CommentWriteRespDTO writeComment(CommentWritePostDTO commentDTO, String userEmail) {
+    public CommentWriteRespDTO writeComment(CommentWritePostDTO commentDTO, Integer postId, String userEmail) {
         // 유저 검증
         User user = validationUtil.validateUserExists(userEmail);
         validationUtil.validateUserRestricted(user);
 
         // 게시글 검증
-        Community post = validationUtil.validatePostExists(commentDTO.getPostId());
+        Community post = validationUtil.validatePostExists(postId);
+
+        //추가된 답글 반환
+        return saveComment(user, null, post, commentDTO.getContents());
+    }
+
+    /** 답글 작성 */
+    public CommentWriteRespDTO writeReplies(CommentWritePostDTO commentDTO, Integer commentId, String userEmail) {
+        // 유저 검증
+        User user = validationUtil.validateUserExists(userEmail);
+        validationUtil.validateUserRestricted(user);
 
         // 댓글 검증
-        Comments parentComment = (commentDTO.getParentCommentId() == null) ?
-                null : validationUtil.validateCommentExists(commentDTO.getParentCommentId());
+        Comments parentComment = validationUtil.validateCommentExists(commentId);
+        Community post = parentComment.getCommunity();
 
-        // 댓글 생성
+        //추가된 답글 반환
+        return saveComment(user, parentComment, post, commentDTO.getContents());
+    }
+
+    // 대댓글 실제 저장
+    private CommentWriteRespDTO saveComment(User user, Comments parentComment, Community post, String content){
+        // 댓글 생성 및 저장
         Comments comment = new Comments();
         comment.setCommunity(post);
         comment.setParentComment(parentComment);
         comment.setUserId(user.getUserId());
         comment.setCreatedAt(LocalDateTime.now());
-        comment.setContents(commentDTO.getContents());
+        comment.setContents(content);
         comment.setLikeCount(0);
         comment.setRepliesCount(0);
-
-
-        // 댓글 저장 및 카운트 반영
-        post.setCommentCount(post.getCommentCount() + 1); //게시글의 댓글 수 증가
-        if (parentComment != null) { //답글인 경우 상위 댓글의 repliesCount 증가
-            parentComment.setRepliesCount(parentComment.getRepliesCount() + 1);
-        }
         commentRepository.save(comment);
+
+        //카운트 반영
+        if(parentComment != null){ // 부모 댓글의 답글 수 증가
+            parentComment.setRepliesCount(parentComment.getRepliesCount() + 1);
+            commentRepository.save(parentComment);
+        }
+        post.setCommentCount(post.getCommentCount() + 1); // 게시글의 댓글 수 증가
         communityRepository.save(post);
 
         return new CommentWriteRespDTO(comment);

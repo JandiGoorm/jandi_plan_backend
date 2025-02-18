@@ -8,7 +8,5 @@ import lombok.Data;
  */
 @Data
 public class CommentWritePostDTO {
-    private Integer postId;
-    private Integer parentCommentId;
     private String contents;
 }

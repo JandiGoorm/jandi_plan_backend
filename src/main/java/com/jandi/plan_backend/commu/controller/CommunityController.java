@@ -103,9 +103,10 @@ public class CommunityController {
         return ResponseEntity.ok(savedPost);
     }
 
-    /** 댓글 및 답글 작성 API */
-    @PostMapping("/comments")
+    /** 댓글 작성 API */
+    @PostMapping("/comments/{postId}")
     public ResponseEntity<?> writeComment(
+            @PathVariable Integer postId,
             @RequestHeader("Authorization") String token, // 헤더의 Authorization에서 JWT 토큰 받기
             @RequestBody CommentWritePostDTO commentDTO // JSON 형식으로 게시글 작성 정보 받기
     ){
@@ -115,7 +116,24 @@ public class CommunityController {
         String userEmail = jwtTokenProvider.getEmail(jwtToken);
 
         // 댓글 저장 및 반환
-        CommentWriteRespDTO savedComment = communityService.writeComment(commentDTO, userEmail);
+        CommentWriteRespDTO savedComment = communityService.writeComment(commentDTO, postId, userEmail);
+        return ResponseEntity.ok(savedComment);
+    }
+
+    /** 답글 작성 API */
+    @PostMapping("/replies/{commentId}")
+    public ResponseEntity<?> writeReplie(
+            @PathVariable Integer commentId,
+            @RequestHeader("Authorization") String token, // 헤더의 Authorization에서 JWT 토큰 받기
+            @RequestBody CommentWritePostDTO commentDTO // JSON 형식으로 게시글 작성 정보 받기
+    ){
+
+        // Jwt 토큰으로부터 유저 이메일 추출
+        String jwtToken = token.replace("Bearer ", "");
+        String userEmail = jwtTokenProvider.getEmail(jwtToken);
+
+        // 댓글 저장 및 반환
+        CommentWriteRespDTO savedComment = communityService.writeReplies(commentDTO, commentId, userEmail);
         return ResponseEntity.ok(savedComment);
     }
 
