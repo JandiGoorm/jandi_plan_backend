@@ -66,7 +66,7 @@ public class CommunityService {
     }
 
     /** 게시글 작성 */
-    public CommunityWriteRespDTO writePost(CommunityWritePostDTO postDTO, String userEmail) {
+    public CommunityRespDTO writePost(CommunityReqDTO postDTO, String userEmail) {
         // 유저 검증
         User user = validationUtil.validateUserExists(userEmail);
         validationUtil.validateUserRestricted(user);
@@ -82,11 +82,11 @@ public class CommunityService {
 
         // DB 저장 및 반환
         communityRepository.save(community);
-        return new CommunityWriteRespDTO(community);
+        return new CommunityRespDTO(community);
     }
 
     /** 댓글 작성 */
-    public CommentWriteRespDTO writeComment(CommentWritePostDTO commentDTO, Integer postId, String userEmail) {
+    public CommentRespDTO writeComment(CommentReqDTO commentDTO, Integer postId, String userEmail) {
         // 유저 검증
         User user = validationUtil.validateUserExists(userEmail);
         validationUtil.validateUserRestricted(user);
@@ -99,7 +99,7 @@ public class CommunityService {
     }
 
     /** 답글 작성 */
-    public CommentWriteRespDTO writeReplies(CommentWritePostDTO commentDTO, Integer commentId, String userEmail) {
+    public CommentRespDTO writeReplies(CommentReqDTO commentDTO, Integer commentId, String userEmail) {
         // 유저 검증
         User user = validationUtil.validateUserExists(userEmail);
         validationUtil.validateUserRestricted(user);
@@ -113,7 +113,7 @@ public class CommunityService {
     }
 
     // 대댓글 실제 저장
-    private CommentWriteRespDTO saveComment(User user, Comments parentComment, Community post, String content){
+    private CommentRespDTO saveComment(User user, Comments parentComment, Community post, String content){
         // 댓글 생성 및 저장
         Comments comment = new Comments();
         comment.setCommunity(post);
@@ -133,11 +133,11 @@ public class CommunityService {
         post.setCommentCount(post.getCommentCount() + 1); // 게시글의 댓글 수 증가
         communityRepository.save(post);
 
-        return new CommentWriteRespDTO(comment);
+        return new CommentRespDTO(comment);
     }
 
     /** 게시물 수정 */
-    public CommunityWriteRespDTO updatePost(CommunityWritePostDTO postDTO, Integer postId, String userEmail) {
+    public CommunityRespDTO updatePost(CommunityReqDTO postDTO, Integer postId, String userEmail) {
         //게시글 검증
         Community post = validationUtil.validatePostExists(postId);
 
@@ -152,11 +152,11 @@ public class CommunityService {
 
         // DB 저장 및 반환
         communityRepository.save(post);
-        return new CommunityWriteRespDTO(post);
+        return new CommunityRespDTO(post);
     }
 
     /** 댓글 수정 */
-    public CommentWriteRespDTO updateComment(CommentWritePostDTO commentDTO, Integer commentId, String userEmail) {
+    public CommentRespDTO updateComment(CommentReqDTO commentDTO, Integer commentId, String userEmail) {
         // 댓글 검증
         Comments comment = validationUtil.validateCommentExists(commentId);
 
@@ -170,6 +170,6 @@ public class CommunityService {
 
         // DB 저장 및 반환
         commentRepository.save(comment);
-        return new CommentWriteRespDTO(comment);
+        return new CommentRespDTO(comment);
     }
 }

@@ -34,14 +34,14 @@ public class BannerController {
     @PostMapping("/lists")
     public ResponseEntity writeBanner(
             @RequestHeader("Authorization") String token, // 헤더의 Authorization에서 JWT 토큰 받기
-            @RequestBody BannerWritePostDTO bannerDTO // JSON 형식으로 배너글 작성 정보 받기
+            @RequestBody BannerReqDTO bannerDTO // JSON 형식으로 배너글 작성 정보 받기
     ) {
         // Jwt 토큰으로부터 유저 이메일 추출
         String jwtToken = token.replace("Bearer ", "");
         String userEmail = jwtTokenProvider.getEmail(jwtToken);
 
         // 공지글 저장 및 반환
-        BannerWriteRespDTO savedNotice = bannerService.writeBanner(bannerDTO, userEmail);
+        BannerRespDTO savedNotice = bannerService.writeBanner(bannerDTO, userEmail);
         return ResponseEntity.ok(savedNotice);
     }
 

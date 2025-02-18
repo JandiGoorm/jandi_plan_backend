@@ -1,8 +1,8 @@
 package com.jandi.plan_backend.resource.service;
 
 import com.jandi.plan_backend.resource.dto.BannerListDTO;
-import com.jandi.plan_backend.resource.dto.BannerWritePostDTO;
-import com.jandi.plan_backend.resource.dto.BannerWriteRespDTO;
+import com.jandi.plan_backend.resource.dto.BannerReqDTO;
+import com.jandi.plan_backend.resource.dto.BannerRespDTO;
 import com.jandi.plan_backend.resource.entity.Banner;
 import com.jandi.plan_backend.resource.repository.BannerRepository;
 import com.jandi.plan_backend.user.entity.User;
@@ -34,7 +34,7 @@ public class BannerService {
     }
 
     /** 배너글 작성 */
-    public BannerWriteRespDTO writeBanner(BannerWritePostDTO bannerDTO, String email) {
+    public BannerRespDTO writeBanner(BannerReqDTO bannerDTO, String email) {
         //유저 검증
         User user = validationUtil.validateUserExists(email);
         validationUtil.validateUserIsAdmin(user);
@@ -48,6 +48,6 @@ public class BannerService {
 
         //DB 저장 및 반환
         bannerRepository.save(banner);
-        return new BannerWriteRespDTO(banner);
+        return new BannerRespDTO(banner);
     }
 }

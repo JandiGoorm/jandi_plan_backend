@@ -6,13 +6,13 @@ import lombok.Getter;
 import java.time.LocalDateTime;
 
 @Getter
-public class NoticeWriteRespDTO {
+public class NoticeRespDTO {
     private final Integer noticeId;
     private final LocalDateTime createdAt;
     private final String title;
     private final String contents;
 
-    public NoticeWriteRespDTO(Notice notice) {
+    public NoticeRespDTO(Notice notice) {
         this.noticeId = notice.getNoticeId();
         this.createdAt = notice.getCreatedAt();
         this.title = notice.getTitle();

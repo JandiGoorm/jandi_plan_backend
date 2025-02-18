@@ -1,8 +1,8 @@
 package com.jandi.plan_backend.resource.service;
 
 import com.jandi.plan_backend.resource.dto.NoticeListDTO;
-import com.jandi.plan_backend.resource.dto.NoticeWritePostDTO;
-import com.jandi.plan_backend.resource.dto.NoticeWriteRespDTO;
+import com.jandi.plan_backend.resource.dto.NoticeReqDTO;
+import com.jandi.plan_backend.resource.dto.NoticeRespDTO;
 import com.jandi.plan_backend.resource.entity.Notice;
 import com.jandi.plan_backend.resource.repository.NoticeRepository;
 import com.jandi.plan_backend.user.entity.User;
@@ -30,7 +30,7 @@ public class NoticeService {
     }
 
     /** 공지글 작성 */
-    public NoticeWriteRespDTO writeNotice(NoticeWritePostDTO noticeDTO, String email) {
+    public NoticeRespDTO writeNotice(NoticeReqDTO noticeDTO, String email) {
         // 유저 검증
         User user = validationUtil.validateUserExists(email);
         validationUtil.validateUserIsAdmin(user);
@@ -43,6 +43,6 @@ public class NoticeService {
 
         // DB 저장 및 반환
         noticeRepository.save(notice);
-        return new NoticeWriteRespDTO(notice);
+        return new NoticeRespDTO(notice);
     }
 }

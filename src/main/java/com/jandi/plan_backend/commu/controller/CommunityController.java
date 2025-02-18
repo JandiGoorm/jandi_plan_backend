@@ -92,14 +92,14 @@ public class CommunityController {
     @PostMapping("/posts")
     public ResponseEntity<?> writePost(
             @RequestHeader("Authorization") String token, // 헤더의 Authorization에서 JWT 토큰 받기
-            @RequestBody CommunityWritePostDTO postDTO // JSON 형식으로 게시글 작성 정보 받기
+            @RequestBody CommunityReqDTO postDTO // JSON 형식으로 게시글 작성 정보 받기
     ){
         // Jwt 토큰으로부터 유저 이메일 추출
         String jwtToken = token.replace("Bearer ", "");
         String userEmail = jwtTokenProvider.getEmail(jwtToken);
 
         // 게시글 저장 및 반환
-        CommunityWriteRespDTO savedPost = communityService.writePost(postDTO, userEmail);
+        CommunityRespDTO savedPost = communityService.writePost(postDTO, userEmail);
         return ResponseEntity.ok(savedPost);
     }
 
@@ -108,7 +108,7 @@ public class CommunityController {
     public ResponseEntity<?> writeComment(
             @PathVariable Integer postId,
             @RequestHeader("Authorization") String token, // 헤더의 Authorization에서 JWT 토큰 받기
-            @RequestBody CommentWritePostDTO commentDTO // JSON 형식으로 게시글 작성 정보 받기
+            @RequestBody CommentReqDTO commentDTO // JSON 형식으로 게시글 작성 정보 받기
     ){
 
         // Jwt 토큰으로부터 유저 이메일 추출
@@ -116,7 +116,7 @@ public class CommunityController {
         String userEmail = jwtTokenProvider.getEmail(jwtToken);
 
         // 댓글 저장 및 반환
-        CommentWriteRespDTO savedComment = communityService.writeComment(commentDTO, postId, userEmail);
+        CommentRespDTO savedComment = communityService.writeComment(commentDTO, postId, userEmail);
         return ResponseEntity.ok(savedComment);
     }
 
@@ -125,7 +125,7 @@ public class CommunityController {
     public ResponseEntity<?> writeReplie(
             @PathVariable Integer commentId,
             @RequestHeader("Authorization") String token, // 헤더의 Authorization에서 JWT 토큰 받기
-            @RequestBody CommentWritePostDTO commentDTO // JSON 형식으로 게시글 작성 정보 받기
+            @RequestBody CommentReqDTO commentDTO // JSON 형식으로 게시글 작성 정보 받기
     ){
 
         // Jwt 토큰으로부터 유저 이메일 추출
@@ -133,7 +133,7 @@ public class CommunityController {
         String userEmail = jwtTokenProvider.getEmail(jwtToken);
 
         // 댓글 저장 및 반환
-        CommentWriteRespDTO savedComment = communityService.writeReplies(commentDTO, commentId, userEmail);
+        CommentRespDTO savedComment = communityService.writeReplies(commentDTO, commentId, userEmail);
         return ResponseEntity.ok(savedComment);
     }
 
@@ -142,14 +142,14 @@ public class CommunityController {
     public ResponseEntity<?> updatePost(
             @PathVariable Integer postId, //경로 변수로 변경할 게시글 아이디 받기
             @RequestHeader("Authorization") String token, // 헤더의 Authorization에서 JWT 토큰 받기
-            @RequestBody CommunityWritePostDTO postDTO // JSON 형식으로 게시글 작성 정보 받기
+            @RequestBody CommunityReqDTO postDTO // JSON 형식으로 게시글 작성 정보 받기
     ){
         // Jwt 토큰으로부터 유저 이메일 추출
         String jwtToken = token.replace("Bearer ", "");
         String userEmail = jwtTokenProvider.getEmail(jwtToken);
 
         // 게시물 수정 및 반환
-        CommunityWriteRespDTO updatedPost = communityService.updatePost(postDTO, postId, userEmail);
+        CommunityRespDTO updatedPost = communityService.updatePost(postDTO, postId, userEmail);
         return ResponseEntity.ok(updatedPost);
     }
 
@@ -158,14 +158,14 @@ public class CommunityController {
     public ResponseEntity<?> updateComment(
             @PathVariable Integer commentId, //경로 변수로 변경할 댓글/답글 아이디 받기
             @RequestHeader("Authorization") String token, // 헤더의 Authorization에서 JWT 토큰 받기
-            @RequestBody CommentWritePostDTO commentDTO // JSON 형식으로 게시글 작성 정보 받기
+            @RequestBody CommentReqDTO commentDTO // JSON 형식으로 게시글 작성 정보 받기
     ){
         // Jwt 토큰으로부터 유저 이메일 추출
         String jwtToken = token.replace("Bearer ", "");
         String userEmail = jwtTokenProvider.getEmail(jwtToken);
 
         // 게시물 수정 및 반환
-        CommentWriteRespDTO updatedPost = communityService.updateComment(commentDTO, commentId, userEmail);
+        CommentRespDTO updatedPost = communityService.updateComment(commentDTO, commentId, userEmail);
         return ResponseEntity.ok(updatedPost);
     }
 }

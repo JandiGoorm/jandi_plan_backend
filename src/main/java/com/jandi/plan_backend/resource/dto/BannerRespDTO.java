@@ -6,14 +6,14 @@ import lombok.Getter;
 import java.time.LocalDateTime;
 
 @Getter
-public class BannerWriteRespDTO {
+public class BannerRespDTO {
     private final Integer bannerId;
     private final LocalDateTime createdAt;
     private final String title;
     private final String imageUrl;
     private final String linkUrl;
 
-    public BannerWriteRespDTO(Banner banner) {
+    public BannerRespDTO(Banner banner) {
         this.bannerId = banner.getBannerId();
         this.createdAt = banner.getCreatedAt();
         this.title = banner.getTitle();

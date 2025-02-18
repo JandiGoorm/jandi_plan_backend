@@ -7,6 +7,6 @@ import lombok.Data;
  * 댓글 관계(parentCommentId)와 댓글 내용을 저장한다.
  */
 @Data
-public class CommentWritePostDTO {
+public class CommentReqDTO {
     private String contents;
 }

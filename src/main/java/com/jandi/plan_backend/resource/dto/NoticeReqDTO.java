@@ -7,7 +7,7 @@ import lombok.Getter;
  * 공지사항 제목과 내용을 저장한다.
  */
 @Getter
-public class NoticeWritePostDTO {
+public class NoticeReqDTO {
     private String title;
     private String contents;
 
