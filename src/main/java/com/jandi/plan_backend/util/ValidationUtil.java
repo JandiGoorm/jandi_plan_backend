@@ -41,7 +41,7 @@ public class ValidationUtil {
     // 유저가 관리자인지 검증
     public void validateUserIsAdmin(User user) {
         if(user.getUserId() != 1)
-            throw new BadRequestExceptionMessage("공지사항을 작성할 권한이 없습니다");
+            throw new BadRequestExceptionMessage("관리자 권한이 필요한 작업입니다.");
     }
 
     /** communityRepository 관련 검증 */

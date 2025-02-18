@@ -3,8 +3,11 @@ package com.jandi.plan_backend.resource.controller;
 import com.jandi.plan_backend.resource.dto.*;
 import com.jandi.plan_backend.resource.service.BannerService;
 import com.jandi.plan_backend.security.JwtTokenProvider;
+import com.jandi.plan_backend.storage.dto.ImageResponseDto;
+import com.jandi.plan_backend.storage.service.ImageService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
@@ -14,10 +17,12 @@ import java.util.Map;
 public class BannerController {
     private final BannerService bannerService;
     private final JwtTokenProvider jwtTokenProvider; // JWT 토큰 관련
+    private final ImageService imageService;
 
-    public BannerController(BannerService bannerService, JwtTokenProvider jwtTokenProvider) {
+    public BannerController(BannerService bannerService, JwtTokenProvider jwtTokenProvider, ImageService imageService) {
         this.bannerService = bannerService;
         this.jwtTokenProvider = jwtTokenProvider;
+        this.imageService = imageService;
     }
 
     /**배너 목록 조회*/
@@ -31,17 +36,20 @@ public class BannerController {
         );
     }
 
+    /** 배너 추가 */
     @PostMapping("/lists")
     public ResponseEntity writeBanner(
             @RequestHeader("Authorization") String token, // 헤더의 Authorization에서 JWT 토큰 받기
-            @RequestBody BannerReqDTO bannerDTO // JSON 형식으로 배너글 작성 정보 받기
+            @RequestParam MultipartFile file, //imageUrl에 넣을 원본 파일
+            @RequestParam String title, //배너 제목
+            @RequestParam String linkUrl //배너 클릭 시 연결할 link
     ) {
         // Jwt 토큰으로부터 유저 이메일 추출
         String jwtToken = token.replace("Bearer ", "");
         String userEmail = jwtTokenProvider.getEmail(jwtToken);
 
-        // 공지글 저장 및 반환
-        BannerRespDTO savedNotice = bannerService.writeBanner(bannerDTO, userEmail);
+        // 배너 저장 및 반환
+        BannerRespDTO savedNotice = bannerService.writeBanner(userEmail, file, title, linkUrl);
         return ResponseEntity.ok(savedNotice);
     }
 
