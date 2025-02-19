@@ -146,9 +146,9 @@ public class CommunityService {
         validationUtil.validateUserRestricted(user);
         validationUtil.validateUserIsAuthorOfPost(user, post);
 
-        // 게시글 수정: 빈 값이 아닐 때만 수정되게 함
-        if(postDTO.getTitle()!=null) post.setTitle(postDTO.getTitle());
-        if(postDTO.getContent()!=null) post.setContents(postDTO.getContent());
+        // 게시글 수정
+        post.setTitle(postDTO.getTitle());
+        post.setContents(postDTO.getContent());
 
         // DB 저장 및 반환
         communityRepository.save(post);
@@ -165,8 +165,8 @@ public class CommunityService {
         validationUtil.validateUserRestricted(user);
         validationUtil.validateUserIsAuthorOfComment(user, comment);
 
-        //댓글 수정: 빈 값이 아닐 때만 수정되게 함
-        if(commentDTO.getContents()!=null) comment.setContents(commentDTO.getContents());
+        //댓글 수정
+        comment.setContents(commentDTO.getContents());
 
         // DB 저장 및 반환
         commentRepository.save(comment);

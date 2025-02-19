@@ -1,6 +1,7 @@
 package com.jandi.plan_backend.commu.dto;
 
 import lombok.Data;
+import lombok.NonNull;
 
 /**
  * 게시글 작성 시 클라이언트로부터 전달되는 데이터를 담는 DTO
@@ -8,6 +9,6 @@ import lombok.Data;
  */
 @Data
 public class CommunityReqDTO {
-    private final String title;
-    private final String content;
+    @NonNull final String title;
+    @NonNull private final String content;
 }
