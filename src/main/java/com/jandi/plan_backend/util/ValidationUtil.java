@@ -4,6 +4,8 @@ import com.jandi.plan_backend.commu.entity.Comments;
 import com.jandi.plan_backend.commu.entity.Community;
 import com.jandi.plan_backend.commu.repository.CommentRepository;
 import com.jandi.plan_backend.commu.repository.CommunityRepository;
+import com.jandi.plan_backend.resource.entity.Banner;
+import com.jandi.plan_backend.resource.repository.BannerRepository;
 import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.user.repository.UserRepository;
 import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
@@ -17,11 +19,13 @@ public class ValidationUtil {
     private final UserRepository userRepository;
     private final CommunityRepository communityRepository;
     private final CommentRepository commentRepository;
+    private final BannerRepository bannerRepository;
 
-    public ValidationUtil(UserRepository userRepository, CommunityRepository communityRepository, CommentRepository commentRepository) {
+    public ValidationUtil(UserRepository userRepository, CommunityRepository communityRepository, CommentRepository commentRepository, BannerRepository bannerRepository) {
         this.userRepository = userRepository;
         this.communityRepository = communityRepository;
         this.commentRepository = commentRepository;
+        this.bannerRepository = bannerRepository;
     }
 
     /** userRepository */
@@ -68,5 +72,12 @@ public class ValidationUtil {
     public void validateUserIsAuthorOfComment(User user, Comments comment) {
         if(!Objects.equals(user.getUserId(), comment.getUserId()))
             throw new BadRequestExceptionMessage("작성자 본인만 수정할 수 있습니다.");
+    }
+
+    /** BannerRepository 관련 검증 */
+    //배너의 존재 여부 검증
+    public Banner validateBannerExists(Integer bannerId) {
+        return (Banner) bannerRepository.findByBannerId(bannerId)
+                .orElseThrow(() -> new BadRequestExceptionMessage("존재하지 않는 배너입니다."));
     }
 }
