@@ -8,6 +8,7 @@ import com.jandi.plan_backend.commu.entity.Comments;
 import com.jandi.plan_backend.commu.entity.Community;
 import com.jandi.plan_backend.commu.repository.CommentRepository;
 import com.jandi.plan_backend.commu.repository.CommunityRepository;
+import com.jandi.plan_backend.resource.entity.Banner;
 import com.jandi.plan_backend.storage.service.ImageService;
 import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.util.ValidationUtil;
@@ -121,5 +122,20 @@ public class CommentService {
         // DB 저장 및 반환
         commentRepository.save(comment);
         return new CommentRespDTO(comment);
+    }
+
+    //답글 삭제
+    public boolean deleteReplies(String userEmail, Integer replyId) {
+        // 댓글 검증
+        Comments reply = validationUtil.validateCommentExists(replyId);
+
+        // 유저 검증
+        User user = validationUtil.validateUserExists(userEmail);
+        validationUtil.validateUserRestricted(user);
+        validationUtil.validateUserIsAuthorOfComment(user, reply);
+
+        //배너 삭제 및 반환
+        commentRepository.delete(reply);
+        return true;
     }
 }

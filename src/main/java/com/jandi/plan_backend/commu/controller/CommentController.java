@@ -112,4 +112,20 @@ public class CommentController {
         CommentRespDTO updatedPost = commentService.updateComment(commentDTO, commentId, userEmail);
         return ResponseEntity.ok(updatedPost);
     }
+
+    /** 답글 삭제 API */
+    @DeleteMapping("/replies/{replyId}")
+    public ResponseEntity<?> deleteReplies(
+            @PathVariable Integer replyId,
+            @RequestHeader("Authorization") String token // 헤더의 Authorization에서 JWT 토큰 받기
+    ){
+        // Jwt 토큰으로부터 유저 이메일 추출
+        String jwtToken = token.replace("Bearer ", "");
+        String userEmail = jwtTokenProvider.getEmail(jwtToken);
+
+        // 답글 삭제 및 반환
+        String returnMsg = (commentService.deleteReplies(userEmail, replyId)) ?
+                "삭제되었습니다" : "삭제 과정에서 문제가 발생했습니다. 다시 한번 시도해주세요";
+        return ResponseEntity.ok(returnMsg);
+    }
 }
