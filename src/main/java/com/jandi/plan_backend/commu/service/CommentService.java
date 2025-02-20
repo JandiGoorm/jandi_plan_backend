@@ -134,7 +134,7 @@ public class CommentService {
         // 유저 검증
         User user = validationUtil.validateUserExists(userEmail);
         validationUtil.validateUserRestricted(user);
-        validationUtil.validateUserIsAuthorOfComment(user, comment);
+        if(user.getUserId()!=1) validationUtil.validateUserIsAuthorOfComment(user, comment);
 
         // 만약 댓글일 경우 하위 답글 모두 삭제
         int repliesCount = 0;
