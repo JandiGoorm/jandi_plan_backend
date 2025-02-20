@@ -5,7 +5,10 @@ import com.jandi.plan_backend.commu.entity.Community;
 import com.jandi.plan_backend.commu.repository.CommentRepository;
 import com.jandi.plan_backend.commu.repository.CommunityRepository;
 import com.jandi.plan_backend.resource.entity.Banner;
+import com.jandi.plan_backend.resource.entity.Notice;
 import com.jandi.plan_backend.resource.repository.BannerRepository;
+import com.jandi.plan_backend.resource.repository.NoticeRepository;
+import com.jandi.plan_backend.resource.service.NoticeService;
 import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.user.repository.UserRepository;
 import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
@@ -20,12 +23,14 @@ public class ValidationUtil {
     private final CommunityRepository communityRepository;
     private final CommentRepository commentRepository;
     private final BannerRepository bannerRepository;
+    private final NoticeRepository noticeRepository;
 
-    public ValidationUtil(UserRepository userRepository, CommunityRepository communityRepository, CommentRepository commentRepository, BannerRepository bannerRepository) {
+    public ValidationUtil(UserRepository userRepository, CommunityRepository communityRepository, CommentRepository commentRepository, BannerRepository bannerRepository, NoticeRepository noticeRepository) {
         this.userRepository = userRepository;
         this.communityRepository = communityRepository;
         this.commentRepository = commentRepository;
         this.bannerRepository = bannerRepository;
+        this.noticeRepository = noticeRepository;
     }
 
     /** userRepository */
@@ -84,5 +89,12 @@ public class ValidationUtil {
     public Banner validateBannerExists(Integer bannerId) {
         return (Banner) bannerRepository.findByBannerId(bannerId)
                 .orElseThrow(() -> new BadRequestExceptionMessage("존재하지 않는 배너입니다."));
+    }
+
+
+    /** NoticeRepository 관련 검증 */
+    public Notice validateNoticeExists(Integer noticeId) {
+        return (Notice) noticeRepository.findByNoticeId(noticeId)
+                .orElseThrow(() -> new BadRequestExceptionMessage("존재하지 않는 공지입니다."));
     }
 }

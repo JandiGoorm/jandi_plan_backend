@@ -29,9 +29,9 @@ public class NoticeService {
     }
 
     /** 공지글 작성 */
-    public NoticeRespDTO writeNotice(NoticeReqDTO noticeDTO, String email) {
+    public NoticeRespDTO writeNotice(NoticeReqDTO noticeDTO, String userEmail) {
         // 유저 검증
-        User user = validationUtil.validateUserExists(email);
+        User user = validationUtil.validateUserExists(userEmail);
         validationUtil.validateUserIsAdmin(user);
 
         // 공지글 생성
@@ -41,6 +41,23 @@ public class NoticeService {
         notice.setContents(noticeDTO.getContents());
 
         // DB 저장 및 반환
+        noticeRepository.save(notice);
+        return new NoticeRespDTO(notice);
+    }
+
+    public NoticeRespDTO updateNotice(NoticeReqDTO noticeDTO, Integer noticeId, String userEmail) {
+        // 유저 검증
+        User user = validationUtil.validateUserExists(userEmail);
+        validationUtil.validateUserIsAdmin(user);
+
+        // 공지글 검증
+        Notice notice = validationUtil.validateNoticeExists(noticeId);
+
+        // 공지 수정: 값이 있는 것만 수정
+        if(noticeDTO.getTitle() != null) { notice.setTitle(noticeDTO.getTitle()); }
+        if(noticeDTO.getContents() != null) { notice.setContents(noticeDTO.getContents()); }
+
+        //수정된 공지 반환
         noticeRepository.save(notice);
         return new NoticeRespDTO(notice);
     }

@@ -50,6 +50,23 @@ public class NoticeController {
         return ResponseEntity.ok(savedNotice);
     }
 
+    /** 공지사항 수정 API */
+    @PatchMapping("/lists/{noticeId}")
+    public ResponseEntity<?> updateNotice(
+            @PathVariable Integer noticeId, //링크에서 noticeId 받기
+            @RequestHeader("Authorization") String token, // 헤더의 Authorization에서 JWT 토큰 받기
+            @RequestBody NoticeReqDTO noticeDTO // JSON 형식으로 공지글 작성 정보 받기
+    ){
+
+        // Jwt 토큰으로부터 유저 이메일 추출
+        String jwtToken = token.replace("Bearer ", "");
+        String userEmail = jwtTokenProvider.getEmail(jwtToken);
+
+        // 공지글 저장 및 반환
+        NoticeRespDTO savedNotice = noticeService.updateNotice(noticeDTO, noticeId, userEmail);
+        return ResponseEntity.ok(savedNotice);
+    }
+
 
 }
 
