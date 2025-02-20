@@ -1,6 +1,8 @@
 package com.jandi.plan_backend.commu.dto;
 
 import com.jandi.plan_backend.commu.entity.Comments;
+import com.jandi.plan_backend.storage.service.ImageService;
+import com.jandi.plan_backend.user.entity.User;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -8,14 +10,16 @@ import java.time.LocalDateTime;
 @Getter
 public class repliesDTO {
     private final Integer commentId;
-    private final Integer userId;
+    private final Integer parentCommentId;
     private final LocalDateTime createdAt;
     private final String contents;
     private final Integer likeCount;
+    private final UserCommunityDTO user;
 
-    public repliesDTO(Comments comment) {
+    public repliesDTO(Comments comment, User user, ImageService imageService) {
         this.commentId = comment.getCommentId();
-        this.userId = comment.getUserId();
+        this.parentCommentId = getParentCommentId();
+        this.user = new UserCommunityDTO(user, imageService);
         this.createdAt = comment.getCreatedAt();
         this.contents = comment.getContents();
         this.likeCount = comment.getLikeCount();

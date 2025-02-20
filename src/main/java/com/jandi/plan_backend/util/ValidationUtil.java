@@ -4,6 +4,11 @@ import com.jandi.plan_backend.commu.entity.Comments;
 import com.jandi.plan_backend.commu.entity.Community;
 import com.jandi.plan_backend.commu.repository.CommentRepository;
 import com.jandi.plan_backend.commu.repository.CommunityRepository;
+import com.jandi.plan_backend.resource.entity.Banner;
+import com.jandi.plan_backend.resource.entity.Notice;
+import com.jandi.plan_backend.resource.repository.BannerRepository;
+import com.jandi.plan_backend.resource.repository.NoticeRepository;
+import com.jandi.plan_backend.resource.service.NoticeService;
 import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.user.repository.UserRepository;
 import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
@@ -17,17 +22,26 @@ public class ValidationUtil {
     private final UserRepository userRepository;
     private final CommunityRepository communityRepository;
     private final CommentRepository commentRepository;
+    private final BannerRepository bannerRepository;
+    private final NoticeRepository noticeRepository;
 
-    public ValidationUtil(UserRepository userRepository, CommunityRepository communityRepository, CommentRepository commentRepository) {
+    public ValidationUtil(UserRepository userRepository, CommunityRepository communityRepository, CommentRepository commentRepository, BannerRepository bannerRepository, NoticeRepository noticeRepository) {
         this.userRepository = userRepository;
         this.communityRepository = communityRepository;
         this.commentRepository = commentRepository;
+        this.bannerRepository = bannerRepository;
+        this.noticeRepository = noticeRepository;
     }
 
     /** userRepository */
     // 사용자의 존재 여부 검증
     public User validateUserExists(String userEmail) {
         return userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new BadRequestExceptionMessage("존재하지 않는 사용자입니다."));
+    }
+
+    public User validateUserExists(Integer userId) {
+        return userRepository.findByUserId(userId)
                 .orElseThrow(() -> new BadRequestExceptionMessage("존재하지 않는 사용자입니다."));
     }
 
@@ -68,5 +82,19 @@ public class ValidationUtil {
     public void validateUserIsAuthorOfComment(User user, Comments comment) {
         if(!Objects.equals(user.getUserId(), comment.getUserId()))
             throw new BadRequestExceptionMessage("작성자 본인만 수정할 수 있습니다.");
+    }
+
+    /** BannerRepository 관련 검증 */
+    //배너의 존재 여부 검증
+    public Banner validateBannerExists(Integer bannerId) {
+        return (Banner) bannerRepository.findByBannerId(bannerId)
+                .orElseThrow(() -> new BadRequestExceptionMessage("존재하지 않는 배너입니다."));
+    }
+
+
+    /** NoticeRepository 관련 검증 */
+    public Notice validateNoticeExists(Integer noticeId) {
+        return (Notice) noticeRepository.findByNoticeId(noticeId)
+                .orElseThrow(() -> new BadRequestExceptionMessage("존재하지 않는 공지입니다."));
     }
 }
