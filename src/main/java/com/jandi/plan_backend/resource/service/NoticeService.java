@@ -61,4 +61,17 @@ public class NoticeService {
         noticeRepository.save(notice);
         return new NoticeRespDTO(notice);
     }
+
+    public boolean deleteNotice(String userEmail, Integer noticeId) {
+        // 유저 검증
+        User user = validationUtil.validateUserExists(userEmail);
+        validationUtil.validateUserIsAdmin(user);
+
+        // 공지글 검증
+        Notice notice = validationUtil.validateNoticeExists(noticeId);
+
+        // 공지글 삭제 및 반환
+        noticeRepository.delete(notice);
+        return true;
+    }
 }

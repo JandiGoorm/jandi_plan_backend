@@ -67,6 +67,20 @@ public class NoticeController {
         return ResponseEntity.ok(savedNotice);
     }
 
+    /** 공지사항 삭제 API */
+    @DeleteMapping("/lists/{noticeId}")
+    public ResponseEntity<?> deleteNotice(
+            @PathVariable Integer noticeId, //삭제할 공지사항
+            @RequestHeader("Authorization") String token // 헤더의 Authorization에서 JWT 토큰 받기
+    ){
+        // Jwt 토큰으로부터 유저 이메일 추출
+        String jwtToken = token.replace("Bearer ", "");
+        String userEmail = jwtTokenProvider.getEmail(jwtToken);
 
+        // 배너 수정 및 반환
+        String returnMsg = (noticeService.deleteNotice(userEmail, noticeId)) ?
+                "삭제되었습니다" : "삭제 과정에서 문제가 발생했습니다. 다시 한번 시도해주세요";
+        return ResponseEntity.ok(returnMsg);
+    }
 }
 
