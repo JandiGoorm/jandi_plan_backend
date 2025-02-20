@@ -25,7 +25,7 @@ public class Banner {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer BannerId;
+    private Integer bannerId;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;

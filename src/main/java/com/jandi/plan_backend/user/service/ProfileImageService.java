@@ -32,7 +32,7 @@ public class ProfileImageService {
      * @return 업로드 결과를 담은 ImageResponseDto
      */
     public ImageResponseDto uploadProfileImage(MultipartFile file, String ownerEmail, Integer userId) {
-        String targetType = "profile";
+        String targetType = "userProfile";
         return imageService.uploadImage(file, ownerEmail, userId, targetType);
     }
 
@@ -43,7 +43,7 @@ public class ProfileImageService {
      * @return 해당 프로필 사진 Image 엔티티 (Optional)
      */
     public Optional<Image> getProfileImage(Integer userId) {
-        return imageRepository.findByTargetTypeAndTargetId("profile", userId);
+        return imageRepository.findByTargetTypeAndTargetId("userProfile", userId);
     }
 
     /**

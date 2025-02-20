@@ -1,10 +1,12 @@
 package com.jandi.plan_backend.commu.repository;
 
 import com.jandi.plan_backend.commu.entity.Comments;
+import com.jandi.plan_backend.commu.entity.Community;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface CommentRepository extends JpaRepository<Comments, Integer> {
@@ -23,4 +25,9 @@ public interface CommentRepository extends JpaRepository<Comments, Integer> {
 
     //댓글이 존재하는지 조회하는 메서드
     Optional<Object> findByCommentId(Integer commentId);
+
+    //특정 댓글에 속한 자식 답글을 모두 조회하는 메서드
+    List<Comments> findByParentCommentCommentId(Integer commentId);
+
+    List<Comments> findByCommunity(Community community);
 }

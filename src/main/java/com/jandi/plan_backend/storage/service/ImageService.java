@@ -80,4 +80,9 @@ public class ImageService {
         return imageOptional.map(img -> publicUrlPrefix + img.getImageUrl())
                 .orElse(null);
     }
+
+    public String getUserProfile(Integer userId) {
+        Optional<Image> imageOptional = imageRepository.findByTargetTypeAndTargetId("userProfile", userId);
+        return imageOptional.map(img -> publicUrlPrefix + img.getImageUrl()).orElse(null);
+    }
 }
