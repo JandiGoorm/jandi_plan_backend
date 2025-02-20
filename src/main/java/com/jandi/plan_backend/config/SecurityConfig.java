@@ -72,9 +72,10 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/users/login", "/api/users/register", "/api/users/forgot",
                                 "/api/notice/lists",
-                                "/api/images/url",
                                 "api/community/posts", "api/community/posts/*",
-                                "api/community/comments/{postId}", "api/community/replies/{commentId}",
+                                "api/community/comments", "api/community/comments/{postId}",
+                                "api/community/replies/{commentId}", "api/community/posts", 
+                                "/api/images/**",
                                 "/api/banner/lists"
                         ).permitAll()
                         .anyRequest().authenticated()
