@@ -77,7 +77,7 @@ public class NoticeController {
         String jwtToken = token.replace("Bearer ", "");
         String userEmail = jwtTokenProvider.getEmail(jwtToken);
 
-        // 배너 수정 및 반환
+        // 공지 삭제 및 반환
         String returnMsg = (noticeService.deleteNotice(userEmail, noticeId)) ?
                 "삭제되었습니다" : "삭제 과정에서 문제가 발생했습니다. 다시 한번 시도해주세요";
         return ResponseEntity.ok(returnMsg);
