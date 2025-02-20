@@ -37,13 +37,12 @@ public class SecurityConfig {
 
     /**
      * CORS 설정을 위한 CorsConfigurationSource 빈.
-     * - 모든 오리진("*")을 허용하지만, 실제 프로덕션 환경에서는 특정 오리진만 허용하도록 설정해야 합니다.
      * - 모든 HTTP 메서드와 헤더를 허용하며, 쿠키와 인증 정보를 포함한 요청도 허용합니다.
      */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(List.of("*")); // 필요 시 "http://localhost:3000" 등 구체적으로 설정
+        configuration.setAllowedOriginPatterns(List.of("*")); // 필요 시 구체적으로 설정
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true); // 쿠키 및 인증 정보 허용
