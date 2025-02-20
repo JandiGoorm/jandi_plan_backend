@@ -1,16 +1,14 @@
 package com.jandi.plan_backend.commu.dto;
 
 import com.jandi.plan_backend.storage.service.ImageService;
-import com.jandi.plan_backend.user.dto.UserRegisterDTO;
 import com.jandi.plan_backend.user.entity.User;
-import com.jandi.plan_backend.user.repository.UserRepository;
 import lombok.Getter;
 
-@Getter
 /**
  * 게시물 조회 시 가져올 작성자 관련 DTO
  * 비밀번호를 포함한 유저의 모든 정보를 보내지 않도록 DTO로 조정
  */
+@Getter
 public class UserCommunityDTO {
     private final Integer userId;
     private final String userName;   // 사용자 아이디
@@ -25,6 +23,7 @@ public class UserCommunityDTO {
         this.firstName = user.getFirstName();
         this.lastName = user.getLastName();
         this.email = user.getEmail();
-        this.profileImageUrl = imageService.getUserProfile(user.getUserId());
+        // getPublicUrlByImageId를 호출하여 프로필 사진의 공개 URL을 가져옵니다.
+        this.profileImageUrl = imageService.getPublicUrlByImageId(user.getUserId());
     }
 }
