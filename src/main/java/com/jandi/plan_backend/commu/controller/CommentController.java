@@ -113,10 +113,10 @@ public class CommentController {
         return ResponseEntity.ok(updatedPost);
     }
 
-    /** 답글 삭제 API */
-    @DeleteMapping("/replies/{replyId}")
+    /** 댓글 및 답글 삭제 API */
+    @DeleteMapping("/comments/{commentId}")
     public ResponseEntity<?> deleteReplies(
-            @PathVariable Integer replyId,
+            @PathVariable Integer commentId,
             @RequestHeader("Authorization") String token // 헤더의 Authorization에서 JWT 토큰 받기
     ){
         // Jwt 토큰으로부터 유저 이메일 추출
@@ -124,8 +124,9 @@ public class CommentController {
         String userEmail = jwtTokenProvider.getEmail(jwtToken);
 
         // 답글 삭제 및 반환
-        String returnMsg = (commentService.deleteReplies(userEmail, replyId)) ?
-                "삭제되었습니다" : "삭제 과정에서 문제가 발생했습니다. 다시 한번 시도해주세요";
+        int deletedRepliesCount = (commentService.deleteComments(userEmail, commentId));
+        String returnMsg = (deletedRepliesCount == 0) ?
+                "답글이 삭제되었습니다": "선택된 댓글과 하위 답글 " + deletedRepliesCount +"개가 삭제되었습니다";
         return ResponseEntity.ok(returnMsg);
     }
 }

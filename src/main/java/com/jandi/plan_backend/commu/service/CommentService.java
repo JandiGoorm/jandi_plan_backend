@@ -8,7 +8,6 @@ import com.jandi.plan_backend.commu.entity.Comments;
 import com.jandi.plan_backend.commu.entity.Community;
 import com.jandi.plan_backend.commu.repository.CommentRepository;
 import com.jandi.plan_backend.commu.repository.CommunityRepository;
-import com.jandi.plan_backend.resource.entity.Banner;
 import com.jandi.plan_backend.storage.service.ImageService;
 import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.util.ValidationUtil;
@@ -17,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class CommentService {
@@ -124,18 +124,28 @@ public class CommentService {
         return new CommentRespDTO(comment);
     }
 
-    //답글 삭제
-    public boolean deleteReplies(String userEmail, Integer replyId) {
+    /**
+     * 댓글 및 답글 삭제
+     */
+    public int deleteComments(String userEmail, Integer commentId) {
         // 댓글 검증
-        Comments reply = validationUtil.validateCommentExists(replyId);
+        Comments comment = validationUtil.validateCommentExists(commentId);
 
         // 유저 검증
         User user = validationUtil.validateUserExists(userEmail);
         validationUtil.validateUserRestricted(user);
-        validationUtil.validateUserIsAuthorOfComment(user, reply);
+        validationUtil.validateUserIsAuthorOfComment(user, comment);
 
-        //배너 삭제 및 반환
-        commentRepository.delete(reply);
-        return true;
+        // 만약 댓글일 경우 하위 답글 모두 삭제
+        int repliesCount = 0;
+        if(comment.getParentComment() == null){
+            List<Comments> replies = commentRepository.findByParentCommentCommentId(commentId);
+            repliesCount = replies.size();
+            commentRepository.deleteAll(replies);
+        }
+
+        // 댓글 삭제 및 반환
+        commentRepository.delete(comment);
+        return repliesCount;
     }
 }
