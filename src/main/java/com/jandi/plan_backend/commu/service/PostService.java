@@ -10,6 +10,8 @@ import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.util.ValidationUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import com.jandi.plan_backend.util.service.PaginationService;
 
@@ -46,9 +48,13 @@ public class PostService {
     /** 게시글 목록 전체 조회 */
     public Page<CommunityListDTO> getAllPosts(int page, int size) {
         long totalCount = communityRepository.count();
+
+        // postId 내림차순 정렬
+        Sort sort = Sort.by(Sort.Direction.DESC, "postId");
+
         return PaginationService.getPagedData(page, size, totalCount,
-                communityRepository::findAll,
-                community -> new CommunityListDTO(community, imageService)); // imageService 포함
+                (pageable) -> communityRepository.findAll(PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort)),
+                community -> new CommunityListDTO(community, imageService));
     }
 
     /** 게시글 작성 */
