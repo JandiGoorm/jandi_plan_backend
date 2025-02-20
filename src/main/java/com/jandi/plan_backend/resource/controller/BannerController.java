@@ -67,4 +67,19 @@ public class BannerController {
         return ResponseEntity.ok(updatedBanner);
     }
 
+    /** 배너 삭제 API */
+    @DeleteMapping("/lists/{bannerId}")
+    public ResponseEntity<?> deleteBanner(
+            @PathVariable Integer bannerId, //삭제할 bannerId
+            @RequestHeader("Authorization") String token // 헤더의 Authorization에서 JWT 토큰 받기
+    ){
+        // Jwt 토큰으로부터 유저 이메일 추출
+        String jwtToken = token.replace("Bearer ", "");
+        String userEmail = jwtTokenProvider.getEmail(jwtToken);
+
+        // 배너 수정 및 반환
+        String returnMsg = (bannerService.deleteBanner(userEmail, bannerId)) ?
+                "삭제되었습니다" : "삭제 과정에서 문제가 발생했습니다. 다시 한번 시도해주세요";
+        return ResponseEntity.ok(returnMsg);
+    }
 }

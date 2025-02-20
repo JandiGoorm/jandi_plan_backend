@@ -5,7 +5,6 @@ import com.jandi.plan_backend.resource.dto.BannerRespDTO;
 import com.jandi.plan_backend.resource.entity.Banner;
 import com.jandi.plan_backend.resource.repository.BannerRepository;
 import com.jandi.plan_backend.storage.dto.ImageResponseDto;
-import com.jandi.plan_backend.storage.entity.Image;
 import com.jandi.plan_backend.storage.repository.ImageRepository;
 import com.jandi.plan_backend.storage.service.ImageService;
 import com.jandi.plan_backend.user.entity.User;
@@ -15,7 +14,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -89,5 +87,18 @@ public class BannerService {
         //수정된 배너 반환
         bannerRepository.save(banner);
         return new BannerRespDTO(banner);
+    }
+
+    public boolean deleteBanner(String userEmail, Integer bannerId) {
+        //유저 검증
+        User user = validationUtil.validateUserExists(userEmail);
+        validationUtil.validateUserIsAdmin(user);
+
+        //배너글 검증
+        Banner banner = validationUtil.validateBannerExists(bannerId);
+
+        //배너 삭제 및 반환
+        bannerRepository.delete(banner);
+        return true;
     }
 }
