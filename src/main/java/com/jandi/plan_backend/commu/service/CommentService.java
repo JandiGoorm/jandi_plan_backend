@@ -8,6 +8,7 @@ import com.jandi.plan_backend.commu.entity.Comments;
 import com.jandi.plan_backend.commu.entity.Community;
 import com.jandi.plan_backend.commu.repository.CommentRepository;
 import com.jandi.plan_backend.commu.repository.CommunityRepository;
+import com.jandi.plan_backend.storage.service.ImageService;
 import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.util.ValidationUtil;
 import com.jandi.plan_backend.util.service.PaginationService;
@@ -21,12 +22,14 @@ public class CommentService {
     private final CommunityRepository communityRepository;
     private final CommentRepository commentRepository;
     private final ValidationUtil validationUtil;
+    private final ImageService imageService;
 
     // 생성자를 통해 필요한 의존성들을 주입받음.
-    public CommentService(CommunityRepository communityRepository, CommentRepository commentRepository, ValidationUtil validationUtil) {
+    public CommentService(CommunityRepository communityRepository, CommentRepository commentRepository, ValidationUtil validationUtil, ImageService imageService) {
         this.communityRepository = communityRepository;
         this.commentRepository = commentRepository;
         this.validationUtil = validationUtil;
+        this.imageService = imageService;
     }
 
     /** 댓글 목록 조회 */
@@ -36,7 +39,7 @@ public class CommentService {
         long totalCount = commentRepository.countByCommunityPostIdAndParentCommentIsNull(postId);
         return PaginationService.getPagedData(page, size, totalCount,
                 pageable -> commentRepository.findByCommunityPostIdAndParentCommentIsNull(postId, pageable),
-                ParentCommentDTO::new);
+                comment -> new ParentCommentDTO(comment, imageService));
     }
 
     /** 답글 목록 조회 */
@@ -46,7 +49,7 @@ public class CommentService {
         long totalCount = commentRepository.countByParentCommentCommentId(commentId);
         return PaginationService.getPagedData(page, size, totalCount,
                 pageable -> commentRepository.findByParentCommentCommentId(commentId, pageable),
-                repliesDTO::new);
+                reply -> new repliesDTO(reply, imageService));
     }
 
     /** 댓글 작성 */
