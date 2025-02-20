@@ -79,4 +79,21 @@ public class PostController {
         return ResponseEntity.ok(updatedPost);
     }
 
+    /** 게시물 삭제 API */
+    @DeleteMapping("/posts/{postId}")
+    public ResponseEntity<?> deletePost(
+            @PathVariable Integer postId,
+            @RequestHeader("Authorization") String token // 헤더의 Authorization에서 JWT 토큰 받기
+    ){
+        // Jwt 토큰으로부터 유저 이메일 추출
+        String jwtToken = token.replace("Bearer ", "");
+        String userEmail = jwtTokenProvider.getEmail(jwtToken);
+
+        // 게시물 삭제 및 반환
+        int deleteCommentCount = communityService.deletePost(postId, userEmail);
+        String returnMsg = (deleteCommentCount == 0) ?
+                "게시물이 삭제되었습니다": "선택된 게시물과 하위 댓글 " + deleteCommentCount +"개가 삭제되었습니다";
+        return ResponseEntity.ok(returnMsg);
+    }
+
 }
