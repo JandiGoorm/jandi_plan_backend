@@ -35,6 +35,11 @@ public class ValidationUtil {
                 .orElseThrow(() -> new BadRequestExceptionMessage("존재하지 않는 사용자입니다."));
     }
 
+    public User validateUserExists(Integer userId) {
+        return userRepository.findByUserId(userId)
+                .orElseThrow(() -> new BadRequestExceptionMessage("존재하지 않는 사용자입니다."));
+    }
+
     // 사용자 활동 제한 여부 검증
     public void validateUserRestricted(User user) {
         if (user.getReported()) {

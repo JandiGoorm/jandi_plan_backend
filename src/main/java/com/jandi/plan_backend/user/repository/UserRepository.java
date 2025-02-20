@@ -9,6 +9,7 @@ import java.util.Optional;
  * JpaRepository를 확장하여 CRUD 및 페이징 기능 등을 기본 제공.
  */
 public interface UserRepository extends JpaRepository<User, Integer> {
+    Optional<User> findByUserId(Integer userId);
 
     /**
      * 주어진 이메일을 가진 User 엔티티를 Optional로 반환.

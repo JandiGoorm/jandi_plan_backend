@@ -39,7 +39,8 @@ public class CommentService {
         long totalCount = commentRepository.countByCommunityPostIdAndParentCommentIsNull(postId);
         return PaginationService.getPagedData(page, size, totalCount,
                 pageable -> commentRepository.findByCommunityPostIdAndParentCommentIsNull(postId, pageable),
-                comment -> new ParentCommentDTO(comment, imageService));
+                comment -> new ParentCommentDTO(comment, validationUtil.validateUserExists(comment.getUserId()), imageService)
+        );
     }
 
     /** 답글 목록 조회 */
@@ -49,7 +50,8 @@ public class CommentService {
         long totalCount = commentRepository.countByParentCommentCommentId(commentId);
         return PaginationService.getPagedData(page, size, totalCount,
                 pageable -> commentRepository.findByParentCommentCommentId(commentId, pageable),
-                reply -> new repliesDTO(reply, imageService));
+                reply -> new repliesDTO(reply, validationUtil.validateUserExists(reply.getUserId()), imageService)
+        );
     }
 
     /** 댓글 작성 */
