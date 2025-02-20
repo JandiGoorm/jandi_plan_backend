@@ -1,5 +1,6 @@
 package com.jandi.plan_backend.commu.dto;
 
+import com.jandi.plan_backend.storage.service.ImageService;
 import com.jandi.plan_backend.user.entity.User;
 import lombok.Getter;
 
@@ -14,12 +15,14 @@ public class UserCommunityDTO {
     private final String firstName;  // 사용자 이름
     private final String lastName;   // 사용자 성
     private final String email;
+    private final String profileImageUrl;
 
-    public UserCommunityDTO(User user) {
+    public UserCommunityDTO(User user, ImageService imageService) {
         this.userId = user.getUserId();
         this.userName = user.getUserName();
         this.firstName = user.getFirstName();
         this.lastName = user.getLastName();
         this.email = user.getEmail();
+        this.profileImageUrl = imageService.getUserProfile(user.getUserId());
     }
 }

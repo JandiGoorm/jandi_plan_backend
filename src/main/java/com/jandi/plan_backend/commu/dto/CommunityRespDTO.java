@@ -1,6 +1,7 @@
 package com.jandi.plan_backend.commu.dto;
 
 import com.jandi.plan_backend.commu.entity.Community;
+import com.jandi.plan_backend.storage.service.ImageService;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -19,13 +20,13 @@ public class CommunityRespDTO {
     private int commentCount;
     private UserCommunityDTO user; // 유저 정보 중 민감 정보 제외
 
-    public CommunityRespDTO(Community community) {
+    public CommunityRespDTO(Community community, ImageService imageService) {
         this.postId = community.getPostId();
+        this.user = new UserCommunityDTO(community.getUser(), imageService);
+        this.createdAt = community.getCreatedAt();
         this.title = community.getTitle();
         this.content = community.getContents();
-        this.createdAt = community.getCreatedAt();
         this.likeCount = community.getLikeCount();
         this.commentCount = community.getCommentCount();
-        this.user = new UserCommunityDTO(community.getUser());
     }
 }

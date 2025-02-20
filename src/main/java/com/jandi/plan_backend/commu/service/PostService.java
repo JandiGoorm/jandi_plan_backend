@@ -5,6 +5,7 @@ import com.jandi.plan_backend.commu.entity.Comments;
 import com.jandi.plan_backend.commu.entity.Community;
 import com.jandi.plan_backend.commu.repository.CommentRepository;
 import com.jandi.plan_backend.commu.repository.CommunityRepository;
+import com.jandi.plan_backend.storage.service.ImageService;
 import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.util.ValidationUtil;
 import org.springframework.data.domain.Page;
@@ -18,14 +19,15 @@ import java.util.Optional;
 public class PostService {
 
     private final CommunityRepository communityRepository;
-    private final CommentRepository commentRepository;
     private final ValidationUtil validationUtil;
+    private final ImageService imageService;
 
     // 생성자를 통해 필요한 의존성들을 주입받음.
-    public PostService(CommunityRepository communityRepository, CommentRepository commentRepository, ValidationUtil validationUtil) {
+    public PostService(
+            CommunityRepository communityRepository, ValidationUtil validationUtil, ImageService imageService) {
         this.communityRepository = communityRepository;
-        this.commentRepository = commentRepository;
         this.validationUtil = validationUtil;
+        this.imageService = imageService;
     }
 
     /** 특정 게시글 조회 */
@@ -33,7 +35,7 @@ public class PostService {
         //게시글의 존재 여부 검증
         Optional<Community> post = Optional.ofNullable(validationUtil.validatePostExists(postId));
 
-        return post.map(CommunityItemDTO::new);
+        return post.map(p -> new CommunityItemDTO(p, imageService)); // imageService 포함
     }
 
     /** 게시글 목록 전체 조회 */
@@ -41,7 +43,7 @@ public class PostService {
         long totalCount = communityRepository.count();
         return PaginationService.getPagedData(page, size, totalCount,
                 communityRepository::findAll,
-                CommunityListDTO::new);
+                community -> new CommunityListDTO(community, imageService)); // imageService 포함
     }
 
     /** 게시글 작성 */
@@ -61,7 +63,7 @@ public class PostService {
 
         // DB 저장 및 반환
         communityRepository.save(community);
-        return new CommunityRespDTO(community);
+        return new CommunityRespDTO(community, imageService);
     }
 
 
@@ -81,7 +83,7 @@ public class PostService {
 
         // DB 저장 및 반환
         communityRepository.save(post);
-        return new CommunityRespDTO(post);
+        return new CommunityRespDTO(post, imageService);
     }
 
 }
