@@ -38,17 +38,14 @@ public class ImageService {
      * @return 업로드 및 DB 저장 결과를 담은 ImageResponseDto
      */
     public ImageResponseDto uploadImage(MultipartFile file, String owner, Integer targetId, String targetType) {
-        // Google Cloud Storage에 파일 업로드 및 인코딩된 파일명 반환
         String uploadResult = googleCloudStorageService.uploadFile(file);
         if (!uploadResult.startsWith("파일 업로드 성공: ")) {
             ImageResponseDto errorDto = new ImageResponseDto();
             errorDto.setMessage(uploadResult);
             return errorDto;
         }
-        // 업로드 성공: 인코딩된 파일명 추출 (예: "c85ea963-8d42-4f2e-83c7-e0087bead6f4_unnamed.png")
         String storedFileName = uploadResult.replace("파일 업로드 성공: ", "").trim();
 
-        // Image 엔티티 생성 및 DB 저장 (파일명만 저장)
         Image image = new Image();
         image.setTargetType(targetType);
         image.setTargetId(targetId);
@@ -58,10 +55,8 @@ public class ImageService {
 
         image = imageRepository.save(image);
 
-        // 전체 공개 URL 구성 (접두어 + 파일명)
         String fullPublicUrl = publicUrlPrefix + image.getImageUrl();
 
-        // 응답 DTO 생성
         ImageResponseDto responseDto = new ImageResponseDto();
         responseDto.setImageId(image.getImageId());
         responseDto.setImageUrl(fullPublicUrl);
@@ -73,11 +68,38 @@ public class ImageService {
      * 이미지 ID에 해당하는 이미지의 공개 URL을 반환합니다.
      *
      * @param imageId 조회할 이미지의 ID
-     * @return "https://storage.googleapis.com/plan-storage/{파일명}" 형태의 공개 URL, 이미지가 없는 경우 null 반환
+     * @return 전체 공개 URL (예: "https://storage.googleapis.com/plan-storage/{파일명}"),
+     *         이미지가 없는 경우 null 반환
      */
     public String getPublicUrlByImageId(Integer imageId) {
         Optional<Image> imageOptional = imageRepository.findById(imageId);
         return imageOptional.map(img -> publicUrlPrefix + img.getImageUrl())
                 .orElse(null);
+    }
+
+    /**
+     * 이미지 삭제 기능: 실제 클라우드 스토리지 버킷에서 파일을 삭제하고, DB의 해당 이미지 레코드도 삭제합니다.
+     *
+     * @param imageId 삭제할 이미지의 DB ID
+     * @return 삭제 성공 시 true, 이미지가 없거나 삭제 실패 시 false
+     */
+    public boolean deleteImage(Integer imageId) {
+        Optional<Image> imageOptional = imageRepository.findById(imageId);
+        if (imageOptional.isEmpty()) {
+            log.warn("삭제할 이미지가 DB에 존재하지 않습니다. 이미지 ID: {}", imageId);
+            return false;
+        }
+        Image image = imageOptional.get();
+        // 클라우드 스토리지에서 파일 삭제 시도
+        boolean storageDeleted = googleCloudStorageService.deleteFile(image.getImageUrl());
+        if (storageDeleted) {
+            // 클라우드에서 삭제 성공하면 DB에서도 이미지 레코드를 삭제
+            imageRepository.delete(image);
+            log.info("이미지 삭제 완료: 이미지 ID: {}", imageId);
+            return true;
+        } else {
+            log.warn("클라우드 스토리지에서 이미지 삭제 실패: 이미지 ID: {}", imageId);
+            return false;
+        }
     }
 }

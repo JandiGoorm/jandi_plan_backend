@@ -61,4 +61,28 @@ public class GoogleCloudStorageService {
             return "파일 업로드 실패: " + e.getMessage();
         }
     }
+
+    /**
+     * 지정된 파일명을 가진 파일을 GCS 버킷에서 삭제합니다.
+     *
+     * @param fileName 삭제할 파일명 (DB에 저장된 파일명)
+     * @return 삭제 성공 시 true, 실패 시 false
+     */
+    public boolean deleteFile(String fileName) {
+        try {
+            // BlobId 생성: bucketName과 fileName을 이용하여 GCS 객체를 식별
+            BlobId blobId = BlobId.of(bucketName, fileName);
+            // storage.delete()는 파일 삭제 성공 시 true를 반환
+            boolean deleted = storage.delete(blobId);
+            if (deleted) {
+                log.info("파일 삭제 성공: {}", fileName);
+            } else {
+                log.warn("파일 삭제 실패 (파일이 존재하지 않음?): {}", fileName);
+            }
+            return deleted;
+        } catch (Exception e) {
+            log.error("파일 삭제 중 예외 발생: {}", e.getMessage());
+            return false;
+        }
+    }
 }
