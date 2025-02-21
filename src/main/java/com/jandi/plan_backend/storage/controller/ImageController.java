@@ -14,13 +14,11 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * 이미지 업로드와 공개 URL 조회를 담당하는 컨트롤러.
- * - 업로드 API: POST /api/images/upload
- *   -> 인증된 사용자의 토큰 정보를 이용해 파일 업로드 후 DB에 이미지 정보를 저장합니다.
- * - 공개 URL 조회 API: GET /api/images/{imageId}
- *   -> 경로 변수로 전달받은 이미지 ID를 기반으로 DB에 저장된 파일명을 바탕으로 공개 URL을 반환합니다.
- * - 삭제 API: DELETE /api/images/{imageId}
- *   -> 경로 변수로 전달받은 이미지 ID를 기반으로 클라우드 스토리지와 DB에서 이미지를 삭제합니다.
+ * 이미지 업로드 및 범용 CRUD API를 제공하는 컨트롤러.
+ * - 업로드: POST /api/images/upload
+ * - 조회: GET /api/images/{imageId}
+ * - 수정(업데이트): PUT /api/images/{imageId}
+ * - 삭제: DELETE /api/images/{imageId}
  */
 @Slf4j
 @RestController
@@ -35,12 +33,14 @@ public class ImageController {
 
     /**
      * 이미지 업로드 API.
+     * 인증된 사용자의 토큰 정보를 이용하여 파일을 업로드한 후,
+     * DB에 이미지 정보를 저장하고, 전체 공개 URL을 반환합니다.
      *
      * @param file 업로드할 이미지 파일
      * @param targetId 대상 엔티티의 식별자 (예: 사용자 ID, 게시글 ID 등)
      * @param targetType 이미지가 속하는 대상 (예: "user", "advertise", "notice", "community" 등)
      * @param userDetails 인증된 사용자 정보 (여기서 이메일을 추출)
-     * @return 업로드된 이미지 정보와 메시지를 포함한 ResponseEntity
+     * @return 업로드된 이미지 정보와 메시지를 담은 ImageResponseDto
      */
     @PostMapping("/upload")
     public ResponseEntity<?> uploadImage(
@@ -52,9 +52,8 @@ public class ImageController {
         if (userDetails == null) {
             log.warn("인증되지 않은 사용자로부터 업로드 시도: 사용자 정보 없음");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("이미지 업로드를 위해 로그인이 필요함");
+                    .body("이미지 업로드를 위해 로그인이 필요합니다.");
         }
-        // userDetails.getUsername()를 이메일로 사용
         String email = userDetails.getUsername();
         log.info("사용자 '{}'가 파일 '{}' 업로드 요청 (targetType: {}, targetId: {})",
                 email, file.getOriginalFilename(), targetType, targetId);
@@ -64,8 +63,8 @@ public class ImageController {
     }
 
     /**
-     * 이미지 공개 URL 조회 API.
-     * 경로 변수로 전달받은 이미지 ID를 기반으로, DB에 저장된 파일명을 바탕으로 공개 URL을 반환합니다.
+     * 이미지 조회 API.
+     * 경로 변수로 전달받은 이미지 ID를 기반으로 DB에 저장된 파일명을 바탕으로 공개 URL을 반환합니다.
      *
      * @param imageId 조회할 이미지의 ID (경로 변수)
      * @return {"imageUrl": "https://storage.googleapis.com/plan-storage/{파일명}"} 형태의 JSON 응답
@@ -80,6 +79,36 @@ public class ImageController {
         }
         log.info("이미지 조회 성공: 이미지 ID {}의 공개 URL: {}", imageId, publicUrl);
         return ResponseEntity.ok(Map.of("imageUrl", publicUrl));
+    }
+
+    /**
+     * 이미지 수정(업데이트) API.
+     * 경로 변수로 전달받은 이미지 ID를 기반으로 기존 이미지를 새 파일로 업데이트합니다.
+     * 기존 파일은 클라우드 스토리지에서 삭제한 후, 새 파일을 업로드하고 DB 레코드를 갱신합니다.
+     *
+     * @param imageId 업데이트할 이미지의 DB ID (경로 변수)
+     * @param file 새로 업로드할 이미지 파일
+     * @param userDetails 인증된 사용자 정보 (필요시 소유권 확인에 사용)
+     * @return 업데이트된 이미지 정보와 메시지를 담은 ImageResponseDto
+     */
+    @PutMapping("/{imageId}")
+    public ResponseEntity<?> updateImage(
+            @PathVariable("imageId") Integer imageId,
+            @RequestParam("file") MultipartFile file,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        if (userDetails == null) {
+            log.warn("인증되지 않은 사용자로부터 이미지 업데이트 시도");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("이미지 업데이트를 위해 로그인이 필요합니다.");
+        }
+        // (선택) 이미지 소유권 체크 로직 추가 가능
+        ImageResponseDto updatedDto = imageService.updateImage(imageId, file);
+        if (updatedDto == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", "업데이트할 이미지를 찾을 수 없습니다."));
+        }
+        log.info("이미지 업데이트 성공: 이미지 ID {}", imageId);
+        return ResponseEntity.ok(updatedDto);
     }
 
     /**

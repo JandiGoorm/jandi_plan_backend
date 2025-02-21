@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
  *   이미지의 고유 식별자(PK). 자동 증가(IDENTITY) 전략을 사용.
  *
  * - targetType:
- *   이미지가 속하는 대상(예: "user", "advertise", "notice", "community" 등).
+ *   이미지가 속하는 대상(예: "userProfile", "advertise", "notice", "community", "banner" 등).
  *
  * - targetId:
  *   이미지가 연결된 대상 엔티티의 식별자. (대상에 따라 값이 달라짐)
