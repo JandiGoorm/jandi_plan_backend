@@ -1,5 +1,6 @@
 package com.jandi.plan_backend.user.controller;
 
+import com.jandi.plan_backend.security.CustomUserDetails;
 import com.jandi.plan_backend.user.dto.*;
 import com.jandi.plan_backend.user.service.UserService;
 import com.jandi.plan_backend.security.JwtTokenProvider;
@@ -39,6 +40,29 @@ public class UserController {
         userService.registerUser(dto);
         return ResponseEntity.ok("회원가입 완료! 이메일의 링크를 클릭하면 인증이 완료됨");
     }
+
+    @GetMapping("/register/checkEmail")
+    public ResponseEntity<?> checkEmail(
+            @RequestParam ("email") String email
+    ) {
+        boolean isPossibleEmail = !userService.isExistEmail(email);
+        String respMsg = email + "은 " + ((isPossibleEmail) ?
+                "사용 가능한 이메일입니다" : "이미 사용중인 이메일입니다");
+
+        return (isPossibleEmail) ? ResponseEntity.ok(respMsg) : ResponseEntity.badRequest().body(respMsg);
+    }
+
+    @GetMapping("/register/checkName")
+    public ResponseEntity<?> checkName(
+            @RequestParam ("name") String name
+    ) {
+        boolean isPossibleEmail = !userService.isExistUserName(name);
+        String respMsg = name + "은 " + ((isPossibleEmail) ?
+                "사용 가능한 닉네임입니다" : "이미 사용중인 닉네임입니다");
+
+        return (isPossibleEmail) ? ResponseEntity.ok(respMsg) : ResponseEntity.badRequest().body(respMsg);
+    }
+
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody UserLoginDTO userLoginDTO) {
@@ -86,7 +110,7 @@ public class UserController {
     }
 
     @GetMapping("/profile")
-    public ResponseEntity<?> getUserProfile(@AuthenticationPrincipal com.jandi.plan_backend.security.CustomUserDetails customUserDetails) {
+    public ResponseEntity<?> getUserProfile(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
         if (customUserDetails == null) {
             return ResponseEntity.status(401).body(Map.of("error", "로그인이 필요합니다."));
         }
@@ -97,7 +121,7 @@ public class UserController {
 
     @PutMapping("/change-password")
     public ResponseEntity<?> changePassword(
-            @AuthenticationPrincipal com.jandi.plan_backend.security.CustomUserDetails customUserDetails,
+            @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @RequestBody ChangePasswordDTO dto) {
         if (customUserDetails == null) {
             return ResponseEntity.status(401).body(Map.of("error", "로그인이 필요합니다."));
@@ -110,4 +134,6 @@ public class UserController {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
+
+
 }

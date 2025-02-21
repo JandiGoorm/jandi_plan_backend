@@ -178,4 +178,12 @@ public class UserService {
         user.setUpdatedAt(LocalDateTime.now());
         userRepository.save(user);
     }
+
+    public boolean isExistEmail(String email) {
+        return userRepository.findByEmail(email).isPresent();
+    }
+
+    public boolean isExistUserName(String userName) {
+        return userRepository.findByUserName(userName).isPresent();
+    }
 }

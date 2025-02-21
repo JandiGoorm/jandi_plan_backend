@@ -69,7 +69,7 @@ public class SecurityConfig {
                 // 요청에 대한 접근 권한 설정
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(
-                                "/api/users/login", "/api/users/register", "/api/users/forgot", "/api/users/verify",
+                                "/api/users/login", "/api/users/register", "/api/users/register/checkEmail","/api/users/register/checkName", "/api/users/forgot", "/api/users/verify",
                                 "/api/users/token/refresh","/api/notice/lists",
                                 "api/community/posts", "api/community/posts/*",
                                 "api/community/comments", "api/community/comments/{postId}",
