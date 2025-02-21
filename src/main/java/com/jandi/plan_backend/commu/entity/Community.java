@@ -48,6 +48,10 @@ public class Community {
     @Column(nullable = false)
     private Integer likeCount;
 
+    // 게시글의 조회 수. null 값은 허용되지 않음.
+    @Column(nullable = false)
+    private Integer viewCount;
+
     @Column(nullable = false)
     private Integer commentCount; //댓글 수
 }

@@ -18,6 +18,7 @@ public class CommunityRespDTO {
     private LocalDateTime createdAt;
     private int likeCount;
     private int commentCount;
+    private int viewCount;
     private UserCommunityDTO user; // 유저 정보 중 민감 정보 제외
 
     public CommunityRespDTO(Community community, ImageService imageService) {
@@ -27,6 +28,7 @@ public class CommunityRespDTO {
         this.title = community.getTitle();
         this.content = community.getContents();
         this.likeCount = community.getLikeCount();
+        this.viewCount = community.getViewCount();
         this.commentCount = community.getCommentCount();
     }
 }
