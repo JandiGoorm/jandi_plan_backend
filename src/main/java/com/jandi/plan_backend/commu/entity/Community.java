@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import com.jandi.plan_backend.user.entity.User;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 커뮤니티 게시글 정보를 저장하는 엔티티 클래스.
@@ -16,6 +17,8 @@ import java.time.LocalDateTime;
  * - title: 게시글 제목. 최대 길이는 255자로 제한됨.
  * - contents: 게시글 본문 내용. TEXT 타입으로 저장되어 길이 제한이 없음.
  * - likeCount: 게시글에 달린 좋아요 수. null 값은 허용되지 않음.
+ * - commentCount: 게시글의 댓글 수. null 값은 허용되지 않음.
+ * - viewCount: 게시글 조회수. 기본값 0이며, null 값은 허용되지 않음.
  */
 @Entity
 @Table(name = "community")
@@ -48,10 +51,14 @@ public class Community {
     @Column(nullable = false)
     private Integer likeCount;
 
-    // 게시글의 조회 수. null 값은 허용되지 않음.
+    // 댓글 수. null 값은 허용되지 않음.
     @Column(nullable = false)
-    private Integer viewCount;
+    private Integer commentCount;
 
+    // 게시글 조회수. 기본값 0, null 값은 허용되지 않음.
     @Column(nullable = false)
-    private Integer commentCount; //댓글 수
+    private Integer viewCount = 0;
+
+    @OneToMany(mappedBy = "community", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Comment> comments;
 }

@@ -1,9 +1,8 @@
 package com.jandi.plan_backend.commu.dto;
 
-import com.jandi.plan_backend.commu.entity.Comments;
+import com.jandi.plan_backend.commu.entity.Comment;
 import com.jandi.plan_backend.storage.service.ImageService;
 import com.jandi.plan_backend.user.entity.User;
-import com.jandi.plan_backend.user.repository.UserRepository;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -17,7 +16,7 @@ public class ParentCommentDTO {
     private final Integer likeCount;
     private final Integer repliesCount; //답글 수
 
-    public ParentCommentDTO(Comments comment, User user, ImageService imageService) {
+    public ParentCommentDTO(Comment comment, User user, ImageService imageService) {
         this.commentId = comment.getCommentId();
         this.user = new UserCommunityDTO(user, imageService) ;
         this.createdAt = comment.getCreatedAt();

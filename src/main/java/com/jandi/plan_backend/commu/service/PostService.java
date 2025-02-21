@@ -1,7 +1,7 @@
 package com.jandi.plan_backend.commu.service;
 
 import com.jandi.plan_backend.commu.dto.*;
-import com.jandi.plan_backend.commu.entity.Comments;
+import com.jandi.plan_backend.commu.entity.Comment;
 import com.jandi.plan_backend.commu.entity.Community;
 import com.jandi.plan_backend.commu.repository.CommentRepository;
 import com.jandi.plan_backend.commu.repository.CommunityRepository;
@@ -114,7 +114,7 @@ public class PostService {
         if(user.getUserId()!=1) validationUtil.validateUserIsAuthorOfPost(user, post);
 
         //하위 댓글 모두 삭제
-        List<Comments> comments = commentRepository.findByCommunity(post);
+        List<Comment> comments = commentRepository.findByCommunity(post);
         int commentsCount = comments.size();
         commentRepository.deleteAll(comments);
 

@@ -4,7 +4,7 @@ import com.jandi.plan_backend.commu.dto.CommentReqDTO;
 import com.jandi.plan_backend.commu.dto.CommentRespDTO;
 import com.jandi.plan_backend.commu.dto.ParentCommentDTO;
 import com.jandi.plan_backend.commu.dto.repliesDTO;
-import com.jandi.plan_backend.commu.entity.Comments;
+import com.jandi.plan_backend.commu.entity.Comment;
 import com.jandi.plan_backend.commu.entity.Community;
 import com.jandi.plan_backend.commu.repository.CommentRepository;
 import com.jandi.plan_backend.commu.repository.CommunityRepository;
@@ -75,7 +75,7 @@ public class CommentService {
         validationUtil.validateUserRestricted(user);
 
         // 댓글 검증
-        Comments parentComment = validationUtil.validateCommentExists(commentId);
+        Comment parentComment = validationUtil.validateCommentExists(commentId);
         Community post = parentComment.getCommunity();
 
         //추가된 답글 반환
@@ -83,9 +83,9 @@ public class CommentService {
     }
 
     // 대댓글 실제 저장
-    private CommentRespDTO saveComment(User user, Comments parentComment, Community post, String content){
+    private CommentRespDTO saveComment(User user, Comment parentComment, Community post, String content){
         // 댓글 생성 및 저장
-        Comments comment = new Comments();
+        Comment comment = new Comment();
         comment.setCommunity(post);
         comment.setParentComment(parentComment);
         comment.setUserId(user.getUserId());
@@ -109,7 +109,7 @@ public class CommentService {
     /** 댓글 수정 */
     public CommentRespDTO updateComment(CommentReqDTO commentDTO, Integer commentId, String userEmail) {
         // 댓글 검증
-        Comments comment = validationUtil.validateCommentExists(commentId);
+        Comment comment = validationUtil.validateCommentExists(commentId);
 
         // 유저 검증
         User user = validationUtil.validateUserExists(userEmail);
@@ -129,7 +129,7 @@ public class CommentService {
      */
     public int deleteComments(String userEmail, Integer commentId) {
         // 댓글 검증
-        Comments comment = validationUtil.validateCommentExists(commentId);
+        Comment comment = validationUtil.validateCommentExists(commentId);
 
         // 유저 검증
         User user = validationUtil.validateUserExists(userEmail);
@@ -139,7 +139,7 @@ public class CommentService {
         // 만약 댓글일 경우 하위 답글 모두 삭제
         int repliesCount = 0;
         if(comment.getParentComment() == null){
-            List<Comments> replies = commentRepository.findByParentCommentCommentId(commentId);
+            List<Comment> replies = commentRepository.findByParentCommentCommentId(commentId);
             repliesCount = replies.size();
             commentRepository.deleteAll(replies);
         }

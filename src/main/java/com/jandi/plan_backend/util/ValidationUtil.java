@@ -1,6 +1,6 @@
 package com.jandi.plan_backend.util;
 
-import com.jandi.plan_backend.commu.entity.Comments;
+import com.jandi.plan_backend.commu.entity.Comment;
 import com.jandi.plan_backend.commu.entity.Community;
 import com.jandi.plan_backend.commu.repository.CommentRepository;
 import com.jandi.plan_backend.commu.repository.CommunityRepository;
@@ -86,13 +86,13 @@ public class ValidationUtil {
 
     /** commentRepository 관련 검증 */
     // 댓글의 존재 여부 검증
-    public Comments validateCommentExists(Integer commentId) {
-        return (Comments) commentRepository.findByCommentId(commentId)
+    public Comment validateCommentExists(Integer commentId) {
+        return (Comment) commentRepository.findByCommentId(commentId)
                 .orElseThrow(() -> new BadRequestExceptionMessage("존재하지 않는 댓글입니다."));
     }
 
     // 댓글의 작성자인지 검증
-    public void validateUserIsAuthorOfComment(User user, Comments comment) {
+    public void validateUserIsAuthorOfComment(User user, Comment comment) {
         if(!Objects.equals(user.getUserId(), comment.getUserId()))
             throw new BadRequestExceptionMessage("작성자 본인만 수정할 수 있습니다.");
     }

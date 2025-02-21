@@ -1,8 +1,11 @@
 package com.jandi.plan_backend.user.entity;
 
+import com.jandi.plan_backend.commu.entity.Comment;
+import com.jandi.plan_backend.commu.entity.Community;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 사용자 정보를 담는 엔티티.
@@ -25,7 +28,7 @@ public class User {
      * 사용자의 아이디.
      * 로그인 시 사용하며, 최대 50자까지 저장됨.
      */
-    @Column(nullable = false, length = 50)
+    @Column(nullable = false, unique = true, length = 50)
     private String userName;
 
     /**
@@ -94,5 +97,12 @@ public class User {
      * 기본값은 0. 값이 1일 때 부적절 유저로 간주하여 게시물 작성 제한
      */
     @Column
-    private Boolean Reported;
+    private Boolean reported;
+
+    /**
+     * 해당 사용자가 작성한 커뮤니티 게시글 리스트.
+     * 사용자가 탈퇴할 경우 연관 게시글도 함께 삭제되도록 CascadeType.ALL과 orphanRemoval을 적용.
+     */
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Community> communities;
 }

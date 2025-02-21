@@ -179,10 +179,30 @@ public class UserService {
         userRepository.save(user);
     }
 
+    /**
+     * 회원 탈퇴(계정 삭제) 기능을 수행한다.
+     * 인증된 사용자의 이메일을 기반으로 사용자 정보를 조회한 후, 해당 사용자 계정을 삭제한다.
+     *
+     * @param email 인증된 사용자의 이메일
+     * @throws RuntimeException 사용자를 찾을 수 없는 경우 예외 발생
+     */
+    public void deleteUser(String email) {
+        Optional<User> optionalUser = userRepository.findByEmail(email);
+        if (optionalUser.isEmpty()) {
+            throw new RuntimeException("사용자를 찾을 수 없습니다.");
+        }
+        User user = optionalUser.get();
+        // 관련 엔티티에 대한 cascade 설정이 있다면, 연관 데이터도 함께 삭제됩니다.
+        userRepository.delete(user);
+    }
+
+
+    // 중복 이메일 검증
     public boolean isExistEmail(String email) {
         return userRepository.findByEmail(email).isPresent();
     }
 
+    // 중복 닉네임 검증
     public boolean isExistUserName(String userName) {
         return userRepository.findByUserName(userName).isPresent();
     }

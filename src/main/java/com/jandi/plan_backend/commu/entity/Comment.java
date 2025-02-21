@@ -20,7 +20,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "comments")
 @Data
-public class Comments {
+public class Comment {
 
     // 댓글의 고유 ID. 자동 증가 전략 사용.
     @Id
@@ -35,7 +35,7 @@ public class Comments {
     // 부모 댓글. 답글인 경우 상위 댓글을 참조하며, 최상위 댓글이면 null.
     @ManyToOne
     @JoinColumn(name = "parent_comment_id")
-    private Comments parentComment;
+    private Comment parentComment;
 
     // 댓글 작성자의 ID. 단순 숫자 값으로 저장.
     @Column(nullable = false)

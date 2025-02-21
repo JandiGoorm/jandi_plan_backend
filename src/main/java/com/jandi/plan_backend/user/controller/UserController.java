@@ -5,6 +5,7 @@ import com.jandi.plan_backend.user.dto.*;
 import com.jandi.plan_backend.user.service.UserService;
 import com.jandi.plan_backend.security.JwtTokenProvider;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -110,7 +111,7 @@ public class UserController {
     }
 
     @GetMapping("/profile")
-    public ResponseEntity<?> getUserProfile(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
+    public ResponseEntity<?> getUserProfile(@AuthenticationPrincipal com.jandi.plan_backend.security.CustomUserDetails customUserDetails) {
         if (customUserDetails == null) {
             return ResponseEntity.status(401).body(Map.of("error", "로그인이 필요합니다."));
         }
@@ -121,7 +122,7 @@ public class UserController {
 
     @PutMapping("/change-password")
     public ResponseEntity<?> changePassword(
-            @AuthenticationPrincipal CustomUserDetails customUserDetails,
+            @AuthenticationPrincipal com.jandi.plan_backend.security.CustomUserDetails customUserDetails,
             @RequestBody ChangePasswordDTO dto) {
         if (customUserDetails == null) {
             return ResponseEntity.status(401).body(Map.of("error", "로그인이 필요합니다."));
@@ -135,5 +136,29 @@ public class UserController {
         }
     }
 
+    /**
+     * 회원 탈퇴(계정 삭제) 엔드포인트.
+     * 인증된 사용자가 자신의 계정을 삭제할 수 있도록 한다.
+     *
+     * URL: DELETE /api/users/del-user
+     * 헤더: Authorization: Bearer {accessToken}
+     *
+     * @param customUserDetails 인증된 사용자 정보 (CustomUserDetails)
+     * @return 탈퇴 성공 메시지 또는 오류 메시지
+     */
+    @DeleteMapping("/del-user")
+    public ResponseEntity<?> delUser(@AuthenticationPrincipal com.jandi.plan_backend.security.CustomUserDetails customUserDetails) {
+        if (customUserDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "로그인이 필요합니다."));
+        }
+        String email = customUserDetails.getUsername();
+        try {
+            userService.deleteUser(email);
+            return ResponseEntity.ok(Map.of("message", "회원 탈퇴가 완료되었습니다."));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
 
 }

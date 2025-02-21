@@ -1,6 +1,6 @@
 package com.jandi.plan_backend.commu.dto;
 
-import com.jandi.plan_backend.commu.entity.Comments;
+import com.jandi.plan_backend.commu.entity.Comment;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -14,7 +14,7 @@ public class CommentRespDTO {
     private final Integer likeCount;
     private final Integer repliesCount; //답글 수
 
-    public CommentRespDTO(Comments comment) {
+    public CommentRespDTO(Comment comment) {
         this.commentId = comment.getCommentId();
         this.userId = comment.getUserId();
         this.createdAt = comment.getCreatedAt();
