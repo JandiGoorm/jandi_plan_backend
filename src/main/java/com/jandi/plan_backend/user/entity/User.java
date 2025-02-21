@@ -28,7 +28,7 @@ public class User {
      * 사용자의 아이디.
      * 로그인 시 사용하며, 최대 50자까지 저장됨.
      */
-    @Column(nullable = false, length = 50)
+    @Column(nullable = false, unique = true, length = 50)
     private String userName;
 
     /**
