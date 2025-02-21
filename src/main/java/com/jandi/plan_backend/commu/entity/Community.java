@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import com.jandi.plan_backend.user.entity.User;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 커뮤니티 게시글 정보를 저장하는 엔티티 클래스.
@@ -57,4 +58,7 @@ public class Community {
     // 게시글 조회수. 기본값 0, null 값은 허용되지 않음.
     @Column(nullable = false)
     private Integer viewCount = 0;
+
+    @OneToMany(mappedBy = "community", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Comment> comments;
 }

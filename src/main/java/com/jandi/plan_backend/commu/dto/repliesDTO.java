@@ -1,6 +1,6 @@
 package com.jandi.plan_backend.commu.dto;
 
-import com.jandi.plan_backend.commu.entity.Comments;
+import com.jandi.plan_backend.commu.entity.Comment;
 import com.jandi.plan_backend.storage.service.ImageService;
 import com.jandi.plan_backend.user.entity.User;
 import lombok.Getter;
@@ -16,7 +16,7 @@ public class repliesDTO {
     private final Integer likeCount;
     private final UserCommunityDTO user;
 
-    public repliesDTO(Comments comment, User user, ImageService imageService) {
+    public repliesDTO(Comment comment, User user, ImageService imageService) {
         this.commentId = comment.getCommentId();
         this.parentCommentId = getParentCommentId();
         this.user = new UserCommunityDTO(user, imageService);
