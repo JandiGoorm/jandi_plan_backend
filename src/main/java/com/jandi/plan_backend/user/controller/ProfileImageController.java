@@ -35,7 +35,7 @@ public class ProfileImageController {
      * @param customUserDetails 인증된 사용자 정보 (CustomUserDetails)
      * @return 업로드 결과를 담은 ImageResponseDto (이미지 ID, 전체 공개 URL, 메시지)
      */
-    @PostMapping("/profile")
+    @PostMapping("/profiles")
     public ResponseEntity<?> uploadProfileImage(
             @RequestParam("file") MultipartFile file,
             @AuthenticationPrincipal CustomUserDetails customUserDetails) {
