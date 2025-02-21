@@ -46,8 +46,12 @@ public class UserController {
     public ResponseEntity<?> checkEmail(
             @RequestParam ("email") String email
     ) {
+        if(email == null || email.isEmpty()) {
+            return ResponseEntity.badRequest().body("이메일을 입력해주세요!");
+        }
+
         boolean isPossibleEmail = !userService.isExistEmail(email);
-        String respMsg = email + "은 " + ((isPossibleEmail) ?
+        String respMsg = email + "은/는 " + ((isPossibleEmail) ?
                 "사용 가능한 이메일입니다" : "이미 사용중인 이메일입니다");
 
         return (isPossibleEmail) ? ResponseEntity.ok(respMsg) : ResponseEntity.badRequest().body(respMsg);
@@ -57,8 +61,12 @@ public class UserController {
     public ResponseEntity<?> checkName(
             @RequestParam ("name") String name
     ) {
+        if(name == null || name.isEmpty()) {
+            return ResponseEntity.badRequest().body("닉네임을 입력해주세요!");
+        }
+
         boolean isPossibleEmail = !userService.isExistUserName(name);
-        String respMsg = name + "은 " + ((isPossibleEmail) ?
+        String respMsg = name + "은/는 " + ((isPossibleEmail) ?
                 "사용 가능한 닉네임입니다" : "이미 사용중인 닉네임입니다");
 
         return (isPossibleEmail) ? ResponseEntity.ok(respMsg) : ResponseEntity.badRequest().body(respMsg);
