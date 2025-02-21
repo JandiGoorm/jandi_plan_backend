@@ -8,8 +8,15 @@ import com.jandi.plan_backend.resource.entity.Banner;
 import com.jandi.plan_backend.resource.entity.Notice;
 import com.jandi.plan_backend.resource.repository.BannerRepository;
 import com.jandi.plan_backend.resource.repository.NoticeRepository;
+import com.jandi.plan_backend.resource.service.BannerService;
 import com.jandi.plan_backend.resource.service.NoticeService;
+import com.jandi.plan_backend.user.entity.Continent;
+import com.jandi.plan_backend.user.entity.Country;
+import com.jandi.plan_backend.user.entity.MajorDestination;
 import com.jandi.plan_backend.user.entity.User;
+import com.jandi.plan_backend.user.repository.ContinentRepository;
+import com.jandi.plan_backend.user.repository.CountryRepository;
+import com.jandi.plan_backend.user.repository.MajorDestinationRepository;
 import com.jandi.plan_backend.user.repository.UserRepository;
 import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
 import org.springframework.stereotype.Component;
@@ -24,13 +31,19 @@ public class ValidationUtil {
     private final CommentRepository commentRepository;
     private final BannerRepository bannerRepository;
     private final NoticeRepository noticeRepository;
+    private final ContinentRepository continentRepository;
+    private final CountryRepository countryRepository;
+    private final MajorDestinationRepository majorDestinationRepository;
 
-    public ValidationUtil(UserRepository userRepository, CommunityRepository communityRepository, CommentRepository commentRepository, BannerRepository bannerRepository, NoticeRepository noticeRepository) {
+    public ValidationUtil(UserRepository userRepository, CommunityRepository communityRepository, CommentRepository commentRepository, BannerRepository bannerRepository, NoticeRepository noticeRepository, ContinentRepository continentRepository, CountryRepository countryRepository, MajorDestinationRepository majorDestinationRepository) {
         this.userRepository = userRepository;
         this.communityRepository = communityRepository;
         this.commentRepository = commentRepository;
         this.bannerRepository = bannerRepository;
         this.noticeRepository = noticeRepository;
+        this.continentRepository = continentRepository;
+        this.countryRepository = countryRepository;
+        this.majorDestinationRepository = majorDestinationRepository;
     }
 
     /** userRepository */
@@ -96,5 +109,24 @@ public class ValidationUtil {
     public Notice validateNoticeExists(Integer noticeId) {
         return (Notice) noticeRepository.findByNoticeId(noticeId)
                 .orElseThrow(() -> new BadRequestExceptionMessage("존재하지 않는 공지입니다."));
+    }
+
+    /** Prefer Continent/Country/Destination Repository 관련 검증 */
+    //대륙 관련
+    public Continent validateContinentExists(String continentName) {
+        return (Continent) continentRepository.findByName(continentName)
+                .orElseThrow(() -> new BadRequestExceptionMessage("등록되지 않은 대륙입니다."));
+    }
+
+    //국가 관련
+    public Country validateCountryExists(String countryName) {
+        return (Country) countryRepository.findByName(countryName)
+                .orElseThrow(() -> new BadRequestExceptionMessage("등록되지 않은 국가입니다."));
+    }
+
+    //도시 관련
+    public MajorDestination validateCityExists(String cityName) {
+        return (MajorDestination) majorDestinationRepository.findByName(cityName)
+                .orElseThrow(() -> new BadRequestExceptionMessage("등록되지 않은 도시입니다."));
     }
 }
