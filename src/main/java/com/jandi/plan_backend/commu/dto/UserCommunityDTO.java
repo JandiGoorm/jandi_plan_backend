@@ -1,6 +1,6 @@
 package com.jandi.plan_backend.commu.dto;
 
-import com.jandi.plan_backend.storage.service.ImageService;
+import com.jandi.plan_backend.image.service.ImageService;
 import com.jandi.plan_backend.user.entity.User;
 import lombok.Getter;
 

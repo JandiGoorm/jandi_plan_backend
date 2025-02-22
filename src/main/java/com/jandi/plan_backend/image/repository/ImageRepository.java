@@ -1,6 +1,6 @@
-package com.jandi.plan_backend.storage.repository;
+package com.jandi.plan_backend.image.repository;
 
-import com.jandi.plan_backend.storage.entity.Image;
+import com.jandi.plan_backend.image.entity.Image;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

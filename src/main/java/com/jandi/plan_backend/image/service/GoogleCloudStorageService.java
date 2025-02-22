@@ -1,4 +1,4 @@
-package com.jandi.plan_backend.storage.service;
+package com.jandi.plan_backend.image.service;
 
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BlobId;

@@ -1,7 +1,7 @@
 package com.jandi.plan_backend.user.service;
 
-import com.jandi.plan_backend.storage.dto.ImageResponseDto;
-import com.jandi.plan_backend.storage.service.ImageService;
+import com.jandi.plan_backend.image.dto.ImageResponseDto;
+import com.jandi.plan_backend.image.service.ImageService;
 import com.jandi.plan_backend.user.dto.CityRespDTO;
 import com.jandi.plan_backend.user.dto.ContinentRespDTO;
 import com.jandi.plan_backend.user.dto.CountryRespDTO;

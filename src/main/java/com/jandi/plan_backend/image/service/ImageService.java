@@ -1,8 +1,8 @@
-package com.jandi.plan_backend.storage.service;
+package com.jandi.plan_backend.image.service;
 
-import com.jandi.plan_backend.storage.dto.ImageResponseDto;
-import com.jandi.plan_backend.storage.entity.Image;
-import com.jandi.plan_backend.storage.repository.ImageRepository;
+import com.jandi.plan_backend.image.dto.ImageResponseDto;
+import com.jandi.plan_backend.image.entity.Image;
+import com.jandi.plan_backend.image.repository.ImageRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;

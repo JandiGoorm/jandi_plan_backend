@@ -1,4 +1,4 @@
-package com.jandi.plan_backend.storage.dto;
+package com.jandi.plan_backend.image.dto;
 
 import lombok.Data;
 

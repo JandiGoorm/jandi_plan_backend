@@ -1,4 +1,4 @@
-package com.jandi.plan_backend.storage.entity;
+package com.jandi.plan_backend.image.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;

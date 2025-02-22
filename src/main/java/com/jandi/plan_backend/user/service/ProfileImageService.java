@@ -1,9 +1,9 @@
 package com.jandi.plan_backend.user.service;
 
-import com.jandi.plan_backend.storage.dto.ImageResponseDto;
-import com.jandi.plan_backend.storage.entity.Image;
-import com.jandi.plan_backend.storage.repository.ImageRepository;
-import com.jandi.plan_backend.storage.service.ImageService;
+import com.jandi.plan_backend.image.dto.ImageResponseDto;
+import com.jandi.plan_backend.image.entity.Image;
+import com.jandi.plan_backend.image.repository.ImageRepository;
+import com.jandi.plan_backend.image.service.ImageService;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
