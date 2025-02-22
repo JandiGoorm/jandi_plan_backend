@@ -32,7 +32,7 @@ public class UserCityPreference {
     @Id
     @ManyToOne
     @JoinColumn(name = "destination_id", nullable = false)
-    private City city;
+    private City majorDestination;
 
     // 이 레코드가 생성된 시간을 저장. 선호 정보가 언제 등록되었는지 기록.
     @Column(nullable = false)
