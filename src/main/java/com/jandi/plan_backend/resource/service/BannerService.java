@@ -4,7 +4,7 @@ import com.jandi.plan_backend.resource.dto.BannerListDTO;
 import com.jandi.plan_backend.resource.dto.BannerRespDTO;
 import com.jandi.plan_backend.resource.entity.Banner;
 import com.jandi.plan_backend.resource.repository.BannerRepository;
-import com.jandi.plan_backend.image.dto.ImageResponseDto;
+import com.jandi.plan_backend.image.dto.ImageRespDto;
 import com.jandi.plan_backend.image.repository.ImageRepository;
 import com.jandi.plan_backend.image.service.ImageService;
 import com.jandi.plan_backend.user.entity.User;
@@ -54,7 +54,7 @@ public class BannerService {
         bannerRepository.save(banner); //imageUrl 미포함된 상태로 1차 저장
 
         //이미지 업로드
-        ImageResponseDto image = imageService.uploadImage(
+        ImageRespDto image = imageService.uploadImage(
                 file, user.getEmail(), banner.getBannerId(), "banner");
         banner.setImageUrl(image.getImageUrl()); //업로드된 imageUrl 저장
 
@@ -79,7 +79,7 @@ public class BannerService {
         if (file != null) {
             imageRepository.findByTargetTypeAndTargetId("banner", bannerId)
                     .ifPresent(imageRepository::delete); //기존 이미지 삭제
-            ImageResponseDto image = imageService.uploadImage(
+            ImageRespDto image = imageService.uploadImage(
                     file, user.getEmail(), bannerId, "banner"); //재업로드
             banner.setImageUrl(image.getImageUrl()); //업로드된 imageUrl 저장
         }

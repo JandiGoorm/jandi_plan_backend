@@ -3,6 +3,9 @@ package com.jandi.plan_backend.itinerary.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 import com.jandi.plan_backend.trip.entity.Trip;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -37,6 +40,7 @@ public class Expense {
 
     // 경비가 속한 여행(Trip)을 나타냄. 여러 경비가 하나의 여행에 속함.
     @ManyToOne
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "trip_id", nullable = false)
     private Trip trip;
 

@@ -3,7 +3,7 @@ package com.jandi.plan_backend.commu.service;
 import com.jandi.plan_backend.commu.dto.CommentReqDTO;
 import com.jandi.plan_backend.commu.dto.CommentRespDTO;
 import com.jandi.plan_backend.commu.dto.ParentCommentDTO;
-import com.jandi.plan_backend.commu.dto.repliesDTO;
+import com.jandi.plan_backend.commu.dto.RepliesDTO;
 import com.jandi.plan_backend.commu.entity.Comment;
 import com.jandi.plan_backend.commu.entity.Community;
 import com.jandi.plan_backend.commu.repository.CommentRepository;
@@ -45,13 +45,13 @@ public class CommentService {
     }
 
     /** 답글 목록 조회 */
-    public Page<repliesDTO> getAllReplies(Integer commentId, int page, int size) {
+    public Page<RepliesDTO> getAllReplies(Integer commentId, int page, int size) {
         validationUtil.validateCommentExists(commentId); //댓글의 존재 여부 검증
 
         long totalCount = commentRepository.countByParentCommentCommentId(commentId);
         return PaginationService.getPagedData(page, size, totalCount,
                 pageable -> commentRepository.findByParentCommentCommentId(commentId, pageable),
-                reply -> new repliesDTO(reply, validationUtil.validateUserExists(reply.getUserId()), imageService)
+                reply -> new RepliesDTO(reply, validationUtil.validateUserExists(reply.getUserId()), imageService)
         );
     }
 

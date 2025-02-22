@@ -8,15 +8,13 @@ import com.jandi.plan_backend.resource.entity.Banner;
 import com.jandi.plan_backend.resource.entity.Notice;
 import com.jandi.plan_backend.resource.repository.BannerRepository;
 import com.jandi.plan_backend.resource.repository.NoticeRepository;
-import com.jandi.plan_backend.resource.service.BannerService;
-import com.jandi.plan_backend.resource.service.NoticeService;
+import com.jandi.plan_backend.user.entity.City;
 import com.jandi.plan_backend.user.entity.Continent;
 import com.jandi.plan_backend.user.entity.Country;
-import com.jandi.plan_backend.user.entity.MajorDestination;
 import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.user.repository.ContinentRepository;
 import com.jandi.plan_backend.user.repository.CountryRepository;
-import com.jandi.plan_backend.user.repository.MajorDestinationRepository;
+import com.jandi.plan_backend.user.repository.CityRepository;
 import com.jandi.plan_backend.user.repository.UserRepository;
 import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
 import org.springframework.stereotype.Component;
@@ -34,9 +32,9 @@ public class ValidationUtil {
     private final NoticeRepository noticeRepository;
     private final ContinentRepository continentRepository;
     private final CountryRepository countryRepository;
-    private final MajorDestinationRepository majorDestinationRepository;
+    private final CityRepository cityRepository;
 
-    public ValidationUtil(UserRepository userRepository, CommunityRepository communityRepository, CommentRepository commentRepository, BannerRepository bannerRepository, NoticeRepository noticeRepository, ContinentRepository continentRepository, CountryRepository countryRepository, MajorDestinationRepository majorDestinationRepository) {
+    public ValidationUtil(UserRepository userRepository, CommunityRepository communityRepository, CommentRepository commentRepository, BannerRepository bannerRepository, NoticeRepository noticeRepository, ContinentRepository continentRepository, CountryRepository countryRepository, CityRepository cityRepository) {
         this.userRepository = userRepository;
         this.communityRepository = communityRepository;
         this.commentRepository = commentRepository;
@@ -44,7 +42,7 @@ public class ValidationUtil {
         this.noticeRepository = noticeRepository;
         this.continentRepository = continentRepository;
         this.countryRepository = countryRepository;
-        this.majorDestinationRepository = majorDestinationRepository;
+        this.cityRepository = cityRepository;
     }
 
     /** userRepository */
@@ -126,8 +124,8 @@ public class ValidationUtil {
     }
 
     //도시 관련
-    public MajorDestination validateCityExists(String cityName) {
-        return (MajorDestination) majorDestinationRepository.findByName(cityName)
+    public City validateCityExists(String cityName) {
+        return (City) cityRepository.findByName(cityName)
                 .orElseThrow(() -> new BadRequestExceptionMessage("등록되지 않은 도시입니다."));
     }
 

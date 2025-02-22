@@ -2,7 +2,7 @@ package com.jandi.plan_backend.user.controller;
 
 import com.jandi.plan_backend.user.entity.Continent;
 import com.jandi.plan_backend.user.entity.Country;
-import com.jandi.plan_backend.user.entity.MajorDestination;
+import com.jandi.plan_backend.user.entity.City;
 import com.jandi.plan_backend.user.service.PreferTripService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -71,7 +71,7 @@ public class ManageTripController {
         }
 
         String userEmail = userDetails.getUsername();
-        MajorDestination newCity = preferTripService.createNewCity(
+        City newCity = preferTripService.createNewCity(
                 userEmail, countryName, cityName, description, file
         );
 

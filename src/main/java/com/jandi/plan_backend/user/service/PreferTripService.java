@@ -1,17 +1,17 @@
 package com.jandi.plan_backend.user.service;
 
-import com.jandi.plan_backend.image.dto.ImageResponseDto;
+import com.jandi.plan_backend.image.dto.ImageRespDto;
 import com.jandi.plan_backend.image.service.ImageService;
 import com.jandi.plan_backend.user.dto.CityRespDTO;
 import com.jandi.plan_backend.user.dto.ContinentRespDTO;
 import com.jandi.plan_backend.user.dto.CountryRespDTO;
 import com.jandi.plan_backend.user.entity.Continent;
 import com.jandi.plan_backend.user.entity.Country;
-import com.jandi.plan_backend.user.entity.MajorDestination;
+import com.jandi.plan_backend.user.entity.City;
 import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.user.repository.ContinentRepository;
 import com.jandi.plan_backend.user.repository.CountryRepository;
-import com.jandi.plan_backend.user.repository.MajorDestinationRepository;
+import com.jandi.plan_backend.user.repository.CityRepository;
 import com.jandi.plan_backend.util.ValidationUtil;
 import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
 import lombok.extern.slf4j.Slf4j;
@@ -26,14 +26,14 @@ import java.util.stream.Collectors;
 public class PreferTripService {
     private final ContinentRepository continentRepository;
     private final CountryRepository countryRepository;
-    private final MajorDestinationRepository majorDestinationRepository;
+    private final CityRepository cityRepository;
     private final ValidationUtil validationUtil;
     private final ImageService imageService;
 
-    public PreferTripService(ContinentRepository continentRepository, CountryRepository countryRepository, MajorDestinationRepository majorDestinationRepository, ValidationUtil validationUtil, ImageService imageService) {
+    public PreferTripService(ContinentRepository continentRepository, CountryRepository countryRepository, CityRepository cityRepository, ValidationUtil validationUtil, ImageService imageService) {
         this.continentRepository = continentRepository;
         this.countryRepository = countryRepository;
-        this.majorDestinationRepository = majorDestinationRepository;
+        this.cityRepository = cityRepository;
         this.validationUtil = validationUtil;
         this.imageService = imageService;
     }
@@ -63,9 +63,9 @@ public class PreferTripService {
 
     // 도시 조회
     public List<CityRespDTO> getAllCities(List<String> filter) {
-        List<MajorDestination> cities = (filter.isEmpty()) ?
-                majorDestinationRepository.findAll() :
-                majorDestinationRepository.findByNameIn(filter);
+        List<City> cities = (filter.isEmpty()) ?
+                cityRepository.findAll() :
+                cityRepository.findByNameIn(filter);
 
         return cities.stream()
                 .map(CityRespDTO::new)
@@ -90,7 +90,7 @@ public class PreferTripService {
         continentRepository.save(continent);
 
         //이미지 업로드 및 반영
-        ImageResponseDto imageDTO = imageService.uploadImage(
+        ImageRespDto imageDTO = imageService.uploadImage(
                 file, userEmail, continent.getContinentId(), "continent");
         continent.setImageUrl(imageDTO.getImageUrl());
 
@@ -124,7 +124,7 @@ public class PreferTripService {
     }
 
     // 도시 생성
-    public MajorDestination createNewCity(
+    public City createNewCity(
             String userEmail, String countryName, String cityName, String description, MultipartFile file) {
         //유저 검증
         User user = validationUtil.validateUserExists(userEmail);
@@ -136,27 +136,27 @@ public class PreferTripService {
         log.info("country: {}", country);
 
         //도시 검증: 이미 존재한다면 추가 생성하지 않음
-        if (majorDestinationRepository.findByName(cityName).isPresent()) {
+        if (cityRepository.findByName(cityName).isPresent()) {
             throw new BadRequestExceptionMessage("이미 존재하는 도시입니다.");
         }
 
         //도시 생성
-        MajorDestination newCity = new MajorDestination();
+        City newCity = new City();
         newCity.setName(cityName);
         newCity.setCountry(country);
         newCity.setContinent(country.getContinent());
         newCity.setDescription(description);
 
-        majorDestinationRepository.save(newCity);
+        cityRepository.save(newCity);
         log.info("newCity: {}", newCity);
 
         //이미지 업로드 및 반영
-        ImageResponseDto imageDTO = imageService.uploadImage(
+        ImageRespDto imageDTO = imageService.uploadImage(
                 file, userEmail, newCity.getDestinationId(), "majorDestination");
         newCity.setImageUrl(imageDTO.getImageUrl());
         log.info("imageDTO: {}", imageDTO);
 
-        majorDestinationRepository.save(newCity);
+        cityRepository.save(newCity);
 
         return newCity;
     }

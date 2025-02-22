@@ -1,6 +1,6 @@
 package com.jandi.plan_backend.image.controller;
 
-import com.jandi.plan_backend.image.dto.ImageResponseDto;
+import com.jandi.plan_backend.image.dto.ImageRespDto;
 import com.jandi.plan_backend.image.service.ImageService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -39,7 +39,7 @@ public class ImageController {
      * @param targetId 대상 엔티티의 식별자 (예: 사용자 ID, 게시글 ID 등)
      * @param targetType 이미지가 속하는 대상 (예: "user", "advertise", "notice", "community" 등)
      * @param userDetails 인증된 사용자 정보 (여기서 이메일을 추출)
-     * @return 업로드된 이미지 정보와 메시지를 담은 ImageResponseDto
+     * @return 업로드된 이미지 정보와 메시지를 담은 ImageRespDto
      */
     @PostMapping("/upload")
     public ResponseEntity<?> uploadImage(
@@ -57,7 +57,7 @@ public class ImageController {
         log.info("사용자 '{}'가 파일 '{}' 업로드 요청 (targetType: {}, targetId: {})",
                 email, file.getOriginalFilename(), targetType, targetId);
 
-        ImageResponseDto responseDto = imageService.uploadImage(file, email, targetId, targetType);
+        ImageRespDto responseDto = imageService.uploadImage(file, email, targetId, targetType);
         return ResponseEntity.ok(responseDto);
     }
 
@@ -88,7 +88,7 @@ public class ImageController {
      * @param imageId 업데이트할 이미지의 DB ID (경로 변수)
      * @param file 새로 업로드할 이미지 파일
      * @param userDetails 인증된 사용자 정보 (필요시 소유권 확인에 사용)
-     * @return 업데이트된 이미지 정보와 메시지를 담은 ImageResponseDto
+     * @return 업데이트된 이미지 정보와 메시지를 담은 ImageRespDto
      */
     @PutMapping("/{imageId}")
     public ResponseEntity<?> updateImage(
@@ -101,7 +101,7 @@ public class ImageController {
                     .body("이미지 업데이트를 위해 로그인이 필요합니다.");
         }
         // (선택) 이미지 소유권 체크 로직 추가 가능
-        ImageResponseDto updatedDto = imageService.updateImage(imageId, file);
+        ImageRespDto updatedDto = imageService.updateImage(imageId, file);
         if (updatedDto == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(Map.of("error", "업데이트할 이미지를 찾을 수 없습니다."));

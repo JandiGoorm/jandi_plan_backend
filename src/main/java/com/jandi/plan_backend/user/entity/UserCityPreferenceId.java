@@ -16,7 +16,7 @@ import java.io.Serializable;
  * 이 클래스는 Serializable 인터페이스를 구현하여, 복합 키 객체가 직렬화 될 수 있도록 함.
  */
 @Data
-public class UserDestinationPreferenceId implements Serializable {
+public class UserCityPreferenceId implements Serializable {
 
     // 사용자 엔티티의 기본키 값 (user_id)
     private Integer user;

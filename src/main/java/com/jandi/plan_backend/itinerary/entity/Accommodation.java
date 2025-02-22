@@ -3,6 +3,9 @@ package com.jandi.plan_backend.itinerary.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 import com.jandi.plan_backend.trip.entity.Trip;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -32,6 +35,7 @@ public class Accommodation {
     // 숙박 정보와 연결된 여행 계획.
     // 여러 숙박 정보가 하나의 여행 계획에 속할 수 있음.
     @ManyToOne
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "trip_id", nullable = false)
     private Trip trip;
 

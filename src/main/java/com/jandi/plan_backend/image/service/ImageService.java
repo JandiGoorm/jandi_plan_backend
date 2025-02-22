@@ -1,6 +1,6 @@
 package com.jandi.plan_backend.image.service;
 
-import com.jandi.plan_backend.image.dto.ImageResponseDto;
+import com.jandi.plan_backend.image.dto.ImageRespDto;
 import com.jandi.plan_backend.image.entity.Image;
 import com.jandi.plan_backend.image.repository.ImageRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -29,12 +29,12 @@ public class ImageService {
      * @param owner 업로더 이메일
      * @param targetId 대상 엔티티의 식별자
      * @param targetType 이미지가 속하는 대상
-     * @return 업로드 결과를 담은 ImageResponseDto
+     * @return 업로드 결과를 담은 ImageRespDto
      */
-    public ImageResponseDto uploadImage(MultipartFile file, String owner, Integer targetId, String targetType) {
+    public ImageRespDto uploadImage(MultipartFile file, String owner, Integer targetId, String targetType) {
         String uploadResult = googleCloudStorageService.uploadFile(file);
         if (!uploadResult.startsWith("파일 업로드 성공: ")) {
-            ImageResponseDto errorDto = new ImageResponseDto();
+            ImageRespDto errorDto = new ImageRespDto();
             errorDto.setMessage(uploadResult);
             return errorDto;
         }
@@ -47,7 +47,7 @@ public class ImageService {
         image.setCreatedAt(LocalDateTime.now());
         image = imageRepository.save(image);
         String fullPublicUrl = publicUrlPrefix + image.getImageUrl();
-        ImageResponseDto responseDto = new ImageResponseDto();
+        ImageRespDto responseDto = new ImageRespDto();
         responseDto.setImageId(image.getImageId());
         responseDto.setImageUrl(fullPublicUrl);
         responseDto.setMessage("이미지 업로드 및 DB 저장 성공");
@@ -83,9 +83,9 @@ public class ImageService {
      *
      * @param imageId 업데이트할 이미지의 DB ID
      * @param newFile 새로 업로드할 이미지 파일
-     * @return 업데이트된 이미지 정보를 담은 ImageResponseDto, 이미지가 없으면 null 반환
+     * @return 업데이트된 이미지 정보를 담은 ImageRespDto, 이미지가 없으면 null 반환
      */
-    public ImageResponseDto updateImage(Integer imageId, MultipartFile newFile) {
+    public ImageRespDto updateImage(Integer imageId, MultipartFile newFile) {
         Optional<Image> optionalImage = imageRepository.findById(imageId);
         if (optionalImage.isEmpty()) {
             log.warn("업데이트할 이미지가 존재하지 않습니다. 이미지 ID: {}", imageId);
@@ -98,7 +98,7 @@ public class ImageService {
         }
         String uploadResult = googleCloudStorageService.uploadFile(newFile);
         if (!uploadResult.startsWith("파일 업로드 성공: ")) {
-            ImageResponseDto errorDto = new ImageResponseDto();
+            ImageRespDto errorDto = new ImageRespDto();
             errorDto.setMessage(uploadResult);
             return errorDto;
         }
@@ -107,7 +107,7 @@ public class ImageService {
         image.setCreatedAt(LocalDateTime.now());
         image = imageRepository.save(image);
         String fullPublicUrl = publicUrlPrefix + image.getImageUrl();
-        ImageResponseDto responseDto = new ImageResponseDto();
+        ImageRespDto responseDto = new ImageRespDto();
         responseDto.setImageId(image.getImageId());
         responseDto.setImageUrl(fullPublicUrl);
         responseDto.setMessage("이미지 업데이트 및 DB 저장 성공");

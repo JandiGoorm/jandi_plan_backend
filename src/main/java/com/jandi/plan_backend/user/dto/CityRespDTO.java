@@ -1,6 +1,6 @@
 package com.jandi.plan_backend.user.dto;
 
-import com.jandi.plan_backend.user.entity.MajorDestination;
+import com.jandi.plan_backend.user.entity.City;
 import lombok.Getter;
 
 @Getter
@@ -12,7 +12,7 @@ public class CityRespDTO {
     private Integer searchCount;
     private CountryRespDTO country;
 
-    public CityRespDTO(MajorDestination destination) {
+    public CityRespDTO(City destination) {
         this.destinationId = destination.getDestinationId();
         this.name = destination.getName();
         this.description = destination.getDescription();
