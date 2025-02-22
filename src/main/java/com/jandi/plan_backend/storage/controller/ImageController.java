@@ -2,8 +2,6 @@ package com.jandi.plan_backend.storage.controller;
 
 import com.jandi.plan_backend.storage.dto.ImageResponseDto;
 import com.jandi.plan_backend.storage.service.ImageService;
-import com.jandi.plan_backend.user.entity.MajorDestination;
-import com.jandi.plan_backend.user.repository.MajorDestinationRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * 이미지 업로드 및 범용 CRUD API를 제공하는 컨트롤러.
@@ -28,11 +25,9 @@ import java.util.Optional;
 public class ImageController {
 
     private final ImageService imageService;
-    private final MajorDestinationRepository majorDestinationRepository;
 
-    public ImageController(ImageService imageService, MajorDestinationRepository majorDestinationRepository) {
+    public ImageController(ImageService imageService) {
         this.imageService = imageService;
-        this.majorDestinationRepository = majorDestinationRepository;
     }
 
     /**
