@@ -65,4 +65,12 @@ public class Trip {
     // 컬럼명은 "privatePlan"으로 사용하며 null 값 허용 안 함.
     @Column(nullable = false)
     private Boolean privatePlan;
+
+    // 여행 계획의 좋아요 수. null 값은 허용되지 않음.
+    @Column(nullable = false)
+    private Integer likeCount;
+
+    // 여행 계획의 대표 이미지.
+    @Column(length = 255)
+    private String imageUrl;
 }

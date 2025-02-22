@@ -21,6 +21,7 @@ import com.jandi.plan_backend.user.repository.UserRepository;
 import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
 import java.util.Objects;
 
 /** 검증 검사 Util*/
@@ -128,5 +129,15 @@ public class ValidationUtil {
     public MajorDestination validateCityExists(String cityName) {
         return (MajorDestination) majorDestinationRepository.findByName(cityName)
                 .orElseThrow(() -> new BadRequestExceptionMessage("등록되지 않은 도시입니다."));
+    }
+
+    /** 기타 검증 유틸 */
+    //날짜 검증: YYYY-MM-DD인지 검증
+    public void ValidateDate(String date){
+        try {
+            LocalDate.parse(date);
+        }catch (Exception e){
+            throw new BadRequestExceptionMessage("날짜 형식에 문제가 있습니다. 다시 한번 확인해주세요");
+        }
     }
 }

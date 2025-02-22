@@ -30,7 +30,6 @@ public class User {
      */
     @Column(nullable = false, unique = true, length = 50)
     private String userName;
-
     /**
      * 사용자의 이름.
      * 최대 50자까지 저장됨.
