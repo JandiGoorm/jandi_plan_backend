@@ -41,7 +41,7 @@ public class TripController {
         );
     }
 
-    @GetMapping("/myTrips")
+    @GetMapping("/my/allTrips")
     public Map<String, Object> getAllMyTrips(
             @RequestHeader("Authorization") String token, // 헤더의 Authorization에서 JWT 토큰 받기
             @RequestParam(defaultValue = "0") int page,
@@ -64,7 +64,7 @@ public class TripController {
         );
     }
 
-    @PostMapping("/myTrips")
+    @PostMapping("/my/")
     public ResponseEntity<?> writeTrip(
             @RequestHeader("Authorization") String token, // 헤더의 Authorization에서 JWT 토큰 받기
             @RequestParam("title") String title,
