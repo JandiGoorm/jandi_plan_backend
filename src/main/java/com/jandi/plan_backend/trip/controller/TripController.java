@@ -23,6 +23,24 @@ public class TripController {
         this.jwtTokenProvider = jwtTokenProvider;
     }
 
+    @GetMapping("/allTrips")
+    public Map<String, Object> getAllTrips(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ){
+        Page<TripRespDTO> tripsPage = tripService.getAllTrips(page, size);
+
+        return Map.of(
+                "pageInfo", Map.of(
+                        "currentPage", tripsPage.getNumber(),
+                        "currentSize", tripsPage.getContent().size(),
+                        "totalPages", tripsPage.getTotalPages(),
+                        "totalSize", tripsPage.getTotalElements()
+                ),
+                "items", tripsPage.getContent()
+        );
+    }
+
     @PostMapping("/myTrips")
     public ResponseEntity<?> writeTrip(
             @RequestHeader("Authorization") String token, // 헤더의 Authorization에서 JWT 토큰 받기

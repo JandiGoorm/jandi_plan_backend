@@ -28,6 +28,15 @@ public class TripService {
         this.imageService = imageService;
     }
 
+    /** 여행 계획 목록 전체 조회 */
+    public Page<TripRespDTO> getAllTrips(int page, int size) {
+        long totalCount = tripRepository.countByPrivatePlan(false); //공개된 것만 카운트
+
+        return PaginationService.getPagedData(page, size, totalCount,
+                pageable -> tripRepository.findByPrivatePlan(false, pageable), //공개된 것만 가져옴
+                trip -> new TripRespDTO((Trip) trip, imageService));
+    }
+
     /** 여행 계획 생성 */
     public TripRespDTO writeTrip(
             String userEmail, String title, String description, String startDate, String endDate, String isPrivate, MultipartFile image){
