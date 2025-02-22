@@ -16,10 +16,10 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequestMapping("/api/trip")
-public class preferTripController {
+public class PreferTripController {
     private final PreferTripService preferTripService;
 
-    public preferTripController(PreferTripService preferTripService) {
+    public PreferTripController(PreferTripService preferTripService) {
         this.preferTripService = preferTripService;
     }
 
