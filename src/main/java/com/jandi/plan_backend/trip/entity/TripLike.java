@@ -3,6 +3,9 @@ package com.jandi.plan_backend.trip.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 import com.jandi.plan_backend.user.entity.User;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
 import java.time.LocalDateTime;
 
 /**
@@ -30,6 +33,7 @@ public class TripLike {
      */
     @Id
     @ManyToOne
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "trip_id", nullable = false)
     private Trip trip;
 

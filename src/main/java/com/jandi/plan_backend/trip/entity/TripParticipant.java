@@ -3,6 +3,8 @@ package com.jandi.plan_backend.trip.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 import com.jandi.plan_backend.user.entity.User;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDateTime;
 
@@ -32,6 +34,7 @@ public class TripParticipant {
     // 여행 정보에 대한 외래키, 복합 기본키의 일부로 사용.
     @Id
     @ManyToOne
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "trip_id", nullable = false)
     private Trip trip;
 
