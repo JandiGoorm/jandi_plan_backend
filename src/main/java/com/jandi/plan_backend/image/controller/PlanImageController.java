@@ -2,6 +2,7 @@ package com.jandi.plan_backend.image.controller;
 
 import com.jandi.plan_backend.image.dto.ImageResponseDto;
 import com.jandi.plan_backend.image.service.ImageService;
+import com.jandi.plan_backend.security.CustomUserDetails;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,11 +20,11 @@ import org.springframework.web.multipart.MultipartFile;
 @Slf4j
 @RestController
 @RequestMapping("/api/images/upload")
-public class PostImageController {
+public class PlanImageController {
 
     private final ImageService imageService;
 
-    public PostImageController(ImageService imageService) {
+    public PlanImageController(ImageService imageService) {
         this.imageService = imageService;
     }
 
@@ -51,6 +52,32 @@ public class PostImageController {
 
         // targetType을 "community"로 고정하여 이미지 업로드 처리
         ImageResponseDto responseDto = imageService.uploadImage(file, ownerEmail, targetId, "community");
+        return ResponseEntity.ok(responseDto);
+    }
+
+    /**
+     * 프로필 이미지 업로드 API.
+     *
+     * @param file 업로드할 프로필 이미지 파일
+     * @param customUserDetails 인증된 사용자 정보 (CustomUserDetails)
+     * @return 업로드 결과를 담은 ImageResponseDto (이미지 ID, 전체 공개 URL, 메시지)
+     */
+    @PostMapping("/profile")
+    public ResponseEntity<?> uploadProfileImage(
+            @RequestParam("file") MultipartFile file,
+            @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+
+        if (customUserDetails == null) {
+            log.warn("인증되지 않은 사용자로부터 프로필 이미지 업로드 시도");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("프로필 이미지를 업로드하려면 로그인이 필요합니다.");
+        }
+        String ownerEmail = customUserDetails.getUsername();
+        Integer userId = customUserDetails.getUserId();
+
+        log.info("사용자 '{}' (ID: {})가 프로필 이미지 업로드 요청", ownerEmail, userId);
+        // targetType을 "profile"로 고정하여 이미지 업로드 처리
+        ImageResponseDto responseDto = imageService.uploadImage(file, ownerEmail, userId, "profile");
         return ResponseEntity.ok(responseDto);
     }
 }
