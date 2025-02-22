@@ -3,6 +3,7 @@ package com.jandi.plan_backend.trip.controller;
 import com.jandi.plan_backend.commu.dto.CommentReqDTO;
 import com.jandi.plan_backend.commu.dto.CommentRespDTO;
 import com.jandi.plan_backend.security.JwtTokenProvider;
+import com.jandi.plan_backend.trip.dto.MyTripRespDTO;
 import com.jandi.plan_backend.trip.dto.TripRespDTO;
 import com.jandi.plan_backend.trip.service.TripService;
 import org.springframework.data.domain.Page;
@@ -51,7 +52,7 @@ public class TripController {
         String jwtToken = token.replace("Bearer ", "");
         String userEmail = jwtTokenProvider.getEmail(jwtToken);
 
-        Page<TripRespDTO> myTripsPage = tripService.getAllMyTrips(userEmail, page, size);
+        Page<MyTripRespDTO> myTripsPage = tripService.getAllMyTrips(userEmail, page, size);
 
         return Map.of(
                 "pageInfo", Map.of(

@@ -2,6 +2,7 @@ package com.jandi.plan_backend.trip.service;
 
 import com.jandi.plan_backend.image.dto.ImageResponseDto;
 import com.jandi.plan_backend.image.service.ImageService;
+import com.jandi.plan_backend.trip.dto.MyTripRespDTO;
 import com.jandi.plan_backend.trip.dto.TripRespDTO;
 import com.jandi.plan_backend.trip.entity.Trip;
 import com.jandi.plan_backend.trip.repository.TripRepository;
@@ -39,13 +40,13 @@ public class TripService {
     }
 
     /** 내 여행 계획 목록 전체 조회 */
-    public Page<TripRespDTO> getAllMyTrips(String userEmail, int page, int size) {
+    public Page<MyTripRespDTO> getAllMyTrips(String userEmail, int page, int size) {
         User user = validationUtil.validateUserExists(userEmail);
         long totalCount = tripRepository.countByUser(user);
 
         return PaginationService.getPagedData(page, size, totalCount,
                 pageable -> tripRepository.findByUser(user, pageable),
-                trip -> new TripRespDTO((Trip) trip, imageService));
+                trip -> new MyTripRespDTO((Trip) trip, imageService));
     }
 
     /** 여행 계획 생성 */
