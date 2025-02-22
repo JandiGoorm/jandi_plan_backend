@@ -24,7 +24,7 @@ public class preferTripController {
     }
 
     /** 조회 */
-    // 여행 대륙 조회
+    // 여행 대륙 조회: 첫 로그인 시 대륙 선택용
     @GetMapping("/continents")
     public ResponseEntity<List<ContinentRespDTO>> getAllContinents(
             @RequestParam("filter") List<String> filter
@@ -33,7 +33,7 @@ public class preferTripController {
         return ResponseEntity.ok(allContinents);
     }
 
-    // 여행 국가 조회
+    // 여행 국가 조회: 첫 로그인 시 국가 선택용
     @GetMapping("/countries")
     public ResponseEntity<List<CountryRespDTO>> getAllCountries(
             @RequestParam("filter") List<String> filter
@@ -42,7 +42,7 @@ public class preferTripController {
         return ResponseEntity.ok(allCountries);
     }
 
-    // 여행 도시 조회
+    // 여행 도시 조회: 첫 로그인 시 도시 선택용
     @GetMapping("/cities")
     public ResponseEntity<List<CityRespDTO>> getAllCites(
             @RequestParam("filter") List<String> filter
