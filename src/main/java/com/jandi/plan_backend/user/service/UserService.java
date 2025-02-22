@@ -1,5 +1,6 @@
 package com.jandi.plan_backend.user.service;
 
+import com.jandi.plan_backend.image.service.ImageService;
 import com.jandi.plan_backend.user.dto.AuthResponse;
 import com.jandi.plan_backend.user.dto.ChangePasswordDTO;
 import com.jandi.plan_backend.user.dto.UserLoginDTO;
@@ -19,7 +20,7 @@ import java.util.UUID;
 /**
  * 사용자 관련 비즈니스 로직을 담당하는 서비스 클래스.
  * 회원가입, 로그인, 이메일 인증, 비밀번호 재발급, 사용자 상세 정보 조회,
- * 비밀번호 변경, 리프레시 토큰 갱신 등의 기능을 제공한다.
+ * 비밀번호 변경, 리프레시 토큰 갱신, 회원 탈퇴(계정 삭제) 등의 기능을 제공한다.
  */
 @Service
 @Transactional
@@ -29,7 +30,7 @@ public class UserService {
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
-    private final ProfileImageService profileImageService;
+    private final ImageService imageService;
 
     @Value("${app.verify.url}")
     private String verifyUrl;
@@ -38,12 +39,12 @@ public class UserService {
                        EmailService emailService,
                        PasswordEncoder passwordEncoder,
                        JwtTokenProvider jwtTokenProvider,
-                       ProfileImageService profileImageService) {
+                       ImageService imageService) {
         this.userRepository = userRepository;
         this.emailService = emailService;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
-        this.profileImageService = profileImageService;
+        this.imageService = imageService;
     }
 
     public User registerUser(UserRegisterDTO dto) {
@@ -158,7 +159,8 @@ public class UserService {
         dto.setUsername(user.getUserName());
         dto.setVerified(user.getVerified());
         dto.setReported(user.getReported());
-        String profileImageUrl = profileImageService.getProfileImage(userId)
+        // 프로필 이미지 조회: ImageService를 통해 targetType "userProfile"인 이미지 조회
+        String profileImageUrl = imageService.getImageByTarget("userProfile", user.getUserId())
                 .map(img -> "https://storage.googleapis.com/plan-storage/" + img.getImageUrl())
                 .orElse(null);
         dto.setProfileImageUrl(profileImageUrl);
@@ -181,7 +183,9 @@ public class UserService {
 
     /**
      * 회원 탈퇴(계정 삭제) 기능을 수행한다.
-     * 인증된 사용자의 이메일을 기반으로 사용자 정보를 조회한 후, 해당 사용자 계정을 삭제한다.
+     * 인증된 사용자의 이메일을 기반으로 사용자 정보를 조회한 후,
+     * 해당 사용자와 연결된 프로필 이미지(타겟 타입 "userProfile")를 먼저 삭제하고,
+     * 이후 사용자 계정을 삭제한다.
      *
      * @param email 인증된 사용자의 이메일
      * @throws RuntimeException 사용자를 찾을 수 없는 경우 예외 발생
@@ -192,10 +196,14 @@ public class UserService {
             throw new RuntimeException("사용자를 찾을 수 없습니다.");
         }
         User user = optionalUser.get();
-        // 관련 엔티티에 대한 cascade 설정이 있다면, 연관 데이터도 함께 삭제됩니다.
+
+        // 프로필 이미지 삭제: targetType이 'userProfile'이고, targetId가 사용자의 userId인 이미지를 삭제
+        imageService.getImageByTarget("userProfile", user.getUserId())
+                .ifPresent(img -> imageService.deleteImage(img.getImageId()));
+
+        // 이후 사용자 삭제
         userRepository.delete(user);
     }
-
 
     // 중복 이메일 검증
     public boolean isExistEmail(String email) {

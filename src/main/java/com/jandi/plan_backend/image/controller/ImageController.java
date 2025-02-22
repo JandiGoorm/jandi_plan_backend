@@ -1,7 +1,7 @@
-package com.jandi.plan_backend.storage.controller;
+package com.jandi.plan_backend.image.controller;
 
-import com.jandi.plan_backend.storage.dto.ImageResponseDto;
-import com.jandi.plan_backend.storage.service.ImageService;
+import com.jandi.plan_backend.image.dto.ImageResponseDto;
+import com.jandi.plan_backend.image.service.ImageService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
