@@ -1,36 +1,32 @@
 package com.jandi.plan_backend.trip.dto;
 
-import com.jandi.plan_backend.image.service.ImageService;
-import com.jandi.plan_backend.trip.entity.Trip;
 import lombok.Getter;
-
 import java.time.LocalDate;
 
-/** 여행 플랜 관련 조회 시 */
-// user 관련: userId, userName, profileImageUrl
-// plan 관련: tripId, title, description, date(startDate, endDate),
-// 넘겨야 할 정보: 작성자, 작성자 프로필, 날짜(시작/종료), 좋아요 수, 제목, 설명, 대표 이미지
+/**
+ * 여행 계획 정보를 전달하기 위한 순수 DTO.
+ * 작성자 정보, 여행 계획의 ID, 제목, 시작/종료 날짜, 설명, 좋아요 수, 대표 이미지 공개 URL을 포함합니다.
+ */
 @Getter
 public class TripRespDTO {
-    private UserTripDTO user;
+    private final UserTripDTO user;
+    private final Integer tripId;
+    private final String title;
+    private final LocalDate startDate;
+    private final LocalDate endDate;
+    private final String description;
+    private final Integer likeCount;
+    private final String imageUrl;
 
-    private Integer tripId;
-    private String title;
-    private LocalDate startDate;
-    private LocalDate endDate;
-    private String description;
-    private Integer likeCount;
-    private String imageUrl;
-
-    public TripRespDTO(Trip trip, ImageService imageService) {
-        this.user = new UserTripDTO(trip.getUser(), imageService);
-
-        this.tripId = trip.getTripId();
-        this.title = trip.getTitle();
-        this.startDate = trip.getStartDate();
-        this.endDate = trip.getEndDate();
-        this.description = trip.getDescription();
-        this.likeCount = trip.getLikeCount();
-        this.imageUrl = trip.getImageUrl();
+    public TripRespDTO(UserTripDTO user, Integer tripId, String title, LocalDate startDate, LocalDate endDate,
+                       String description, Integer likeCount, String imageUrl) {
+        this.user = user;
+        this.tripId = tripId;
+        this.title = title;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.description = description;
+        this.likeCount = likeCount;
+        this.imageUrl = imageUrl;
     }
 }
