@@ -40,8 +40,14 @@ public class PostService {
     /** 특정 게시글 조회 */
     public Optional<CommunityItemDTO> getSpecPost(Integer postId) {
         //게시글의 존재 여부 검증
-        Optional<Community> post = Optional.ofNullable(validationUtil.validatePostExists(postId));
+        Community community = validationUtil.validatePostExists(postId);
 
+        //게시글 조회수 카운팅
+        community.setViewCount(community.getViewCount() + 1);
+        communityRepository.save(community);
+
+        //게시글 반환
+        Optional<Community> post = communityRepository.findByPostId(postId);
         return post.map(p -> new CommunityItemDTO(p, imageService)); // imageService 포함
     }
 

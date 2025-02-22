@@ -19,9 +19,12 @@ public class CommunityItemDTO {
     private final String content;
     private final Integer likeCount;
     private final Integer commentCount;
+    private final Integer viewCount;
+
 
     public CommunityItemDTO(Community community, ImageService imageService) {
         this.postId = community.getPostId();
+        this.viewCount = community.getViewCount();
         this.user = new UserCommunityDTO(community.getUser(), imageService);
         this.createdAt = community.getCreatedAt();
         this.title = community.getTitle();

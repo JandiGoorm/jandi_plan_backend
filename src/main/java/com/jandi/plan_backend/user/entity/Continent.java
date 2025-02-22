@@ -28,6 +28,13 @@ public class Continent {
     private String name;
 
     /**
+     * 주요 여행지의 이미지 URL.
+     * 최대 길이는 255자로 제한됨.
+     */
+    @Column(length = 255)
+    private String imageUrl;
+
+    /**
      * 대륙 검색 횟수.
      * 검색 시마다 이 값이 증가할 것으로 예상하며, 기본값은 0임.
      */

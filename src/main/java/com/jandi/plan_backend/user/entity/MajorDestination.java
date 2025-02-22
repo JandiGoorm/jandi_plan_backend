@@ -31,6 +31,16 @@ public class MajorDestination {
     private Country country;
 
     /**
+     * 주요 여행지가 속한 대륙(Continent)과의 다대일 관계.
+     * 여러 여행지가 하나의 대륙에 속함.
+     * 데이터베이스 테이블에서는 외래키 "continent_id"를 통해 연결됨.
+     * null 값은 허용되지 않음.
+     */
+    @ManyToOne
+    @JoinColumn(name = "continent_id", nullable = false)
+    private Continent continent;
+
+    /**
      * 주요 여행지의 이름.
      * null 값은 허용되지 않으며, 최대 길이는 100자로 제한됨.
      */

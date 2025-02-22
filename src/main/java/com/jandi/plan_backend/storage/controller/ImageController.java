@@ -2,6 +2,8 @@ package com.jandi.plan_backend.storage.controller;
 
 import com.jandi.plan_backend.storage.dto.ImageResponseDto;
 import com.jandi.plan_backend.storage.service.ImageService;
+import com.jandi.plan_backend.user.entity.MajorDestination;
+import com.jandi.plan_backend.user.repository.MajorDestinationRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,9 +28,11 @@ import java.util.Optional;
 public class ImageController {
 
     private final ImageService imageService;
+    private final MajorDestinationRepository majorDestinationRepository;
 
-    public ImageController(ImageService imageService) {
+    public ImageController(ImageService imageService, MajorDestinationRepository majorDestinationRepository) {
         this.imageService = imageService;
+        this.majorDestinationRepository = majorDestinationRepository;
     }
 
     /**

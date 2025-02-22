@@ -1,5 +1,6 @@
 package com.jandi.plan_backend.user.controller;
 
+import com.jandi.plan_backend.security.CustomUserDetails;
 import com.jandi.plan_backend.user.dto.*;
 import com.jandi.plan_backend.user.service.UserService;
 import com.jandi.plan_backend.security.JwtTokenProvider;
@@ -40,6 +41,37 @@ public class UserController {
         userService.registerUser(dto);
         return ResponseEntity.ok("회원가입 완료! 이메일의 링크를 클릭하면 인증이 완료됨");
     }
+
+    @GetMapping("/register/checkEmail")
+    public ResponseEntity<?> checkEmail(
+            @RequestParam ("email") String email
+    ) {
+        if(email == null || email.isEmpty()) {
+            return ResponseEntity.badRequest().body("이메일을 입력해주세요!");
+        }
+
+        boolean isPossibleEmail = !userService.isExistEmail(email);
+        String respMsg = email + "은/는 " + ((isPossibleEmail) ?
+                "사용 가능한 이메일입니다" : "이미 사용중인 이메일입니다");
+
+        return (isPossibleEmail) ? ResponseEntity.ok(respMsg) : ResponseEntity.badRequest().body(respMsg);
+    }
+
+    @GetMapping("/register/checkName")
+    public ResponseEntity<?> checkName(
+            @RequestParam ("name") String name
+    ) {
+        if(name == null || name.isEmpty()) {
+            return ResponseEntity.badRequest().body("닉네임을 입력해주세요!");
+        }
+
+        boolean isPossibleEmail = !userService.isExistUserName(name);
+        String respMsg = name + "은/는 " + ((isPossibleEmail) ?
+                "사용 가능한 닉네임입니다" : "이미 사용중인 닉네임입니다");
+
+        return (isPossibleEmail) ? ResponseEntity.ok(respMsg) : ResponseEntity.badRequest().body(respMsg);
+    }
+
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody UserLoginDTO userLoginDTO) {

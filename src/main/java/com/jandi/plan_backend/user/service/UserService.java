@@ -196,4 +196,14 @@ public class UserService {
         userRepository.delete(user);
     }
 
+
+    // 중복 이메일 검증
+    public boolean isExistEmail(String email) {
+        return userRepository.findByEmail(email).isPresent();
+    }
+
+    // 중복 닉네임 검증
+    public boolean isExistUserName(String userName) {
+        return userRepository.findByUserName(userName).isPresent();
+    }
 }
