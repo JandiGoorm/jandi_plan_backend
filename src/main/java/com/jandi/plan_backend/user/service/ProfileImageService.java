@@ -56,8 +56,8 @@ public class ProfileImageService {
         Optional<Image> imageOpt = getProfileImage(userId);
         if (imageOpt.isPresent()) {
             Image image = imageOpt.get();
-            imageRepository.delete(image);
-            return true;
+            // DB와 클라우드 스토리지 모두에서 이미지를 삭제
+            return imageService.deleteImage(image.getImageId());
         }
         return false;
     }
