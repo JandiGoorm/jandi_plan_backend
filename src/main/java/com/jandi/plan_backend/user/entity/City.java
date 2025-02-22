@@ -4,13 +4,13 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 /**
- * MajorDestination 엔티티
+ * City 엔티티
  * 주요 여행지 정보를 저장하기 위한 엔티티.
  */
 @Entity
 @Table(name = "major_destination")
 @Data
-public class MajorDestination {
+public class City {
 
     /**
      * 주요 여행지의 고유 식별자.
