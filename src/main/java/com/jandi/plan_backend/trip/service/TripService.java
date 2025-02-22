@@ -37,6 +37,16 @@ public class TripService {
                 trip -> new TripRespDTO((Trip) trip, imageService));
     }
 
+    /** 내 여행 계획 목록 전체 조회 */
+    public Page<TripRespDTO> getAllMyTrips(String userEmail, int page, int size) {
+        User user = validationUtil.validateUserExists(userEmail);
+        long totalCount = tripRepository.countByUser(user);
+
+        return PaginationService.getPagedData(page, size, totalCount,
+                pageable -> tripRepository.findByUser(user, pageable),
+                trip -> new TripRespDTO((Trip) trip, imageService));
+    }
+
     /** 여행 계획 생성 */
     public TripRespDTO writeTrip(
             String userEmail, String title, String description, String startDate, String endDate, String isPrivate, MultipartFile image){
