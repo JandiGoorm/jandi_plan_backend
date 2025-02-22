@@ -3,7 +3,7 @@ package com.jandi.plan_backend.user.controller;
 import com.jandi.plan_backend.user.dto.CityRespDTO;
 import com.jandi.plan_backend.user.dto.ContinentRespDTO;
 import com.jandi.plan_backend.user.dto.CountryRespDTO;
-import com.jandi.plan_backend.user.service.TripService;
+import com.jandi.plan_backend.user.service.PreferTripService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,10 +17,10 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/trip")
 public class preferTripController {
-    private final TripService tripService;
+    private final PreferTripService preferTripService;
 
-    public preferTripController(TripService tripService) {
-        this.tripService = tripService;
+    public preferTripController(PreferTripService preferTripService) {
+        this.preferTripService = preferTripService;
     }
 
     /** 조회 */
@@ -29,7 +29,7 @@ public class preferTripController {
     public ResponseEntity<List<ContinentRespDTO>> getAllContinents(
             @RequestParam("filter") List<String> filter
     ) {
-        List<ContinentRespDTO> allContinents = tripService.getAllContinents(filter);
+        List<ContinentRespDTO> allContinents = preferTripService.getAllContinents(filter);
         return ResponseEntity.ok(allContinents);
     }
 
@@ -38,7 +38,7 @@ public class preferTripController {
     public ResponseEntity<List<CountryRespDTO>> getAllCountries(
             @RequestParam("filter") List<String> filter
     ) {
-        List<CountryRespDTO> allCountries = tripService.getAllCountries(filter);
+        List<CountryRespDTO> allCountries = preferTripService.getAllCountries(filter);
         return ResponseEntity.ok(allCountries);
     }
 
@@ -47,7 +47,7 @@ public class preferTripController {
     public ResponseEntity<List<CityRespDTO>> getAllCites(
             @RequestParam("filter") List<String> filter
     ) {
-        List<CityRespDTO> allCities = tripService.getAllCities(filter);
+        List<CityRespDTO> allCities = preferTripService.getAllCities(filter);
         return ResponseEntity.ok(allCities);
     }
 }

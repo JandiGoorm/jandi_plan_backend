@@ -23,14 +23,14 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-public class TripService {
+public class PreferTripService {
     private final ContinentRepository continentRepository;
     private final CountryRepository countryRepository;
     private final MajorDestinationRepository majorDestinationRepository;
     private final ValidationUtil validationUtil;
     private final ImageService imageService;
 
-    public TripService(ContinentRepository continentRepository, CountryRepository countryRepository, MajorDestinationRepository majorDestinationRepository, ValidationUtil validationUtil, ImageService imageService) {
+    public PreferTripService(ContinentRepository continentRepository, CountryRepository countryRepository, MajorDestinationRepository majorDestinationRepository, ValidationUtil validationUtil, ImageService imageService) {
         this.continentRepository = continentRepository;
         this.countryRepository = countryRepository;
         this.majorDestinationRepository = majorDestinationRepository;

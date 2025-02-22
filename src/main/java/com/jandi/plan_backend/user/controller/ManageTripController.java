@@ -3,7 +3,7 @@ package com.jandi.plan_backend.user.controller;
 import com.jandi.plan_backend.user.entity.Continent;
 import com.jandi.plan_backend.user.entity.Country;
 import com.jandi.plan_backend.user.entity.MajorDestination;
-import com.jandi.plan_backend.user.service.TripService;
+import com.jandi.plan_backend.user.service.PreferTripService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,10 +17,10 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/api/manage/trip")
 public class ManageTripController {
 
-    private final TripService tripService;
+    private final PreferTripService preferTripService;
 
-    public ManageTripController(TripService tripService) {
-        this.tripService = tripService;}
+    public ManageTripController(PreferTripService preferTripService) {
+        this.preferTripService = preferTripService;}
 
     /** 업로드 */
     // 여행 대륙 업로드
@@ -35,7 +35,7 @@ public class ManageTripController {
         }
 
         String userEmail = userDetails.getUsername();
-        Continent newCountry = tripService.createNewContinent(userEmail, continentName, file);
+        Continent newCountry = preferTripService.createNewContinent(userEmail, continentName, file);
 
         return ResponseEntity.ok(newCountry);
     }
@@ -52,7 +52,7 @@ public class ManageTripController {
         }
 
         String userEmail = userDetails.getUsername();
-        Country newCountry = tripService.createNewCountry(userEmail, continentName, countryName);
+        Country newCountry = preferTripService.createNewCountry(userEmail, continentName, countryName);
 
         return ResponseEntity.ok(newCountry);
     }
@@ -71,7 +71,7 @@ public class ManageTripController {
         }
 
         String userEmail = userDetails.getUsername();
-        MajorDestination newCity = tripService.createNewCity(
+        MajorDestination newCity = preferTripService.createNewCity(
                 userEmail, countryName, cityName, description, file
         );
 
