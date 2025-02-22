@@ -2,7 +2,6 @@ package com.jandi.plan_backend.trip.dto;
 
 import com.jandi.plan_backend.image.service.ImageService;
 import com.jandi.plan_backend.trip.entity.Trip;
-import com.jandi.plan_backend.user.entity.User;
 import lombok.Getter;
 
 import java.time.LocalDate;
@@ -19,6 +18,7 @@ public class TripRespDTO {
     private String title;
     private LocalDate startDate;
     private LocalDate endDate;
+    private String description;
     private Integer likeCount;
     private String imageUrl;
 
@@ -29,6 +29,7 @@ public class TripRespDTO {
         this.title = trip.getTitle();
         this.startDate = trip.getStartDate();
         this.endDate = trip.getEndDate();
+        this.description = trip.getDescription();
         this.likeCount = trip.getLikeCount();
         this.imageUrl = trip.getImageUrl();
     }
