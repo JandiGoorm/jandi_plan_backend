@@ -48,7 +48,7 @@ public class Image {
     @Column(nullable = false)
     private Integer targetId;
 
-    @Column(nullable = false, length = 255)
+    @Column(nullable = false)
     private String imageUrl;
 
     @Column(nullable = false, length = 100)

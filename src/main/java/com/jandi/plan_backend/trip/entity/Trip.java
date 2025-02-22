@@ -9,7 +9,6 @@ import java.time.LocalDateTime;
 /**
  * 엔티티 클래스. "trip" 테이블에 매핑됨.
  * 여행 계획 정보를 저장함.
- *
  * 컬럼:
  * - trip_id: 기본키, 자동 증가
  * - user_id: 사용자와의 다대일 관계 (FK)
@@ -21,7 +20,6 @@ import java.time.LocalDateTime;
  * - updated_at: 수정 시각, null 불가
  * - privatePlan: 여행 계획이 비공개인지 여부, boolean 타입, null 불가
  * - likeCount: 여행 계획의 좋아요 수, null 불가
- *
  * 기존에는 대표 이미지 URL을 저장했으나, 이제 이미지 정보는 Image 엔티티를 통해 관리합니다.
  */
 @Entity
@@ -37,7 +35,7 @@ public class Trip {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(nullable = false, length = 255)
+    @Column(nullable = false)
     private String title;
 
     @Column(columnDefinition = "TEXT")
