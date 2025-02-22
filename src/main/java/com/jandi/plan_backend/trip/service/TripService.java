@@ -1,6 +1,6 @@
 package com.jandi.plan_backend.trip.service;
 
-import com.jandi.plan_backend.image.dto.ImageResponseDto;
+import com.jandi.plan_backend.image.dto.ImageRespDto;
 import com.jandi.plan_backend.image.service.ImageService;
 import com.jandi.plan_backend.trip.dto.MyTripRespDTO;
 import com.jandi.plan_backend.trip.dto.TripRespDTO;
@@ -111,7 +111,7 @@ public class TripService {
         tripRepository.save(trip);
 
         // 이미지 저장: targetType "trip"
-        ImageResponseDto imageDTO = imageService.uploadImage(image, userEmail, trip.getTripId(), "trip");
+        ImageRespDto imageDTO = imageService.uploadImage(image, userEmail, trip.getTripId(), "trip");
         String finalImageUrl = imageDTO.getImageUrl();
 
         // 작성자 프로필 이미지 조회

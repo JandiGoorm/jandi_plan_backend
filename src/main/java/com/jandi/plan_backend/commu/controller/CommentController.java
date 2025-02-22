@@ -3,7 +3,7 @@ package com.jandi.plan_backend.commu.controller;
 import com.jandi.plan_backend.commu.dto.CommentReqDTO;
 import com.jandi.plan_backend.commu.dto.CommentRespDTO;
 import com.jandi.plan_backend.commu.dto.ParentCommentDTO;
-import com.jandi.plan_backend.commu.dto.repliesDTO;
+import com.jandi.plan_backend.commu.dto.RepliesDTO;
 import com.jandi.plan_backend.commu.service.CommentService;
 import com.jandi.plan_backend.security.JwtTokenProvider;
 import org.springframework.data.domain.Page;
@@ -50,7 +50,7 @@ public class CommentController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ){
-        Page<repliesDTO> repliesPage = commentService.getAllReplies(commentId, page, size);
+        Page<RepliesDTO> repliesPage = commentService.getAllReplies(commentId, page, size);
 
         return Map.of(
                 "pageInfo", Map.of(

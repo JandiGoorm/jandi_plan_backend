@@ -1,6 +1,5 @@
 package com.jandi.plan_backend.user.controller;
 
-import com.jandi.plan_backend.security.CustomUserDetails;
 import com.jandi.plan_backend.user.dto.*;
 import com.jandi.plan_backend.user.service.UserService;
 import com.jandi.plan_backend.security.JwtTokenProvider;
@@ -74,14 +73,14 @@ public class UserController {
 
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody UserLoginDTO userLoginDTO) {
+    public ResponseEntity<AuthRespDTO> login(@RequestBody UserLoginDTO userLoginDTO) {
         log.info("로그인 시도, 이메일: {}", userLoginDTO.getEmail());
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(userLoginDTO.getEmail(), userLoginDTO.getPassword())
         );
-        AuthResponse authResponse = userService.login(userLoginDTO);
+        AuthRespDTO authRespDTO = userService.login(userLoginDTO);
         log.info("로그인 성공, 이메일: {}, JWT 토큰 생성됨", userLoginDTO.getEmail());
-        return ResponseEntity.ok(authResponse);
+        return ResponseEntity.ok(authRespDTO);
     }
 
     /**
@@ -89,14 +88,14 @@ public class UserController {
      * 클라이언트가 보낸 리프레시 토큰을 검증하고, 새로운 액세스 토큰과 리프레시 토큰을 발급합니다.
      *
      * @param request JSON 형식의 요청 본문 (키: "refreshToken")
-     * @return 새로 발급된 토큰들을 포함한 AuthResponse 객체
+     * @return 새로 발급된 토큰들을 포함한 AuthRespDTO 객체
      */
     @PostMapping("/token/refresh")
     public ResponseEntity<?> refreshToken(@RequestBody Map<String, String> request) {
         String refreshToken = request.get("refreshToken");
         try {
-            AuthResponse authResponse = userService.refreshToken(refreshToken);
-            return ResponseEntity.ok(authResponse);
+            AuthRespDTO authRespDTO = userService.refreshToken(refreshToken);
+            return ResponseEntity.ok(authRespDTO);
         } catch (Exception e) {
             return ResponseEntity.status(401).body(Map.of("error", "리프레시 토큰이 유효하지 않거나 만료되었습니다."));
         }
@@ -124,7 +123,7 @@ public class UserController {
             return ResponseEntity.status(401).body(Map.of("error", "로그인이 필요합니다."));
         }
         Integer userId = customUserDetails.getUserId();
-        UserInfoResponseDto dto = userService.getUserInfo(userId);
+        UserInfoRespDTO dto = userService.getUserInfo(userId);
         return ResponseEntity.ok(dto);
     }
 

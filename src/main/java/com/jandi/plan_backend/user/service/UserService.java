@@ -1,11 +1,11 @@
 package com.jandi.plan_backend.user.service;
 
 import com.jandi.plan_backend.image.service.ImageService;
-import com.jandi.plan_backend.user.dto.AuthResponse;
+import com.jandi.plan_backend.user.dto.AuthRespDTO;
 import com.jandi.plan_backend.user.dto.ChangePasswordDTO;
 import com.jandi.plan_backend.user.dto.UserLoginDTO;
 import com.jandi.plan_backend.user.dto.UserRegisterDTO;
-import com.jandi.plan_backend.user.dto.UserInfoResponseDto;
+import com.jandi.plan_backend.user.dto.UserInfoRespDTO;
 import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.user.repository.UserRepository;
 import com.jandi.plan_backend.security.JwtTokenProvider;
@@ -80,9 +80,9 @@ public class UserService {
      * 이메일과 비밀번호를 검증하고, 인증에 성공하면 액세스 토큰과 리프레시 토큰을 발급한다.
      *
      * @param dto 로그인 정보를 담은 DTO
-     * @return AuthResponse 객체 (액세스 토큰, 리프레시 토큰)
+     * @return AuthRespDTO 객체 (액세스 토큰, 리프레시 토큰)
      */
-    public AuthResponse login(UserLoginDTO dto) {
+    public AuthRespDTO login(UserLoginDTO dto) {
         Optional<User> optionalUser = userRepository.findByEmail(dto.getEmail());
         if (optionalUser.isEmpty()) {
             throw new RuntimeException("존재하지 않는 이메일입니다.");
@@ -96,23 +96,23 @@ public class UserService {
         }
         String accessToken = jwtTokenProvider.createToken(dto.getEmail());
         String refreshToken = jwtTokenProvider.createRefreshToken(dto.getEmail());
-        return new AuthResponse(accessToken, refreshToken);
+        return new AuthRespDTO(accessToken, refreshToken);
     }
 
     /**
      * 리프레시 토큰을 이용해 새 액세스 토큰(및 리프레시 토큰)을 발급한다.
      *
      * @param refreshToken 클라이언트가 전송한 리프레시 토큰
-     * @return 새로 발급된 토큰들을 포함한 AuthResponse 객체
+     * @return 새로 발급된 토큰들을 포함한 AuthRespDTO 객체
      */
-    public AuthResponse refreshToken(String refreshToken) {
+    public AuthRespDTO refreshToken(String refreshToken) {
         if (!jwtTokenProvider.validateToken(refreshToken)) {
             throw new RuntimeException("리프레시 토큰이 유효하지 않습니다.");
         }
         String email = jwtTokenProvider.getEmail(refreshToken);
         String newAccessToken = jwtTokenProvider.createToken(email);
         String newRefreshToken = jwtTokenProvider.createRefreshToken(email);
-        return new AuthResponse(newAccessToken, newRefreshToken);
+        return new AuthRespDTO(newAccessToken, newRefreshToken);
     }
 
     public boolean verifyEmailByToken(String token) {
@@ -147,10 +147,10 @@ public class UserService {
         emailService.sendSimpleMail(email, subject, text);
     }
 
-    public UserInfoResponseDto getUserInfo(Integer userId) {
+    public UserInfoRespDTO getUserInfo(Integer userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("사용자 정보를 찾을 수 없습니다."));
-        UserInfoResponseDto dto = new UserInfoResponseDto();
+        UserInfoRespDTO dto = new UserInfoRespDTO();
         dto.setEmail(user.getEmail());
         dto.setFirstName(user.getFirstName());
         dto.setLastName(user.getLastName());

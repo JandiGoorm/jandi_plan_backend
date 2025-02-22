@@ -1,6 +1,6 @@
 package com.jandi.plan_backend.image.controller;
 
-import com.jandi.plan_backend.image.dto.ImageResponseDto;
+import com.jandi.plan_backend.image.dto.ImageRespDto;
 import com.jandi.plan_backend.image.service.ImageService;
 import com.jandi.plan_backend.security.CustomUserDetails;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +34,7 @@ public class PlanImageController {
      * @param file 업로드할 게시글 이미지 파일
      * @param targetId 게시글의 고유 ID (이미지가 연결될 커뮤니티 게시글의 ID)
      * @param userDetails 인증된 사용자 정보 (UserDetails)
-     * @return 업로드 결과를 담은 ImageResponseDto (이미지 ID, 전체 공개 URL, 메시지)
+     * @return 업로드 결과를 담은 ImageRespDto (이미지 ID, 전체 공개 URL, 메시지)
      */
     @PostMapping("/community")
     public ResponseEntity<?> uploadPostImage(
@@ -51,7 +51,7 @@ public class PlanImageController {
         log.info("사용자 '{}'가 게시글 이미지 업로드 요청 (targetId: {})", ownerEmail, targetId);
 
         // targetType을 "community"로 고정하여 이미지 업로드 처리
-        ImageResponseDto responseDto = imageService.uploadImage(file, ownerEmail, targetId, "community");
+        ImageRespDto responseDto = imageService.uploadImage(file, ownerEmail, targetId, "community");
         return ResponseEntity.ok(responseDto);
     }
 
@@ -60,7 +60,7 @@ public class PlanImageController {
      *
      * @param file 업로드할 프로필 이미지 파일
      * @param customUserDetails 인증된 사용자 정보 (CustomUserDetails)
-     * @return 업로드 결과를 담은 ImageResponseDto (이미지 ID, 전체 공개 URL, 메시지)
+     * @return 업로드 결과를 담은 ImageRespDto (이미지 ID, 전체 공개 URL, 메시지)
      */
     @PostMapping("/profile")
     public ResponseEntity<?> uploadProfileImage(
@@ -77,7 +77,7 @@ public class PlanImageController {
 
         log.info("사용자 '{}' (ID: {})가 프로필 이미지 업로드 요청", ownerEmail, userId);
         // targetType을 "profile"로 고정하여 이미지 업로드 처리
-        ImageResponseDto responseDto = imageService.uploadImage(file, ownerEmail, userId, "profile");
+        ImageRespDto responseDto = imageService.uploadImage(file, ownerEmail, userId, "profile");
         return ResponseEntity.ok(responseDto);
     }
 }

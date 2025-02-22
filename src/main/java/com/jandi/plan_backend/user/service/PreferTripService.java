@@ -1,6 +1,6 @@
 package com.jandi.plan_backend.user.service;
 
-import com.jandi.plan_backend.image.dto.ImageResponseDto;
+import com.jandi.plan_backend.image.dto.ImageRespDto;
 import com.jandi.plan_backend.image.service.ImageService;
 import com.jandi.plan_backend.user.dto.CityRespDTO;
 import com.jandi.plan_backend.user.dto.ContinentRespDTO;
@@ -90,7 +90,7 @@ public class PreferTripService {
         continentRepository.save(continent);
 
         //이미지 업로드 및 반영
-        ImageResponseDto imageDTO = imageService.uploadImage(
+        ImageRespDto imageDTO = imageService.uploadImage(
                 file, userEmail, continent.getContinentId(), "continent");
         continent.setImageUrl(imageDTO.getImageUrl());
 
@@ -151,7 +151,7 @@ public class PreferTripService {
         log.info("newCity: {}", newCity);
 
         //이미지 업로드 및 반영
-        ImageResponseDto imageDTO = imageService.uploadImage(
+        ImageRespDto imageDTO = imageService.uploadImage(
                 file, userEmail, newCity.getDestinationId(), "majorDestination");
         newCity.setImageUrl(imageDTO.getImageUrl());
         log.info("imageDTO: {}", imageDTO);

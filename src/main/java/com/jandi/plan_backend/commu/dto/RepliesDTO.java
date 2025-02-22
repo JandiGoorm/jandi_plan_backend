@@ -8,7 +8,7 @@ import lombok.Getter;
 import java.time.LocalDateTime;
 
 @Getter
-public class repliesDTO {
+public class RepliesDTO {
     private final Integer commentId;
     private final Integer parentCommentId;
     private final LocalDateTime createdAt;
@@ -16,7 +16,7 @@ public class repliesDTO {
     private final Integer likeCount;
     private final UserCommunityDTO user;
 
-    public repliesDTO(Comment comment, User user, ImageService imageService) {
+    public RepliesDTO(Comment comment, User user, ImageService imageService) {
         this.commentId = comment.getCommentId();
         this.parentCommentId = getParentCommentId();
         this.user = new UserCommunityDTO(user, imageService);
