@@ -1,4 +1,4 @@
-package com.jandi.plan_backend.user.controller;
+package com.jandi.plan_backend.image.controller;
 
 import com.jandi.plan_backend.image.dto.ImageResponseDto;
 import com.jandi.plan_backend.security.CustomUserDetails;
