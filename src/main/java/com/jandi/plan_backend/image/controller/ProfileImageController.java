@@ -1,8 +1,8 @@
 package com.jandi.plan_backend.image.controller;
 
 import com.jandi.plan_backend.image.dto.ImageResponseDto;
+import com.jandi.plan_backend.image.service.ImageService;
 import com.jandi.plan_backend.security.CustomUserDetails;
-import com.jandi.plan_backend.user.service.ProfileImageService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,10 +11,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
- * 프로필 사진 업로드 API를 제공하는 컨트롤러.
+ * 프로필 이미지 업로드 API를 제공하는 컨트롤러.
  *
- * - 업로드: POST /api/images/profiles/upload
- *   인증된 사용자의 토큰 정보를 이용해 프로필 사진을 업로드합니다.
+ * - 업로드: POST /api/images/upload/profile
+ *   인증된 사용자의 토큰 정보를 이용해 프로필 이미지를 업로드합니다.
  *   targetType은 "profile"로 고정되며, targetId는 인증된 사용자의 userId로 설정됩니다.
  */
 @Slf4j
@@ -22,14 +22,14 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/api/images/upload")
 public class ProfileImageController {
 
-    private final ProfileImageService profileImageService;
+    private final ImageService imageService;
 
-    public ProfileImageController(ProfileImageService profileImageService) {
-        this.profileImageService = profileImageService;
+    public ProfileImageController(ImageService imageService) {
+        this.imageService = imageService;
     }
 
     /**
-     * 프로필 사진 업로드 API.
+     * 프로필 이미지 업로드 API.
      *
      * @param file 업로드할 프로필 이미지 파일
      * @param customUserDetails 인증된 사용자 정보 (CustomUserDetails)
@@ -49,7 +49,8 @@ public class ProfileImageController {
         Integer userId = customUserDetails.getUserId();
 
         log.info("사용자 '{}' (ID: {})가 프로필 이미지 업로드 요청", ownerEmail, userId);
-        ImageResponseDto responseDto = profileImageService.uploadProfileImage(file, ownerEmail, userId);
+        // targetType을 "profile"로 고정하여 이미지 업로드 처리
+        ImageResponseDto responseDto = imageService.uploadImage(file, ownerEmail, userId, "profile");
         return ResponseEntity.ok(responseDto);
     }
 }
