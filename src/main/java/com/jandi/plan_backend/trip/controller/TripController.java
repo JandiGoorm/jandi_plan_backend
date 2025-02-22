@@ -64,7 +64,7 @@ public class TripController {
         );
     }
 
-    @PostMapping("/my/")
+    @PostMapping("/my/create")
     public ResponseEntity<?> writeTrip(
             @RequestHeader("Authorization") String token, // 헤더의 Authorization에서 JWT 토큰 받기
             @RequestParam("title") String title,
