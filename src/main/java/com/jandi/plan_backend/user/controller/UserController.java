@@ -75,9 +75,6 @@ public class UserController {
     @PostMapping("/login")
     public ResponseEntity<AuthRespDTO> login(@RequestBody UserLoginDTO userLoginDTO) {
         log.info("로그인 시도, 이메일: {}", userLoginDTO.getEmail());
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(userLoginDTO.getEmail(), userLoginDTO.getPassword())
-        );
         AuthRespDTO authRespDTO = userService.login(userLoginDTO);
         log.info("로그인 성공, 이메일: {}, JWT 토큰 생성됨", userLoginDTO.getEmail());
         return ResponseEntity.ok(authRespDTO);
