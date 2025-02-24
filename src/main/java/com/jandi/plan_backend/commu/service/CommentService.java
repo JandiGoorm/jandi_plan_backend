@@ -144,6 +144,11 @@ public class CommentService {
             commentRepository.deleteAll(replies);
         }
 
+        // 게시글에 댓글 수 반영
+        Community post = comment.getCommunity();
+        post.setCommentCount(post.getCommentCount() - 1 - repliesCount);
+        communityRepository.save(post);
+
         // 댓글 삭제 및 반환
         commentRepository.delete(comment);
         return repliesCount;
