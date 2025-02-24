@@ -126,7 +126,7 @@ public class CommentController {
         // 답글 삭제 및 반환
         int deletedRepliesCount = (commentService.deleteComments(userEmail, commentId));
         String returnMsg = (deletedRepliesCount == 0) ?
-                "답글이 삭제되었습니다": "선택된 댓글과 하위 답글 " + deletedRepliesCount +"개가 삭제되었습니다";
+                "댓글이 삭제되었습니다": "선택된 댓글과 하위 답글 " + deletedRepliesCount +"개가 삭제되었습니다";
         return ResponseEntity.ok(returnMsg);
     }
 }
