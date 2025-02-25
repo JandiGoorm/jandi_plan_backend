@@ -174,9 +174,9 @@ public class ValidationUtil {
     /* ==========================
        7) 기타 유틸 메서드
        ========================== */
-    public void ValidateDate(String date) {
+    public LocalDate ValidateDate(String date) {
         try {
-            LocalDate.parse(date);
+            return LocalDate.parse(date);
         } catch (Exception e) {
             throw new BadRequestExceptionMessage("날짜 형식에 문제가 있습니다. 다시 한번 확인해주세요");
         }

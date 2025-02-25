@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface TripRepository extends JpaRepository<Trip, Long> {
     //tripId와 일치하는 여행 계획 반환
