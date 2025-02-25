@@ -2,6 +2,9 @@ package com.jandi.plan_backend.user.repository;
 
 import com.jandi.plan_backend.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -44,4 +47,6 @@ public interface UserRepository extends JpaRepository<User, Integer> {
      * @return 해당 토큰과 일치하는 User가 있으면 Optional에 감싸서 반환, 없으면 빈 Optional 반환
      */
     Optional<User> findByVerificationToken(String token);
+
+    List<User> findByVerifiedFalseAndTokenExpiresBefore(LocalDateTime dateTime);
 }
