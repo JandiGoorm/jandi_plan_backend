@@ -223,4 +223,30 @@ public class TripService {
         MyTripRespDTO myTripRespDTO = new MyTripRespDTO(user, userProfileUrl, trip, tripImageUrl);
         return new TripLikeRespDTO(myTripRespDTO, tripLike.getCreatedAt());
     }
+
+    /** 좋아요 리스트에서 삭제 */
+    public boolean deleteLikeTrip(String userEmail, Integer tripId) {
+        boolean result = false;
+
+        //유저 및 여행 계획 검증
+        User user = validationUtil.validateUserExists(userEmail);
+        Trip trip = validationUtil.validateTripExists(tripId);
+
+        //좋아요 검증: 좋아요하지 않은 여행계획일 경우 블락처리
+        Optional<TripLike> tripLike = tripLikeRepository.findByTripAndUser(trip, user);
+        if(tripLike.isEmpty()) {
+            throw new BadRequestExceptionMessage("이미 좋아요 해제되어 있습니다.");
+        }else{
+            //좋아요 리스트에서 삭제
+            tripLikeRepository.delete(tripLike.get());
+
+            //좋아요 수 업데이트
+            trip.setLikeCount(trip.getLikeCount() - 1);
+            tripRepository.save(trip);
+
+            result = true;
+        }
+
+        return result;
+    }
 }

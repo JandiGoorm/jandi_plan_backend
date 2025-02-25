@@ -136,7 +136,7 @@ public class TripController {
 
     /** 타인의 여행 계획을 '좋아요' 목록에 추가 */
     @PostMapping("/my/likedTrips/{tripId}")
-    public ResponseEntity<?> likeTrip(
+    public ResponseEntity<?> addLikeTrip(
             @PathVariable Integer tripId,
             @RequestHeader("Authorization") String token // 헤더의 Authorization에서 JWT 토큰 받기
     ){
@@ -148,4 +148,19 @@ public class TripController {
         return ResponseEntity.ok(likedTrip);
     }
 
+    /** 타인의 여행 계획을 '좋아요' 목록에서 삭제 */
+    @DeleteMapping("/my/likedTrips/{tripId}")
+    public ResponseEntity<?> deleteLikeTrip(
+            @PathVariable Integer tripId,
+            @RequestHeader("Authorization") String token // 헤더의 Authorization에서 JWT 토큰 받기
+    ){
+        // Jwt 토큰으로부터 유저 이메일 추출
+        String jwtToken = token.replace("Bearer ", "");
+        String userEmail = jwtTokenProvider.getEmail(jwtToken);
+
+        boolean isDeleteLikeTrip = tripService.deleteLikeTrip(userEmail, tripId);
+        return (isDeleteLikeTrip) ?
+                ResponseEntity.status(HttpStatus.OK).body("좋아요 해제되었습니다.") :
+                ResponseEntity.status(HttpStatus.BAD_REQUEST).body("알 수 없는 문제가 발생했습니다. 잠시 후 다시 시도해주세요!");
+    }
 }
