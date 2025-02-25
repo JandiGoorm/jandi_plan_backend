@@ -30,9 +30,6 @@ public class City {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(length = 255)
-    private String imageUrl;
-
     @Column(nullable = false)
     private Integer searchCount = 0;
 }

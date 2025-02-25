@@ -19,9 +19,6 @@ public class Continent {
     @Column(nullable = false, length = 50, unique = true)
     private String name;
 
-    @Column(length = 255)
-    private String imageUrl;
-
     @Column(nullable = false)
     private Integer searchCount = 0;
 }

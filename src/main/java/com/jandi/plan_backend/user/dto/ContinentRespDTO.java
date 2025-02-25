@@ -10,10 +10,16 @@ public class ContinentRespDTO {
     private String imageUrl;
     private Integer searchCount;
 
-    public ContinentRespDTO(Continent continent) {
+    // 기존 생성자: Continent + imageUrl
+    public ContinentRespDTO(Continent continent, String imageUrl) {
         this.continentId = continent.getContinentId();
         this.name = continent.getName();
-        this.imageUrl = continent.getImageUrl();
+        this.imageUrl = imageUrl; // 추가 파라미터
         this.searchCount = continent.getSearchCount();
+    }
+
+    // 새로 추가: Continent만 받아서 imageUrl은 null 세팅
+    public ContinentRespDTO(Continent continent) {
+        this(continent, null);  // 내부적으로 위 생성자를 호출
     }
 }

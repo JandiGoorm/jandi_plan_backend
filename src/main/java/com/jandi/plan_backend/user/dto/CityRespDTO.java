@@ -12,11 +12,11 @@ public class CityRespDTO {
     private Integer searchCount;
     private CountryRespDTO country;
 
-    public CityRespDTO(City destination) {
+    public CityRespDTO(City destination, String imageUrl) {
         this.cityId = destination.getCityId();
         this.name = destination.getName();
         this.description = destination.getDescription();
-        this.imageUrl = destination.getImageUrl();
+        this.imageUrl = imageUrl;
         this.searchCount = destination.getSearchCount();
         this.country = new CountryRespDTO(destination.getCountry());
     }
