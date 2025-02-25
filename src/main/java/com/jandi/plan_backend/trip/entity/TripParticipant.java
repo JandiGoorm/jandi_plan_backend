@@ -16,7 +16,6 @@ public class TripParticipant {
 
     @Id
     @ManyToOne
-    // @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "trip_id", nullable = false)
     private Trip trip;
 

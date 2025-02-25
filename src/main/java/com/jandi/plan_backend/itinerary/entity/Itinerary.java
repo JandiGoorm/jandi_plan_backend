@@ -1,52 +1,55 @@
 package com.jandi.plan_backend.itinerary.entity;
 
+import com.jandi.plan_backend.trip.entity.Trip;
 import jakarta.persistence.*;
 import lombok.Data;
-import com.jandi.plan_backend.trip.entity.Trip;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 /**
- * Itinerary 클래스
- * - 'itinerary' 테이블과 매핑됨
- * - 여행 일정 정보를 날짜별로 저장하는 역할을 함
- * - 각 일정은 하나의 Trip에 속함
+ * 일정 정보를 저장함.
+ * 컬럼:
+ * - itinerary_id: 기본키, 자동 증가
+ * - trip_id: 여행과의 다대일 관계 (FK)
+ * - place_id: 장소와의 다대일 관계 (FK)
+ * - date: 일정 날짜, null 불가
+ * - start_time: 일정 시작 시간, null 불가
+ * - end_time: 일정 종료 시간, null 불가
+ * - title: 일정 제목, 최대 255자, null 불가
+ * - cost: 일정 비용, null 불가
+ * - created_at: 일정 생성 시각, null 불가
  */
 @Entity
 @Table(name = "itinerary")
 @Data
 public class Itinerary {
-
-    // 기본키. 값은 데이터베이스에서 자동 증가됨.
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer itineraryId;
+    private Long itineraryId;
 
-    // 해당 일정이 속한 여행을 나타냄.
-    // 여러 일정은 하나의 Trip에 속할 수 있음.
     @ManyToOne
-    @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "trip_id", nullable = false)
     private Trip trip;
 
-    // 일정의 날짜. null 값은 허용하지 않음.
+    @Column(nullable = false)
+    private Long placeId;
+
     @Column(nullable = false)
     private LocalDate date;
 
-    // 일정의 제목. 최대 255자까지 저장. null 값 허용.
-    @Column(length = 255)
+    @Column(nullable = false)
+    private LocalTime startTime;
+
+    @Column(nullable = false)
+    private LocalTime endTime;
+
+    @Column(nullable = false, length = 255)
     private String title;
 
-    // 일정에 대한 상세 설명.
-    // TEXT 타입으로 저장되어 길이 제한이 없음.
-    @Column(columnDefinition = "TEXT")
-    private String description;
-
-    // 일정이 생성된 시각.
-    // null 값은 허용하지 않음.
     @Column(nullable = false)
-    private LocalDateTime createdAt;
+    private Integer cost;
+
+    @Column(nullable = false)
+    private LocalDate createdAt;
 }
