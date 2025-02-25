@@ -5,6 +5,7 @@ import lombok.Data;
 import com.jandi.plan_backend.user.entity.User;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 /**
  * 엔티티 클래스. "trip" 테이블에 매핑됨.
@@ -58,4 +59,21 @@ public class Trip {
 
     @Column(nullable = false)
     private Integer likeCount;
+
+    public Trip(User user, String title, String description, Boolean privatePlan,
+                LocalDate startDate, LocalDate endDate) {
+        this.user = user;
+        this.title = title;
+        this.description = description;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.createdAt = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
+        this.updatedAt = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
+        this.privatePlan = privatePlan;
+        this.likeCount = 0;
+    }
+
+    public Trip() {
+
+    }
 }

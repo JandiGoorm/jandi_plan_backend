@@ -9,7 +9,6 @@ import com.jandi.plan_backend.trip.entity.TripLike;
 import com.jandi.plan_backend.trip.repository.TripLikeRepository;
 import com.jandi.plan_backend.trip.repository.TripRepository;
 import com.jandi.plan_backend.user.entity.User;
-import com.jandi.plan_backend.user.repository.UserRepository;
 import com.jandi.plan_backend.util.ValidationUtil;
 import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
 import com.jandi.plan_backend.util.service.PaginationService;
@@ -29,15 +28,13 @@ public class TripService {
     private final ValidationUtil validationUtil;
     private final ImageService imageService;
     private final String urlPrefix = "https://storage.googleapis.com/plan-storage/";
-    private final UserRepository userRepository;
 
-
-    public TripService(TripRepository tripRepository, TripLikeRepository tripLikeRepository, ValidationUtil validationUtil, ImageService imageService, UserRepository userRepository) {
+    public TripService(TripRepository tripRepository, TripLikeRepository tripLikeRepository,
+                       ValidationUtil validationUtil, ImageService imageService) {
         this.tripRepository = tripRepository;
         this.tripLikeRepository = tripLikeRepository;
         this.validationUtil = validationUtil;
         this.imageService = imageService;
-        this.userRepository = userRepository;
     }
 
     /** 여행 계획 목록 전체 조회 */
@@ -48,21 +45,15 @@ public class TripService {
                 pageable -> tripRepository.findByPrivatePlan(false, pageable),
                 tripObj -> {
                     Trip trip = (Trip) tripObj;  // 명시적 캐스팅
+
                     String userProfileUrl = imageService.getImageByTarget("userProfile", trip.getUser().getUserId())
                             .map(img -> urlPrefix + img.getImageUrl())
                             .orElse(null);
-                    UserTripDTO userTripDTO = new UserTripDTO(trip.getUser().getUserId(), trip.getUser().getUserName(), userProfileUrl);
                     String tripImageUrl = imageService.getImageByTarget("trip", trip.getTripId())
                             .map(img -> urlPrefix + img.getImageUrl())
                             .orElse(null);
-                    return new TripRespDTO(userTripDTO,
-                            trip.getTripId(),
-                            trip.getTitle(),
-                            trip.getStartDate(),
-                            trip.getEndDate(),
-                            trip.getDescription(),
-                            trip.getLikeCount(),
-                            tripImageUrl);
+
+                    return new TripRespDTO(trip.getUser(), userProfileUrl, trip, tripImageUrl);
                 });
     }
 
@@ -75,22 +66,15 @@ public class TripService {
                 pageable -> tripRepository.findByUser(user, pageable),
                 tripObj -> {
                     Trip trip = (Trip) tripObj;  // 명시적 캐스팅
+
                     String userProfileUrl = imageService.getImageByTarget("userProfile", user.getUserId())
                             .map(img -> urlPrefix + img.getImageUrl())
                             .orElse(null);
-                    UserTripDTO userTripDTO = new UserTripDTO(user.getUserId(), user.getUserName(), userProfileUrl);
                     String tripImageUrl = imageService.getImageByTarget("trip", trip.getTripId())
                             .map(img -> urlPrefix + img.getImageUrl())
                             .orElse(null);
-                    return new MyTripRespDTO(userTripDTO,
-                            trip.getTripId(),
-                            trip.getTitle(),
-                            trip.getStartDate(),
-                            trip.getEndDate(),
-                            trip.getDescription(),
-                            trip.getLikeCount(),
-                            tripImageUrl,
-                            trip.getPrivatePlan());
+
+                    return new MyTripRespDTO(trip.getUser(), userProfileUrl, trip, tripImageUrl);
                 });
     }
 
@@ -145,24 +129,15 @@ public class TripService {
         validationUtil.validateUserRestricted(user);
 
         //데이터 검증
-        validationUtil.ValidateDate(startDate);
-        validationUtil.ValidateDate(endDate);
+        LocalDate parsedStartDate = validationUtil.ValidateDate(startDate);
+        LocalDate parsedEndDate = validationUtil.ValidateDate(endDate);
         if (!(Objects.equals(privatePlan, "yes") || Objects.equals(privatePlan, "no"))) {
             throw new BadRequestExceptionMessage("비공개 여부는 yes/no로 요청되어야 합니다.");
         }
         boolean isPrivate = Objects.equals(privatePlan, "yes");
 
         // 새 여행 계획 생성
-        Trip trip = new Trip();
-        trip.setTitle(title);
-        trip.setDescription(description);
-        trip.setStartDate(LocalDate.parse(startDate));
-        trip.setEndDate(LocalDate.parse(endDate));
-        trip.setUser(user);
-        trip.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
-        trip.setUpdatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
-        trip.setLikeCount(0);
-        trip.setPrivatePlan(isPrivate);
+        Trip trip = new Trip(user, title, description, isPrivate, parsedStartDate, parsedEndDate);
         tripRepository.save(trip);
 
         // 이미지 저장: targetType "trip"
@@ -171,18 +146,10 @@ public class TripService {
 
         // 작성자 프로필 이미지 조회
         String userProfileUrl = imageService.getImageByTarget("userProfile", user.getUserId())
-                .map(img -> "https://storage.googleapis.com/plan-storage/" + img.getImageUrl())
+                .map(img -> urlPrefix + img.getImageUrl())
                 .orElse(null);
-        UserTripDTO userTripDTO = new UserTripDTO(user.getUserId(), user.getUserName(), userProfileUrl);
 
-        return new TripRespDTO(userTripDTO,
-                trip.getTripId(),
-                trip.getTitle(),
-                trip.getStartDate(),
-                trip.getEndDate(),
-                trip.getDescription(),
-                trip.getLikeCount(),
-                finalImageUrl);
+        return new TripRespDTO(user, userProfileUrl, trip, finalImageUrl);
     }
 
     /** 좋아요 리스트에 추가 */
@@ -216,18 +183,19 @@ public class TripService {
         tripRepository.save(trip);
 
         //DTO 생성 및 반환
-        Optional<Image> userProfile = imageService.getImageByTarget("userProfile", user.getUserId());
-        String userProfileUrl = userProfile.map(Image::getImageUrl).orElse(null);
-        Optional<Image> tripImage = imageService.getImageByTarget("trip", trip.getTripId());
-        String tripImageUrl = tripImage.map(Image::getImageUrl).orElse(null);
+        String userProfileUrl = imageService.getImageByTarget("userProfile", trip.getUser().getUserId())
+                .map(img -> urlPrefix + img.getImageUrl())
+                .orElse(null);
+        String tripImageUrl = imageService.getImageByTarget("trip", trip.getTripId())
+                .map(img -> urlPrefix + img.getImageUrl())
+                .orElse(null);
+
         MyTripRespDTO myTripRespDTO = new MyTripRespDTO(user, userProfileUrl, trip, tripImageUrl);
         return new TripLikeRespDTO(myTripRespDTO, tripLike.getCreatedAt());
     }
 
     /** 좋아요 리스트에서 삭제 */
     public boolean deleteLikeTrip(String userEmail, Integer tripId) {
-        boolean result = false;
-
         //유저 및 여행 계획 검증
         User user = validationUtil.validateUserExists(userEmail);
         Trip trip = validationUtil.validateTripExists(tripId);
@@ -236,17 +204,15 @@ public class TripService {
         Optional<TripLike> tripLike = tripLikeRepository.findByTripAndUser(trip, user);
         if(tripLike.isEmpty()) {
             throw new BadRequestExceptionMessage("이미 좋아요 해제되어 있습니다.");
-        }else{
-            //좋아요 리스트에서 삭제
-            tripLikeRepository.delete(tripLike.get());
-
-            //좋아요 수 업데이트
-            trip.setLikeCount(trip.getLikeCount() - 1);
-            tripRepository.save(trip);
-
-            result = true;
         }
 
-        return result;
+        //좋아요 리스트에서 삭제
+        tripLikeRepository.delete(tripLike.get());
+
+        //좋아요 수 업데이트
+        trip.setLikeCount(trip.getLikeCount() - 1);
+        tripRepository.save(trip);
+
+        return true;
     }
 }

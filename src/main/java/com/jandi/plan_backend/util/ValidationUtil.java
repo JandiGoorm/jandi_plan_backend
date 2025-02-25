@@ -146,11 +146,15 @@ public class ValidationUtil {
                 .orElseThrow(() -> new BadRequestExceptionMessage("존재하지 않는 여행 계획입니다."));
     }
 
-    /** 기타 검증 유틸 */
+    /**
+     * 기타 검증 유틸
+     *
+     * @return
+     */
     //날짜 검증: YYYY-MM-DD인지 검증
-    public void ValidateDate(String date){
+    public LocalDate ValidateDate(String date){
         try {
-            LocalDate.parse(date);
+            return LocalDate.parse(date);
         }catch (Exception e){
             throw new BadRequestExceptionMessage("날짜 형식에 문제가 있습니다. 다시 한번 확인해주세요");
         }
