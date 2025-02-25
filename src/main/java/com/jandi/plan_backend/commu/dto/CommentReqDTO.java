@@ -9,5 +9,7 @@ import lombok.NonNull;
  */
 @Data
 public class CommentReqDTO {
-    @NonNull  String contents;
+
+    @NonNull
+    String contents;
 }

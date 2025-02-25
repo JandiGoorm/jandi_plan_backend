@@ -5,10 +5,6 @@ import com.jandi.plan_backend.user.entity.User;
 import lombok.Getter;
 import java.time.LocalDate;
 
-/**
- * 여행 계획 정보를 전달하기 위한 순수 DTO.
- * 작성자 정보, 여행 계획의 ID, 제목, 시작/종료 날짜, 설명, 좋아요 수, 대표 이미지 공개 URL을 포함합니다.
- */
 @Getter
 public class TripRespDTO {
     private final UserTripDTO user;

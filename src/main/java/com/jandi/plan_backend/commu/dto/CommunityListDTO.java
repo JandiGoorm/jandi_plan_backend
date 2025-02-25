@@ -29,5 +29,4 @@ public class CommunityListDTO {
         this.likeCount = community.getLikeCount();
         this.commentCount = community.getCommentCount();
     }
-
 }

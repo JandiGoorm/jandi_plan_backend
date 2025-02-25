@@ -17,7 +17,6 @@ public class NoticeController {
     private final NoticeService noticeService;
     private final JwtTokenProvider jwtTokenProvider; // JWT 토큰 관련
 
-
     public NoticeController(NoticeService noticeService, JwtTokenProvider jwtTokenProvider) {
         this.noticeService = noticeService;
         this.jwtTokenProvider = jwtTokenProvider;

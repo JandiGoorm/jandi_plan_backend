@@ -21,7 +21,6 @@ public class CommunityItemDTO {
     private final Integer commentCount;
     private final Integer viewCount;
 
-
     public CommunityItemDTO(Community community, ImageService imageService) {
         this.postId = community.getPostId();
         this.viewCount = community.getViewCount();
@@ -32,5 +31,4 @@ public class CommunityItemDTO {
         this.likeCount = community.getLikeCount();
         this.commentCount = community.getCommentCount();
     }
-
 }

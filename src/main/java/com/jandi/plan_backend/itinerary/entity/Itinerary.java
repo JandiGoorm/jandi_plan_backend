@@ -7,19 +7,6 @@ import lombok.Data;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
-/**
- * 일정 정보를 저장함.
- * 컬럼:
- * - itinerary_id: 기본키, 자동 증가
- * - trip_id: 여행과의 다대일 관계 (FK)
- * - place_id: 장소와의 다대일 관계 (FK)
- * - date: 일정 날짜, null 불가
- * - start_time: 일정 시작 시간, null 불가
- * - end_time: 일정 종료 시간, null 불가
- * - title: 일정 제목, 최대 255자, null 불가
- * - cost: 일정 비용, null 불가
- * - created_at: 일정 생성 시각, null 불가
- */
 @Entity
 @Table(name = "itinerary")
 @Data

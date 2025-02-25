@@ -5,11 +5,6 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
-/**
- * 이메일 발송 관련 기능을 담당하는 서비스 클래스.
- *
- * JavaMailSender를 이용해서 단순 텍스트 이메일을 전송한다.
- */
 @Service
 @RequiredArgsConstructor
 public class EmailService {

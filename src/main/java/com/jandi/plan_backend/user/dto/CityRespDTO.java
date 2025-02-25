@@ -5,18 +5,18 @@ import lombok.Getter;
 
 @Getter
 public class CityRespDTO {
-    private Integer destinationId;
+    private Integer cityId;
     private String name;
     private String description;
     private String imageUrl;
     private Integer searchCount;
     private CountryRespDTO country;
 
-    public CityRespDTO(City destination) {
-        this.destinationId = destination.getDestinationId();
+    public CityRespDTO(City destination, String imageUrl) {
+        this.cityId = destination.getCityId();
         this.name = destination.getName();
         this.description = destination.getDescription();
-        this.imageUrl = destination.getImageUrl();
+        this.imageUrl = imageUrl;
         this.searchCount = destination.getSearchCount();
         this.country = new CountryRespDTO(destination.getCountry());
     }

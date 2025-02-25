@@ -8,10 +8,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
 
-/**
- * 엔티티 클래스. "trip" 테이블에 매핑됨.
- * 여행 계획 정보를 저장함.
- */
 @Entity
 @Table(name = "trip")
 @Data

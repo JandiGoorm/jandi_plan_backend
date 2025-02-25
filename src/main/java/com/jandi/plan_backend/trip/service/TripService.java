@@ -102,7 +102,6 @@ public class TripService {
                 });
     }
 
-
     /** 개별 여행 계획 조회 */
     public MyTripRespDTO getSpecTrips(String userEmail, Integer tripId) {
         //여행 계획 검증
@@ -230,12 +229,12 @@ public class TripService {
                 .map(trip -> {
                     // 작성자 프로필 이미지 URL
                     String userProfileUrl = imageService.getImageByTarget("userProfile", trip.getUser().getUserId())
-                            .map(img -> "https://storage.googleapis.com/plan-storage/" + img.getImageUrl())
+                            .map(img -> urlPrefix + img.getImageUrl())
                             .orElse(null);
 
                     // Trip 이미지 URL
                     String tripImageUrl = imageService.getImageByTarget("trip", trip.getTripId())
-                            .map(img -> "https://storage.googleapis.com/plan-storage/" + img.getImageUrl())
+                            .map(img -> urlPrefix + img.getImageUrl())
                             .orElse(null);
 
                     // UserTripDTO 생성
@@ -323,10 +322,10 @@ public class TripService {
 
         // 5) 수정 결과를 DTO로 변환 (프로필/이미지 정보 포함)
         String userProfileUrl = imageService.getImageByTarget("userProfile", user.getUserId())
-                .map(img -> "https://storage.googleapis.com/plan-storage/" + img.getImageUrl())
+                .map(img -> urlPrefix + img.getImageUrl())
                 .orElse(null);
         String tripImageUrl = imageService.getImageByTarget("trip", trip.getTripId())
-                .map(img -> "https://storage.googleapis.com/plan-storage/" + img.getImageUrl())
+                .map(img -> urlPrefix + img.getImageUrl())
                 .orElse(null);
 
         UserTripDTO userTripDTO = new UserTripDTO(

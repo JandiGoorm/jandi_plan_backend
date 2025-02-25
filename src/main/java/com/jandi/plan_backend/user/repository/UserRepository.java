@@ -7,10 +7,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * UserRepository 인터페이스는 User 엔티티에 대한 데이터베이스 접근을 담당함.
- * JpaRepository를 확장하여 CRUD 및 페이징 기능 등을 기본 제공.
- */
 public interface UserRepository extends JpaRepository<User, Integer> {
     Optional<User> findByUserId(Integer userId);
 
