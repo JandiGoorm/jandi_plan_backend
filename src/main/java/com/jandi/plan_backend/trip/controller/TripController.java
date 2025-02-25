@@ -2,9 +2,11 @@ package com.jandi.plan_backend.trip.controller;
 
 import com.jandi.plan_backend.security.JwtTokenProvider;
 import com.jandi.plan_backend.trip.dto.MyTripRespDTO;
+import com.jandi.plan_backend.trip.dto.TripLikeRespDTO;
 import com.jandi.plan_backend.trip.dto.TripRespDTO;
 import com.jandi.plan_backend.trip.service.TripService;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -23,6 +25,7 @@ public class TripController {
         this.jwtTokenProvider = jwtTokenProvider;
     }
 
+    /** 전체 유저의 여행 계획 목록 조회 (공개 설정된 것만 조회) */
     @GetMapping("/allTrips")
     public Map<String, Object> getAllTrips(
             @RequestParam(defaultValue = "0") int page,
@@ -49,7 +52,8 @@ public class TripController {
         List<TripRespDTO> topTrips = tripService.getTop10Trips();
         return ResponseEntity.ok(topTrips);
     }
-
+  
+    /** 내 여행 계획 목록 조회 (본인 명의의 계획만 조회) */
     @GetMapping("/my/allTrips")
     public Map<String, Object> getAllMyTrips(
             @RequestHeader("Authorization") String token, // 헤더의 Authorization에서 JWT 토큰 받기
@@ -73,6 +77,53 @@ public class TripController {
         );
     }
 
+    /** 좋아요한 여행 계획 목록 조회 */
+    @GetMapping("/my/likedTrips")
+    public Map<String, Object> getLikedTrips(
+            @RequestHeader("Authorization") String token, // 헤더의 Authorization에서 JWT 토큰 받기
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ){
+        // Jwt 토큰으로부터 유저 이메일 추출
+        String jwtToken = token.replace("Bearer ", "");
+        String userEmail = jwtTokenProvider.getEmail(jwtToken);
+
+        Page<TripRespDTO> likedTripsPage = tripService.getLikedTrips(userEmail, page, size);
+
+        return Map.of(
+                "pageInfo", Map.of(
+                        "currentPage", likedTripsPage.getNumber(),
+                        "currentSize", likedTripsPage.getContent().size(),
+                        "totalPages", likedTripsPage.getTotalPages(),
+                        "totalSize", likedTripsPage.getTotalElements()
+                ),
+                "items", likedTripsPage.getContent()
+        );
+    }
+
+    /** 개별 여행 계획 조회
+     * 공개로 설정된 다른 유저의 여행 계획 + 공개/비공개 설정된 본인의 여행 계획만 조회 가능
+     * 아직 친구 기능은 구현되지 않아 이 부분은 아직 제외한 채로 구현
+     */
+    @GetMapping("/{tripId}")
+    public ResponseEntity<?> getSpecTrips(
+            @PathVariable Integer tripId,
+            @RequestHeader(value = "Authorization", required = false) String token // 헤더의 Authorization에서 JWT 토큰 받기
+    ){
+        if(token == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("로그인이 필요합니다.");
+        }
+
+        // Jwt 토큰으로부터 유저 이메일 추출
+        String jwtToken = token.replace("Bearer ", "");
+        String userEmail = jwtTokenProvider.getEmail(jwtToken);
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(tripService.getSpecTrips(userEmail, tripId));
+    }
+
+    /** 여행 계획 생성 */
     @PostMapping("/my/create")
     public ResponseEntity<?> writeTrip(
             @RequestHeader("Authorization") String token, // 헤더의 Authorization에서 JWT 토큰 받기
@@ -91,6 +142,36 @@ public class TripController {
         TripRespDTO savedTrip = tripService.writeTrip(
                 userEmail, title, description, startDate, endDate, isPrivate, image);
         return ResponseEntity.ok(savedTrip);
+    }
+
+    /** 타인의 여행 계획을 '좋아요' 목록에 추가 */
+    @PostMapping("/my/likedTrips/{tripId}")
+    public ResponseEntity<?> addLikeTrip(
+            @PathVariable Integer tripId,
+            @RequestHeader("Authorization") String token // 헤더의 Authorization에서 JWT 토큰 받기
+    ){
+        // Jwt 토큰으로부터 유저 이메일 추출
+        String jwtToken = token.replace("Bearer ", "");
+        String userEmail = jwtTokenProvider.getEmail(jwtToken);
+
+        TripLikeRespDTO likedTrip = tripService.addLikeTrip(userEmail, tripId);
+        return ResponseEntity.ok(likedTrip);
+    }
+
+    /** 타인의 여행 계획을 '좋아요' 목록에서 삭제 */
+    @DeleteMapping("/my/likedTrips/{tripId}")
+    public ResponseEntity<?> deleteLikeTrip(
+            @PathVariable Integer tripId,
+            @RequestHeader("Authorization") String token // 헤더의 Authorization에서 JWT 토큰 받기
+    ){
+        // Jwt 토큰으로부터 유저 이메일 추출
+        String jwtToken = token.replace("Bearer ", "");
+        String userEmail = jwtTokenProvider.getEmail(jwtToken);
+
+        boolean isDeleteLikeTrip = tripService.deleteLikeTrip(userEmail, tripId);
+        return (isDeleteLikeTrip) ?
+                ResponseEntity.status(HttpStatus.OK).body("좋아요 해제되었습니다.") :
+                ResponseEntity.status(HttpStatus.BAD_REQUEST).body("알 수 없는 문제가 발생했습니다. 잠시 후 다시 시도해주세요!");
     }
 
     /**

@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import com.jandi.plan_backend.util.service.PaginationService;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 
@@ -74,7 +75,7 @@ public class PostService {
         community.setUser(user);
         community.setTitle(postDTO.getTitle());
         community.setContents(postDTO.getContent());
-        community.setCreatedAt(LocalDateTime.now());
+        community.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
         community.setLikeCount(0);
         community.setCommentCount(0);
 

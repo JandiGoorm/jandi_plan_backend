@@ -9,6 +9,7 @@ import com.jandi.plan_backend.util.ValidationUtil;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 @Service
@@ -36,7 +37,7 @@ public class NoticeService {
 
         // 공지글 생성
         Notice notice = new Notice();
-        notice.setCreatedAt(LocalDateTime.now());
+        notice.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
         notice.setTitle(noticeDTO.getTitle());
         notice.setContents(noticeDTO.getContents());
 

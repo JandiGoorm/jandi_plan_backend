@@ -5,6 +5,7 @@ import lombok.Data;
 import com.jandi.plan_backend.user.entity.User;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 /**
@@ -48,6 +49,22 @@ public class Trip {
     @Column(nullable = false)
     private Integer likeCount;
 
+    public Trip(User user, String title, String description, Boolean privatePlan,
+                LocalDate startDate, LocalDate endDate) {
+        this.user = user;
+        this.title = title;
+        this.description = description;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.createdAt = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
+        this.updatedAt = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
+        this.privatePlan = privatePlan;
+        this.likeCount = 0;
+    }
+
+    public Trip() {
+
+    }
     /**
      * TripLike 엔티티와의 1:N 관계.
      * Trip 삭제 시 TripLike도 자동으로 삭제되도록 cascade와 orphanRemoval 설정.
@@ -61,4 +78,5 @@ public class Trip {
      */
     @OneToMany(mappedBy = "trip", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TripParticipant> participants;
+
 }

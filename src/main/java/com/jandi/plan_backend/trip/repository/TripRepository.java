@@ -9,6 +9,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface TripRepository extends JpaRepository<Trip, Long> {
+    //tripId와 일치하는 여행 계획 반환
+    Optional<Object> findByTripId(Integer tripId);
+
     // 유저가 작성한 여행 계획 목록을 반환
     List<Trip> findByUserEquals(User user);
 

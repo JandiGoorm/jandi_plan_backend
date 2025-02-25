@@ -1,5 +1,6 @@
 package com.jandi.plan_backend.resource.service;
 
+import com.jandi.plan_backend.image.entity.Image;
 import com.jandi.plan_backend.resource.dto.BannerListDTO;
 import com.jandi.plan_backend.resource.dto.BannerRespDTO;
 import com.jandi.plan_backend.resource.entity.Banner;
@@ -13,7 +14,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -48,7 +51,7 @@ public class BannerService {
 
         //배너글 생성
         Banner banner = new Banner();
-        banner.setCreatedAt(LocalDateTime.now());
+        banner.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
         banner.setTitle(title);
         banner.setLinkUrl(link);
         bannerRepository.save(banner); //imageUrl 미포함된 상태로 1차 저장
@@ -98,6 +101,8 @@ public class BannerService {
         Banner banner = validationUtil.validateBannerExists(bannerId);
 
         //배너 삭제 및 반환
+        imageRepository.findByTargetTypeAndTargetId("banner", bannerId)
+                .ifPresent(imageRepository::delete); //기존 이미지 삭제
         bannerRepository.delete(banner);
         return true;
     }

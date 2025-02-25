@@ -14,6 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -57,13 +58,13 @@ public class UserService {
         user.setLastName(dto.getLastName());
         user.setEmail(dto.getEmail());
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
-        user.setCreatedAt(LocalDateTime.now());
-        user.setUpdatedAt(LocalDateTime.now());
+        user.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
+        user.setUpdatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
         user.setVerified(false);
         user.setReported(false);
         String token = UUID.randomUUID().toString();
         user.setVerificationToken(token);
-        user.setTokenExpires(LocalDateTime.now().plusHours(24));
+        user.setTokenExpires(LocalDateTime.now(ZoneId.of("Asia/Seoul")).plusHours(24));
         userRepository.save(user);
         String verifyLink = verifyUrl + "?token=" + token;
         String subject = "[회원가입] 이메일 인증 안내";
@@ -121,13 +122,13 @@ public class UserService {
             return false;
         }
         User user = optionalUser.get();
-        if (user.getTokenExpires() != null && user.getTokenExpires().isBefore(LocalDateTime.now())) {
+        if (user.getTokenExpires() != null && user.getTokenExpires().isBefore(LocalDateTime.now(ZoneId.of("Asia/Seoul")))) {
             return false;
         }
         user.setVerified(true);
         user.setVerificationToken(null);
         user.setTokenExpires(null);
-        user.setUpdatedAt(LocalDateTime.now());
+        user.setUpdatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
         userRepository.save(user);
         return true;
     }
@@ -140,7 +141,7 @@ public class UserService {
         User user = optionalUser.get();
         String tempPassword = UUID.randomUUID().toString().substring(0, 8);
         user.setPassword(passwordEncoder.encode(tempPassword));
-        user.setUpdatedAt(LocalDateTime.now());
+        user.setUpdatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
         userRepository.save(user);
         String subject = "[비밀번호 찾기] 임시 비밀번호 안내";
         String text = "임시 비밀번호: " + tempPassword + "\n로그인 후 반드시 비밀번호를 변경하세요.";
@@ -177,7 +178,7 @@ public class UserService {
             throw new RuntimeException("현재 비밀번호가 올바르지 않습니다.");
         }
         user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
-        user.setUpdatedAt(LocalDateTime.now());
+        user.setUpdatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
         userRepository.save(user);
     }
 
