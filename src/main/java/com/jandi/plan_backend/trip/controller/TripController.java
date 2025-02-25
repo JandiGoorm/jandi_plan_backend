@@ -41,6 +41,15 @@ public class TripController {
         );
     }
 
+    /**
+     * 좋아요 수 상위 10개 여행 계획 조회 API
+     */
+    @GetMapping("/top-likes")
+    public ResponseEntity<List<TripRespDTO>> getTopLikes() {
+        List<TripRespDTO> topTrips = tripService.getTop10Trips();
+        return ResponseEntity.ok(topTrips);
+    }
+
     @GetMapping("/my/allTrips")
     public Map<String, Object> getAllMyTrips(
             @RequestHeader("Authorization") String token, // 헤더의 Authorization에서 JWT 토큰 받기
@@ -85,11 +94,24 @@ public class TripController {
     }
 
     /**
-     * 좋아요 수 상위 10개 여행 계획 조회 API
+     * 내 여행 계획 삭제 API.
+     * @param token   헤더에 담긴 JWT 토큰
+     * @param tripId  삭제할 여행 계획의 고유 ID
+     * @return 삭제 성공 메시지 또는 오류 메시지
      */
-    @GetMapping("/top-likes")
-    public ResponseEntity<List<TripRespDTO>> getTopLikes() {
-        List<TripRespDTO> topTrips = tripService.getTop10Trips();
-        return ResponseEntity.ok(topTrips);
+    @DeleteMapping("/my/{tripId}")
+    public ResponseEntity<?> deleteMyTrip(
+            @RequestHeader("Authorization") String token,
+            @PathVariable("tripId") Integer tripId
+    ) {
+        // JWT 토큰에서 사용자 이메일 추출
+        String jwtToken = token.replace("Bearer ", "");
+        String userEmail = jwtTokenProvider.getEmail(jwtToken);
+
+        // 삭제 로직 수행
+        tripService.deleteMyTrip(tripId, userEmail);
+
+        // 성공적으로 삭제되었다면 메시지 반환
+        return ResponseEntity.ok(Map.of("message", "해당 여행 계획이 삭제되었습니다."));
     }
 }

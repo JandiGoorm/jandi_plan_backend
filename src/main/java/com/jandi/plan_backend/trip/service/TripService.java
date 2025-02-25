@@ -173,4 +173,30 @@ public class TripService {
                 })
                 .collect(Collectors.toList());
     }
+
+    /**
+     * 내 여행 계획 삭제 로직.
+     * @param tripId   삭제할 여행 계획의 ID
+     * @param userEmail 요청을 보낸 사용자 이메일
+     */
+    public void deleteMyTrip(Integer tripId, String userEmail) {
+        // 1. 사용자 검증
+        User user = validationUtil.validateUserExists(userEmail);
+        validationUtil.validateUserRestricted(user);
+
+        // 2. 해당 tripId가 존재하는지 검증
+        Trip trip = validationUtil.validateTripExists(tripId);
+
+        // 3. 작성자 일치 여부 검증
+        if (!trip.getUser().getUserId().equals(user.getUserId())) {
+            throw new BadRequestExceptionMessage("본인이 작성한 여행 계획만 삭제할 수 있습니다.");
+        }
+
+        // 4. trip에 연결된 이미지가 있다면 삭제 (targetType="trip", targetId=tripId)
+        imageService.getImageByTarget("trip", tripId)
+                .ifPresent(img -> imageService.deleteImage(img.getImageId()));
+
+        // 5. 최종적으로 여행 계획 삭제
+        tripRepository.delete(trip);
+    }
 }
