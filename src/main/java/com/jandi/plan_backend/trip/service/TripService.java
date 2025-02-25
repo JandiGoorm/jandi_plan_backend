@@ -16,7 +16,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 public class TripService {
@@ -128,5 +130,47 @@ public class TripService {
                 trip.getDescription(),
                 trip.getLikeCount(),
                 finalImageUrl);
+    }
+
+    /**
+     * 좋아요 수가 높은 순으로 상위 10개의 공개된 여행 계획을 조회하여 DTO로 반환.
+     */
+    public List<TripRespDTO> getTop10Trips() {
+        // 1) 좋아요 수 기준 상위 10개 Trip 엔티티를 가져옴
+        List<Trip> topTrips = tripRepository.findTop10ByPrivatePlanFalseOrderByLikeCountDesc();
+
+        // 2) Trip 엔티티 -> TripRespDTO 변환
+        return topTrips.stream()
+                .map(trip -> {
+                    // 작성자 프로필 이미지 URL
+                    String userProfileUrl = imageService.getImageByTarget("userProfile", trip.getUser().getUserId())
+                            .map(img -> "https://storage.googleapis.com/plan-storage/" + img.getImageUrl())
+                            .orElse(null);
+
+                    // Trip 이미지 URL
+                    String tripImageUrl = imageService.getImageByTarget("trip", trip.getTripId())
+                            .map(img -> "https://storage.googleapis.com/plan-storage/" + img.getImageUrl())
+                            .orElse(null);
+
+                    // UserTripDTO 생성
+                    UserTripDTO userTripDTO = new UserTripDTO(
+                            trip.getUser().getUserId(),
+                            trip.getUser().getUserName(),
+                            userProfileUrl
+                    );
+
+                    // TripRespDTO 생성
+                    return new TripRespDTO(
+                            userTripDTO,
+                            trip.getTripId(),
+                            trip.getTitle(),
+                            trip.getStartDate(),
+                            trip.getEndDate(),
+                            trip.getDescription(),
+                            trip.getLikeCount(),
+                            tripImageUrl
+                    );
+                })
+                .collect(Collectors.toList());
     }
 }

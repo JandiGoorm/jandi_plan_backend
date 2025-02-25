@@ -103,7 +103,6 @@ public class ValidationUtil {
                 .orElseThrow(() -> new BadRequestExceptionMessage("존재하지 않는 배너입니다."));
     }
 
-
     /** NoticeRepository 관련 검증 */
     public Notice validateNoticeExists(Integer noticeId) {
         return (Notice) noticeRepository.findByNoticeId(noticeId)

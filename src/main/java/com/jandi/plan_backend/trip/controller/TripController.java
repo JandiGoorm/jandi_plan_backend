@@ -1,7 +1,5 @@
 package com.jandi.plan_backend.trip.controller;
 
-import com.jandi.plan_backend.commu.dto.CommentReqDTO;
-import com.jandi.plan_backend.commu.dto.CommentRespDTO;
 import com.jandi.plan_backend.security.JwtTokenProvider;
 import com.jandi.plan_backend.trip.dto.MyTripRespDTO;
 import com.jandi.plan_backend.trip.dto.TripRespDTO;
@@ -11,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -85,4 +84,12 @@ public class TripController {
         return ResponseEntity.ok(savedTrip);
     }
 
+    /**
+     * 좋아요 수 상위 10개 여행 계획 조회 API
+     */
+    @GetMapping("/top-likes")
+    public ResponseEntity<List<TripRespDTO>> getTopLikes() {
+        List<TripRespDTO> topTrips = tripService.getTop10Trips();
+        return ResponseEntity.ok(topTrips);
+    }
 }
