@@ -5,9 +5,6 @@ import lombok.Data;
 import com.jandi.plan_backend.user.entity.User;
 import java.time.LocalDateTime;
 
-/**
- * 여행 동반자(참여자) 정보를 저장하는 테이블(trip_participant)과 매핑됨.
- */
 @Entity
 @Table(name = "trip_participant")
 @IdClass(TripParticipantId.class)

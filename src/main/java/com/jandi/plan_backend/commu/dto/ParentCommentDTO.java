@@ -14,7 +14,7 @@ public class ParentCommentDTO {
     private final LocalDateTime createdAt;
     private final String contents;
     private final Integer likeCount;
-    private final Integer repliesCount; //답글 수
+    private final Integer repliesCount;
 
     public ParentCommentDTO(Comment comment, User user, ImageService imageService) {
         this.commentId = comment.getCommentId();

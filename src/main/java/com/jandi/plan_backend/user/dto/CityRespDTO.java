@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 public class CityRespDTO {
-    private Integer destinationId;
+    private Integer cityId;
     private String name;
     private String description;
     private String imageUrl;
@@ -13,7 +13,7 @@ public class CityRespDTO {
     private CountryRespDTO country;
 
     public CityRespDTO(City destination) {
-        this.destinationId = destination.getDestinationId();
+        this.cityId = destination.getCityId();
         this.name = destination.getName();
         this.description = destination.getDescription();
         this.imageUrl = destination.getImageUrl();

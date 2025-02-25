@@ -84,7 +84,6 @@ public class PostService {
         return new CommunityRespDTO(community, imageService);
     }
 
-
     /** 게시물 수정 */
     public CommunityRespDTO updatePost(CommunityReqDTO postDTO, Integer postId, String userEmail) {
         //게시글 검증

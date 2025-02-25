@@ -72,7 +72,6 @@ public class PreferTripService {
                 .collect(Collectors.toList());
     }
 
-
     /** 생성 관련 */
     //대륙 생성: 디버깅용, 실제 서비스 중엔 대륙이 추가될 것 같지 않음!
     public Continent createNewContinent(
@@ -97,7 +96,6 @@ public class PreferTripService {
         continentRepository.save(continent);
         return continent;
     }
-
 
     //국가 생성
     public Country createNewCountry(
@@ -152,7 +150,7 @@ public class PreferTripService {
 
         //이미지 업로드 및 반영
         ImageRespDto imageDTO = imageService.uploadImage(
-                file, userEmail, newCity.getDestinationId(), "majorDestination");
+                file, userEmail, newCity.getCityId(), "city");
         newCity.setImageUrl(imageDTO.getImageUrl());
         log.info("imageDTO: {}", imageDTO);
 
