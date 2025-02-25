@@ -10,14 +10,14 @@ public class BannerRespDTO {
     private final Integer bannerId;
     private final LocalDateTime createdAt;
     private final String title;
-    private final String imageUrl;
     private final String linkUrl;
+    private final String imageUrl;
 
-    public BannerRespDTO(Banner banner) {
+    public BannerRespDTO(Banner banner, String imageUrl) {
         this.bannerId = banner.getBannerId();
         this.createdAt = banner.getCreatedAt();
         this.title = banner.getTitle();
-        this.imageUrl = banner.getImageUrl();
         this.linkUrl = banner.getLinkUrl();
+        this.imageUrl = imageUrl;
     }
 }

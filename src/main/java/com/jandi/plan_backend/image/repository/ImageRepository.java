@@ -11,6 +11,6 @@ import java.util.Optional;
  */
 @Repository
 public interface ImageRepository extends JpaRepository<Image, Integer> {
-    // 프로필 사진 조회를 위한 메서드: targetType과 targetId로 검색
+    // targetType과 targetId로 검색
     Optional<Image> findByTargetTypeAndTargetId(String targetType, Integer targetId);
 }
