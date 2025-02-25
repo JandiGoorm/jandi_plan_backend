@@ -1,6 +1,7 @@
 package com.jandi.plan_backend.trip.service;
 
 import com.jandi.plan_backend.image.dto.ImageRespDto;
+import com.jandi.plan_backend.image.entity.Image;
 import com.jandi.plan_backend.image.service.ImageService;
 import com.jandi.plan_backend.trip.dto.MyTripRespDTO;
 import com.jandi.plan_backend.trip.dto.TripRespDTO;
@@ -17,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 public class TripService {
@@ -82,6 +84,28 @@ public class TripService {
                             tripImageUrl,
                             trip.getPrivatePlan());
                 });
+    }
+
+    /**
+     * 개별 여행 계획 조회
+     */
+    public MyTripRespDTO getSpecTrips(String userEmail, Integer tripId) {
+        //여행 계획 검증
+        Trip trip = validationUtil.validateTripExists(tripId);
+
+        //여행 계획에 대해 유저의 접근 권한 검증: 본인의 여행계획이거나, 공개 설정된 타인의 여행계획일때만 조회 가능
+        //즉 타인의 비공개 여행 계획은 조회 불가
+        User user = validationUtil.validateUserExists(userEmail);
+        if (!trip.getUser().getUserId().equals(user.getUserId()) && trip.getPrivatePlan()) {
+            throw new BadRequestExceptionMessage("접근 권한이 없습니다.");
+        }
+
+        //DTO 생성 및 반환
+        Optional<Image> userProfile = imageService.getImageByTarget("userProfile", user.getUserId());
+        String userProfileUrl = userProfile.map(Image::getImageUrl).orElse(null);
+        Optional<Image> tripImage = imageService.getImageByTarget("trip", trip.getTripId());
+        String tripImageUrl = tripImage.map(Image::getImageUrl).orElse(null);
+        return new MyTripRespDTO(user, userProfileUrl, trip, tripImageUrl);
     }
 
     /** 여행 계획 생성 */

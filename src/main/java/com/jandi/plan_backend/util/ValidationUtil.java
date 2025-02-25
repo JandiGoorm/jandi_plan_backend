@@ -8,6 +8,8 @@ import com.jandi.plan_backend.resource.entity.Banner;
 import com.jandi.plan_backend.resource.entity.Notice;
 import com.jandi.plan_backend.resource.repository.BannerRepository;
 import com.jandi.plan_backend.resource.repository.NoticeRepository;
+import com.jandi.plan_backend.trip.entity.Trip;
+import com.jandi.plan_backend.trip.repository.TripRepository;
 import com.jandi.plan_backend.user.entity.City;
 import com.jandi.plan_backend.user.entity.Continent;
 import com.jandi.plan_backend.user.entity.Country;
@@ -33,8 +35,14 @@ public class ValidationUtil {
     private final ContinentRepository continentRepository;
     private final CountryRepository countryRepository;
     private final CityRepository cityRepository;
+    private final TripRepository tripRepository;
 
-    public ValidationUtil(UserRepository userRepository, CommunityRepository communityRepository, CommentRepository commentRepository, BannerRepository bannerRepository, NoticeRepository noticeRepository, ContinentRepository continentRepository, CountryRepository countryRepository, CityRepository cityRepository) {
+    public ValidationUtil(
+            UserRepository userRepository, CommunityRepository communityRepository,
+            CommentRepository commentRepository, BannerRepository bannerRepository,
+            NoticeRepository noticeRepository, ContinentRepository continentRepository,
+            CountryRepository countryRepository, CityRepository cityRepository,
+            TripRepository tripRepository) {
         this.userRepository = userRepository;
         this.communityRepository = communityRepository;
         this.commentRepository = commentRepository;
@@ -43,6 +51,7 @@ public class ValidationUtil {
         this.continentRepository = continentRepository;
         this.countryRepository = countryRepository;
         this.cityRepository = cityRepository;
+        this.tripRepository = tripRepository;
     }
 
     /** userRepository */
@@ -105,6 +114,7 @@ public class ValidationUtil {
 
 
     /** NoticeRepository 관련 검증 */
+    //공지사항의 존재 여부 검증
     public Notice validateNoticeExists(Integer noticeId) {
         return (Notice) noticeRepository.findByNoticeId(noticeId)
                 .orElseThrow(() -> new BadRequestExceptionMessage("존재하지 않는 공지입니다."));
@@ -127,6 +137,13 @@ public class ValidationUtil {
     public City validateCityExists(String cityName) {
         return (City) cityRepository.findByName(cityName)
                 .orElseThrow(() -> new BadRequestExceptionMessage("등록되지 않은 도시입니다."));
+    }
+
+    /** TripRepository 관련 검증 */
+    //여행 계획의 존재 여부 검증
+    public Trip validateTripExists(Integer tripId) {
+        return (Trip) tripRepository.findByTripId(tripId)
+                .orElseThrow(() -> new BadRequestExceptionMessage("존재하지 않는 여행 계획입니다."));
     }
 
     /** 기타 검증 유틸 */

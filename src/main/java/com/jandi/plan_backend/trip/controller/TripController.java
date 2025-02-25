@@ -1,12 +1,11 @@
 package com.jandi.plan_backend.trip.controller;
 
-import com.jandi.plan_backend.commu.dto.CommentReqDTO;
-import com.jandi.plan_backend.commu.dto.CommentRespDTO;
 import com.jandi.plan_backend.security.JwtTokenProvider;
 import com.jandi.plan_backend.trip.dto.MyTripRespDTO;
 import com.jandi.plan_backend.trip.dto.TripRespDTO;
 import com.jandi.plan_backend.trip.service.TripService;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -65,6 +64,28 @@ public class TripController {
                 ),
                 "items", myTripsPage.getContent()
         );
+    }
+
+    /** 개별 여행 계획 조회
+     * 공개로 설정된 다른 유저의 여행 계획 + 공개/비공개 설정된 본인의 여행 계획만 조회 가능
+     * 아직 친구 기능은 구현되지 않아 이 부분은 아직 제외한 채로 구현
+     */
+    @GetMapping("/{tripId}")
+    public ResponseEntity<?> getSpecTrips(
+            @PathVariable Integer tripId,
+            @RequestHeader(value = "Authorization", required = false) String token // 헤더의 Authorization에서 JWT 토큰 받기
+    ){
+        if(token == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("로그인이 필요합니다.");
+        }
+
+        // Jwt 토큰으로부터 유저 이메일 추출
+        String jwtToken = token.replace("Bearer ", "");
+        String userEmail = jwtTokenProvider.getEmail(jwtToken);
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(tripService.getSpecTrips(userEmail, tripId));
     }
 
     /** 여행 계획 생성 */
