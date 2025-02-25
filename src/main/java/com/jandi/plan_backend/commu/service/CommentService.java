@@ -16,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 @Service
@@ -89,7 +90,7 @@ public class CommentService {
         comment.setCommunity(post);
         comment.setParentComment(parentComment);
         comment.setUserId(user.getUserId());
-        comment.setCreatedAt(LocalDateTime.now());
+        comment.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
         comment.setContents(content);
         comment.setLikeCount(0);
         comment.setRepliesCount(0);

@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -50,7 +51,7 @@ public class BannerService {
 
         //배너글 생성
         Banner banner = new Banner();
-        banner.setCreatedAt(LocalDateTime.now());
+        banner.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
         banner.setTitle(title);
         banner.setLinkUrl(link);
         bannerRepository.save(banner); //imageUrl 미포함된 상태로 1차 저장

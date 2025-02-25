@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Optional;
 
 @Slf4j
@@ -44,7 +45,7 @@ public class ImageService {
         image.setTargetId(targetId);
         image.setImageUrl(storedFileName);
         image.setOwner(owner);
-        image.setCreatedAt(LocalDateTime.now());
+        image.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
         image = imageRepository.save(image);
         String fullPublicUrl = publicUrlPrefix + image.getImageUrl();
         ImageRespDto responseDto = new ImageRespDto();
@@ -104,7 +105,7 @@ public class ImageService {
         }
         String newStoredFileName = uploadResult.replace("파일 업로드 성공: ", "").trim();
         image.setImageUrl(newStoredFileName);
-        image.setCreatedAt(LocalDateTime.now());
+        image.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
         image = imageRepository.save(image);
         String fullPublicUrl = publicUrlPrefix + image.getImageUrl();
         ImageRespDto responseDto = new ImageRespDto();

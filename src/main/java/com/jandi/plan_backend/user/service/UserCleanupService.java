@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 @Slf4j
@@ -27,7 +28,7 @@ public class UserCleanupService {
     @Scheduled(cron = "0 0 * * * *")  // 매 정각 실행 (원하는 주기로 수정 가능)
     @Transactional
     public void cleanupUnverifiedUsers() {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
         List<User> unverifiedUsers = userRepository.findByVerifiedFalseAndTokenExpiresBefore(now);
         if (!unverifiedUsers.isEmpty()) {
             log.info("삭제할 미인증 사용자 {}명을 찾았습니다.", unverifiedUsers.size());

@@ -159,8 +159,8 @@ public class TripService {
         trip.setStartDate(LocalDate.parse(startDate));
         trip.setEndDate(LocalDate.parse(endDate));
         trip.setUser(user);
-        trip.setCreatedAt(LocalDateTime.now());
-        trip.setUpdatedAt(LocalDateTime.now());
+        trip.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
+        trip.setUpdatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
         trip.setLikeCount(0);
         trip.setPrivatePlan(isPrivate);
         tripRepository.save(trip);
