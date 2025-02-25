@@ -3,10 +3,10 @@ package com.jandi.plan_backend.trip.service;
 import com.jandi.plan_backend.image.dto.ImageRespDto;
 import com.jandi.plan_backend.image.entity.Image;
 import com.jandi.plan_backend.image.service.ImageService;
-import com.jandi.plan_backend.trip.dto.MyTripRespDTO;
-import com.jandi.plan_backend.trip.dto.TripRespDTO;
-import com.jandi.plan_backend.trip.dto.UserTripDTO;
+import com.jandi.plan_backend.trip.dto.*;
 import com.jandi.plan_backend.trip.entity.Trip;
+import com.jandi.plan_backend.trip.entity.TripLike;
+import com.jandi.plan_backend.trip.repository.TripLikeRepository;
 import com.jandi.plan_backend.trip.repository.TripRepository;
 import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.util.ValidationUtil;
@@ -17,17 +17,20 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Objects;
 import java.util.Optional;
 
 @Service
 public class TripService {
     private final TripRepository tripRepository;
+    private final TripLikeRepository tripLikeRepository;
     private final ValidationUtil validationUtil;
     private final ImageService imageService;
 
-    public TripService(TripRepository tripRepository, ValidationUtil validationUtil, ImageService imageService) {
+    public TripService(TripRepository tripRepository, TripLikeRepository tripLikeRepository, ValidationUtil validationUtil, ImageService imageService) {
         this.tripRepository = tripRepository;
+        this.tripLikeRepository = tripLikeRepository;
         this.validationUtil = validationUtil;
         this.imageService = imageService;
     }
@@ -114,6 +117,8 @@ public class TripService {
         // 유저 검증
         User user = validationUtil.validateUserExists(userEmail);
         validationUtil.validateUserRestricted(user);
+
+        //데이터 검증
         validationUtil.ValidateDate(startDate);
         validationUtil.ValidateDate(endDate);
         if (!(Objects.equals(privatePlan, "yes") || Objects.equals(privatePlan, "no"))) {
@@ -152,5 +157,38 @@ public class TripService {
                 trip.getDescription(),
                 trip.getLikeCount(),
                 finalImageUrl);
+    }
+
+    /** 좋아요 리스트에 추가 */
+    public TripLikeRespDTO addLikeTrip(String userEmail, Integer tripId) {
+        //유저 검증: 미존재, 부적절 유저인 경우 블락처리
+        User user = validationUtil.validateUserExists(userEmail);
+        validationUtil.validateUserRestricted(user);
+
+        //접근 가능 여부 검증: 타인의 비공개 여행계획인 경우 블락처리
+        Trip trip = validationUtil.validateTripExists(tripId);
+        if (!trip.getUser().getUserId().equals(user.getUserId()) && trip.getPrivatePlan()) {
+            throw new BadRequestExceptionMessage("접근 권한이 없습니다.");
+        }
+
+        //좋아요 가능 여부 검증: 본인의 여행계획인 경우 블락처리
+        if(trip.getUser().getUserId().equals(user.getUserId())) {
+            throw new BadRequestExceptionMessage("본인의 여행계획은 좋아요할 수 없습니다.");
+        }
+
+        //좋아요 리스트에 추가
+        TripLike tripLike = new TripLike();
+        tripLike.setTrip(trip);
+        tripLike.setUser(user);
+        tripLike.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
+        tripLikeRepository.save(tripLike);
+
+        //DTO 생성 및 반환
+        Optional<Image> userProfile = imageService.getImageByTarget("userProfile", user.getUserId());
+        String userProfileUrl = userProfile.map(Image::getImageUrl).orElse(null);
+        Optional<Image> tripImage = imageService.getImageByTarget("trip", trip.getTripId());
+        String tripImageUrl = tripImage.map(Image::getImageUrl).orElse(null);
+        MyTripRespDTO myTripRespDTO = new MyTripRespDTO(user, userProfileUrl, trip, tripImageUrl);
+        return new TripLikeRespDTO(myTripRespDTO, tripLike.getCreatedAt());
     }
 }

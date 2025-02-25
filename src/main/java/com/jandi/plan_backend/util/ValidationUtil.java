@@ -69,7 +69,7 @@ public class ValidationUtil {
     // 사용자 활동 제한 여부 검증
     public void validateUserRestricted(User user) {
         if (user.getReported()) {
-            throw new BadRequestExceptionMessage("비정상적인 활동이 반복되어 게시글 작성이 제한되었습니다.");
+            throw new BadRequestExceptionMessage("비정상적인 활동이 반복되어 일부 기능 사용이 제한되었습니다.");
         }
     }
 
