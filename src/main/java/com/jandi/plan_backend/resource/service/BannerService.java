@@ -26,7 +26,6 @@ public class BannerService {
     private final ImageService imageService;
     private final ImageRepository imageRepository;
 
-
     //생성자를 통한 의존성 주입
     public BannerService(BannerRepository bannerRepository, ValidationUtil validationUtil, ImageService imageService, ImageRepository imageRepository) {
         this.bannerRepository = bannerRepository;
