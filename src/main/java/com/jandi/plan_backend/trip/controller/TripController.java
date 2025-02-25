@@ -67,6 +67,30 @@ public class TripController {
         );
     }
 
+    /** 좋아요한 여행 계획 목록 조회 */
+    @GetMapping("/my/likedTrips")
+    public Map<String, Object> getLikedTrips(
+            @RequestHeader("Authorization") String token, // 헤더의 Authorization에서 JWT 토큰 받기
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ){
+        // Jwt 토큰으로부터 유저 이메일 추출
+        String jwtToken = token.replace("Bearer ", "");
+        String userEmail = jwtTokenProvider.getEmail(jwtToken);
+
+        Page<TripRespDTO> likedTripsPage = tripService.getLikedTrips(userEmail, page, size);
+
+        return Map.of(
+                "pageInfo", Map.of(
+                        "currentPage", likedTripsPage.getNumber(),
+                        "currentSize", likedTripsPage.getContent().size(),
+                        "totalPages", likedTripsPage.getTotalPages(),
+                        "totalSize", likedTripsPage.getTotalElements()
+                ),
+                "items", likedTripsPage.getContent()
+        );
+    }
+
     /** 개별 여행 계획 조회
      * 공개로 설정된 다른 유저의 여행 계획 + 공개/비공개 설정된 본인의 여행 계획만 조회 가능
      * 아직 친구 기능은 구현되지 않아 이 부분은 아직 제외한 채로 구현
@@ -111,7 +135,7 @@ public class TripController {
     }
 
     /** 타인의 여행 계획을 '좋아요' 목록에 추가 */
-    @PostMapping("/like/{tripId}")
+    @PostMapping("/my/likedTrips/{tripId}")
     public ResponseEntity<?> likeTrip(
             @PathVariable Integer tripId,
             @RequestHeader("Authorization") String token // 헤더의 Authorization에서 JWT 토큰 받기

@@ -9,6 +9,7 @@ import com.jandi.plan_backend.trip.entity.TripLike;
 import com.jandi.plan_backend.trip.repository.TripLikeRepository;
 import com.jandi.plan_backend.trip.repository.TripRepository;
 import com.jandi.plan_backend.user.entity.User;
+import com.jandi.plan_backend.user.repository.UserRepository;
 import com.jandi.plan_backend.util.ValidationUtil;
 import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
 import com.jandi.plan_backend.util.service.PaginationService;
@@ -27,12 +28,16 @@ public class TripService {
     private final TripLikeRepository tripLikeRepository;
     private final ValidationUtil validationUtil;
     private final ImageService imageService;
+    private final String urlPrefix = "https://storage.googleapis.com/plan-storage/";
+    private final UserRepository userRepository;
 
-    public TripService(TripRepository tripRepository, TripLikeRepository tripLikeRepository, ValidationUtil validationUtil, ImageService imageService) {
+
+    public TripService(TripRepository tripRepository, TripLikeRepository tripLikeRepository, ValidationUtil validationUtil, ImageService imageService, UserRepository userRepository) {
         this.tripRepository = tripRepository;
         this.tripLikeRepository = tripLikeRepository;
         this.validationUtil = validationUtil;
         this.imageService = imageService;
+        this.userRepository = userRepository;
     }
 
     /** 여행 계획 목록 전체 조회 */
@@ -44,11 +49,11 @@ public class TripService {
                 tripObj -> {
                     Trip trip = (Trip) tripObj;  // 명시적 캐스팅
                     String userProfileUrl = imageService.getImageByTarget("userProfile", trip.getUser().getUserId())
-                            .map(img -> "https://storage.googleapis.com/plan-storage/" + img.getImageUrl())
+                            .map(img -> urlPrefix + img.getImageUrl())
                             .orElse(null);
                     UserTripDTO userTripDTO = new UserTripDTO(trip.getUser().getUserId(), trip.getUser().getUserName(), userProfileUrl);
                     String tripImageUrl = imageService.getImageByTarget("trip", trip.getTripId())
-                            .map(img -> "https://storage.googleapis.com/plan-storage/" + img.getImageUrl())
+                            .map(img -> urlPrefix + img.getImageUrl())
                             .orElse(null);
                     return new TripRespDTO(userTripDTO,
                             trip.getTripId(),
@@ -71,11 +76,11 @@ public class TripService {
                 tripObj -> {
                     Trip trip = (Trip) tripObj;  // 명시적 캐스팅
                     String userProfileUrl = imageService.getImageByTarget("userProfile", user.getUserId())
-                            .map(img -> "https://storage.googleapis.com/plan-storage/" + img.getImageUrl())
+                            .map(img -> urlPrefix + img.getImageUrl())
                             .orElse(null);
                     UserTripDTO userTripDTO = new UserTripDTO(user.getUserId(), user.getUserName(), userProfileUrl);
                     String tripImageUrl = imageService.getImageByTarget("trip", trip.getTripId())
-                            .map(img -> "https://storage.googleapis.com/plan-storage/" + img.getImageUrl())
+                            .map(img -> urlPrefix + img.getImageUrl())
                             .orElse(null);
                     return new MyTripRespDTO(userTripDTO,
                             trip.getTripId(),
@@ -88,6 +93,29 @@ public class TripService {
                             trip.getPrivatePlan());
                 });
     }
+
+    /** 좋아요한 여행 계획 목록 조회 */
+    public Page<TripRespDTO> getLikedTrips(String userEmail, int page, int size) {
+        User user = validationUtil.validateUserExists(userEmail);
+        long totalCount = tripLikeRepository.countByUser(user);
+
+        return PaginationService.getPagedData(page, size, totalCount,
+                pageable -> tripLikeRepository.findByUser(user, pageable),
+                tripLikeObj -> {
+                    TripLike tripLike = (TripLike) tripLikeObj;
+                    Trip trip = tripLike.getTrip();
+
+                    String userProfileUrl = imageService.getImageByTarget("userProfile", trip.getUser().getUserId())
+                            .map(img -> urlPrefix + img.getImageUrl())
+                            .orElse(null);
+                    String tripImageUrl = imageService.getImageByTarget("trip", trip.getTripId())
+                            .map(img -> urlPrefix + img.getImageUrl())
+                            .orElse(null);
+
+                    return new TripRespDTO(trip.getUser(), userProfileUrl, trip, tripImageUrl);
+                });
+    }
+
 
     /** 개별 여행 계획 조회 */
     public MyTripRespDTO getSpecTrips(String userEmail, Integer tripId) {
