@@ -89,9 +89,7 @@ public class TripService {
                 });
     }
 
-    /**
-     * 개별 여행 계획 조회
-     */
+    /** 개별 여행 계획 조회 */
     public MyTripRespDTO getSpecTrips(String userEmail, Integer tripId) {
         //여행 계획 검증
         Trip trip = validationUtil.validateTripExists(tripId);
@@ -174,6 +172,8 @@ public class TripService {
         //좋아요 가능 여부 검증: 본인의 여행계획인 경우 블락처리
         if(trip.getUser().getUserId().equals(user.getUserId())) {
             throw new BadRequestExceptionMessage("본인의 여행계획은 좋아요할 수 없습니다.");
+        }else if(tripLikeRepository.findByTripAndUser(trip, user).isPresent()) {
+            throw new BadRequestExceptionMessage("이미 좋아요한 여행계획입니다.");
         }
 
         //좋아요 리스트에 추가
