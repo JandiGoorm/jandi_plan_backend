@@ -114,4 +114,29 @@ public class TripController {
         // 성공적으로 삭제되었다면 메시지 반환
         return ResponseEntity.ok(Map.of("message", "해당 여행 계획이 삭제되었습니다."));
     }
+
+    /**
+     * 내 여행 계획 기본 정보 수정 (제목, 공개/비공개 여부 등)
+     *
+     * @param token         사용자 인증 토큰 (Authorization 헤더)
+     * @param tripId        수정할 여행 계획 ID
+     * @param title         수정할 여행 제목
+     * @param isPrivate     "yes" 또는 "no"로 전달, "yes"면 비공개, "no"면 공개
+     * @return 수정된 여행 계획 정보를 담은 TripRespDTO
+     */
+    @PatchMapping("/my/{tripId}")
+    public ResponseEntity<?> updateMyTripBasicInfo(
+            @RequestHeader("Authorization") String token,
+            @PathVariable("tripId") Integer tripId,
+            @RequestParam("title") String title,
+            @RequestParam("private") String isPrivate
+    ) {
+        // JWT 토큰에서 이메일 추출
+        String jwtToken = token.replace("Bearer ", "");
+        String userEmail = jwtTokenProvider.getEmail(jwtToken);
+
+        // 여행 계획 수정
+        TripRespDTO updatedTrip = tripService.updateTripBasicInfo(userEmail, tripId, title, isPrivate);
+        return ResponseEntity.ok(updatedTrip);
+    }
 }
