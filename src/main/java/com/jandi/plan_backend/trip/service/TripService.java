@@ -183,6 +183,10 @@ public class TripService {
         tripLike.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
         tripLikeRepository.save(tripLike);
 
+        //좋아요 수 업데이트
+        trip.setLikeCount(trip.getLikeCount() + 1);
+        tripRepository.save(trip);
+
         //DTO 생성 및 반환
         Optional<Image> userProfile = imageService.getImageByTarget("userProfile", user.getUserId());
         String userProfileUrl = userProfile.map(Image::getImageUrl).orElse(null);
