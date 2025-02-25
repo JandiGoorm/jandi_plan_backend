@@ -24,6 +24,7 @@ public class TripController {
         this.jwtTokenProvider = jwtTokenProvider;
     }
 
+    /** 전체 유저의 여행 계획 목록 조회 (공개 설정된 것만 조회) */
     @GetMapping("/allTrips")
     public Map<String, Object> getAllTrips(
             @RequestParam(defaultValue = "0") int page,
@@ -42,6 +43,7 @@ public class TripController {
         );
     }
 
+    /** 내 여행 계획 목록 조회 (본인 명의의 계획만 조회) */
     @GetMapping("/my/allTrips")
     public Map<String, Object> getAllMyTrips(
             @RequestHeader("Authorization") String token, // 헤더의 Authorization에서 JWT 토큰 받기
@@ -65,6 +67,7 @@ public class TripController {
         );
     }
 
+    /** 여행 계획 생성 */
     @PostMapping("/my/create")
     public ResponseEntity<?> writeTrip(
             @RequestHeader("Authorization") String token, // 헤더의 Authorization에서 JWT 토큰 받기
