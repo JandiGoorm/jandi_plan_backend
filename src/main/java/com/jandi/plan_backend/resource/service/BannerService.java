@@ -25,6 +25,7 @@ public class BannerService {
     private final ValidationUtil validationUtil;
     private final ImageService imageService;
     private final ImageRepository imageRepository;
+    private final String urlPrefix = "https://storage.googleapis.com/plan-storage/";
 
     //생성자를 통한 의존성 주입
     public BannerService(BannerRepository bannerRepository, ValidationUtil validationUtil, ImageService imageService, ImageRepository imageRepository) {
@@ -40,7 +41,7 @@ public class BannerService {
                 .map(banner -> {
                     // bannerId에 해당하는 image를 조회
                     String imageUrl = imageService.getImageByTarget("banner", banner.getBannerId())
-                            .map(img -> "https://storage.googleapis.com/plan-storage/" + img.getImageUrl())
+                            .map(img -> urlPrefix + img.getImageUrl())
                             .orElse(null);
 
                     // BannerListDTO 생성 시, imageUrl을 직접 주입
@@ -100,7 +101,7 @@ public class BannerService {
 
         // 5) 최종적으로, 현재 배너의 이미지 URL 조회
         String finalImageUrl = imageService.getImageByTarget("banner", bannerId)
-                .map(img -> "https://storage.googleapis.com/plan-storage/" + img.getImageUrl())
+                .map(img -> urlPrefix + img.getImageUrl())
                 .orElse(null);
 
         // 6) 수정된 배너 반환

@@ -16,7 +16,7 @@ public class ImageService {
 
     private final GoogleCloudStorageService googleCloudStorageService;
     private final ImageRepository imageRepository;
-    private final String publicUrlPrefix = "https://storage.googleapis.com/plan-storage/";
+    private final String urlPrefix = "https://storage.googleapis.com/plan-storage/";
 
     public ImageService(GoogleCloudStorageService googleCloudStorageService, ImageRepository imageRepository) {
         this.googleCloudStorageService = googleCloudStorageService;
@@ -47,7 +47,7 @@ public class ImageService {
         image.setOwner(owner);
         image.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
         image = imageRepository.save(image);
-        String fullPublicUrl = publicUrlPrefix + image.getImageUrl();
+        String fullPublicUrl = urlPrefix + image.getImageUrl();
         ImageRespDto responseDto = new ImageRespDto();
         responseDto.setImageId(image.getImageId());
         responseDto.setImageUrl(fullPublicUrl);
@@ -63,7 +63,7 @@ public class ImageService {
      */
     public String getPublicUrlByImageId(Integer imageId) {
         Optional<Image> imageOptional = imageRepository.findById(imageId);
-        return imageOptional.map(img -> publicUrlPrefix + img.getImageUrl()).orElse(null);
+        return imageOptional.map(img -> urlPrefix + img.getImageUrl()).orElse(null);
     }
 
     /**
@@ -107,7 +107,7 @@ public class ImageService {
         image.setImageUrl(newStoredFileName);
         image.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
         image = imageRepository.save(image);
-        String fullPublicUrl = publicUrlPrefix + image.getImageUrl();
+        String fullPublicUrl = urlPrefix + image.getImageUrl();
         ImageRespDto responseDto = new ImageRespDto();
         responseDto.setImageId(image.getImageId());
         responseDto.setImageUrl(fullPublicUrl);
