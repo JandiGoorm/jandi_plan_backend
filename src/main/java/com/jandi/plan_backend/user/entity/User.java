@@ -1,6 +1,5 @@
 package com.jandi.plan_backend.user.entity;
 
-import com.jandi.plan_backend.commu.entity.Comment;
 import com.jandi.plan_backend.commu.entity.Community;
 import jakarta.persistence.*;
 import lombok.Data;
