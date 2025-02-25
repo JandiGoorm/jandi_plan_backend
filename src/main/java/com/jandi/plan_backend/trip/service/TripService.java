@@ -102,7 +102,6 @@ public class TripService {
                 });
     }
 
-
     /** 개별 여행 계획 조회 */
     public MyTripRespDTO getSpecTrips(String userEmail, Integer tripId) {
         //여행 계획 검증
