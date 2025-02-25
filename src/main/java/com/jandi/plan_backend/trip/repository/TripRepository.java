@@ -7,7 +7,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface TripRepository extends JpaRepository<Trip, Long> {
     //tripId와 일치하는 여행 계획 반환
@@ -27,4 +26,7 @@ public interface TripRepository extends JpaRepository<Trip, Long> {
 
     // 공개/비공개된 여행 계획의 수 반환
     long countByPrivatePlan(boolean b);
+
+    // 공개된 여행 계획 중 좋아요 수가 많은 상위 10개 조회
+    List<Trip> findTop10ByPrivatePlanFalseOrderByLikeCountDesc();
 }
