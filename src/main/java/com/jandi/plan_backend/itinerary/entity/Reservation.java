@@ -1,5 +1,6 @@
 package com.jandi.plan_backend.itinerary.entity;
 
+import com.jandi.plan_backend.trip.entity.Trip;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -22,8 +23,9 @@ public class Reservation {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long reservationId;
 
-    @Column(nullable = false)
-    private Long tripId;
+    @ManyToOne
+    @JoinColumn(name = "trip_id", nullable = false)
+    private Trip trip;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)

@@ -16,7 +16,6 @@ public class TripLike {
 
     @Id
     @ManyToOne
-    // @OnDelete(action = OnDeleteAction.CASCADE)  // DB에서 직접 처리하지 않고, JPA Cascade로 처리
     @JoinColumn(name = "trip_id", nullable = false)
     private Trip trip;
 
