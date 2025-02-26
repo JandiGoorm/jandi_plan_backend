@@ -51,7 +51,10 @@ public class TripService {
                     String userProfileUrl = imageService.getImageByTarget("userProfile", trip.getUser().getUserId())
                             .map(img -> urlPrefix + img.getImageUrl())
                             .orElse(null);
-                    return new TripRespDTO(trip.getUser(), userProfileUrl, trip);
+                    String cityImageUrl = imageService.getImageByTarget("city", trip.getCity().getCityId())
+                            .map(img -> urlPrefix + img.getImageUrl())
+                            .orElse(null);
+                    return new TripRespDTO(trip.getUser(), userProfileUrl, trip, cityImageUrl);
                 });
     }
 
@@ -67,7 +70,10 @@ public class TripService {
                     String userProfileUrl = imageService.getImageByTarget("userProfile", user.getUserId())
                             .map(img -> urlPrefix + img.getImageUrl())
                             .orElse(null);
-                    return new MyTripRespDTO(trip.getUser(), userProfileUrl, trip);
+                    String cityImageUrl = imageService.getImageByTarget("city", trip.getCity().getCityId())
+                            .map(img -> urlPrefix + img.getImageUrl())
+                            .orElse(null);
+                    return new MyTripRespDTO(trip.getUser(), userProfileUrl, trip, cityImageUrl);
                 });
     }
 
@@ -84,7 +90,10 @@ public class TripService {
                     String userProfileUrl = imageService.getImageByTarget("userProfile", trip.getUser().getUserId())
                             .map(img -> urlPrefix + img.getImageUrl())
                             .orElse(null);
-                    return new TripRespDTO(trip.getUser(), userProfileUrl, trip);
+                    String cityImageUrl = imageService.getImageByTarget("city", trip.getCity().getCityId())
+                            .map(img -> urlPrefix + img.getImageUrl())
+                            .orElse(null);
+                    return new TripRespDTO(trip.getUser(), userProfileUrl, trip, cityImageUrl);
                 });
     }
 
@@ -95,9 +104,13 @@ public class TripService {
         if (!trip.getUser().getUserId().equals(user.getUserId()) && trip.getPrivatePlan()) {
             throw new BadRequestExceptionMessage("접근 권한이 없습니다.");
         }
-        Optional<Image> userProfile = imageService.getImageByTarget("userProfile", user.getUserId());
-        String userProfileUrl = userProfile.map(Image::getImageUrl).orElse(null);
-        return new MyTripRespDTO(user, userProfileUrl, trip);
+        String userProfileUrl = imageService.getImageByTarget("userProfile", user.getUserId())
+                .map(Image::getImageUrl)
+                .orElse(null);
+        String cityImageUrl = imageService.getImageByTarget("city", trip.getCity().getCityId())
+                .map(img -> urlPrefix + img.getImageUrl())
+                .orElse(null);
+        return new MyTripRespDTO(user, userProfileUrl, trip, cityImageUrl);
     }
 
     /** 여행 계획 생성 (이미지 입력 제거됨) */
@@ -113,7 +126,7 @@ public class TripService {
         }
         boolean isPrivate = Objects.equals(privatePlan, "yes");
 
-        // cityId를 사용하여 City 엔티티 조회 (validateCityExists 메서드가 있다고 가정)
+        // cityId를 사용하여 City 엔티티 조회
         City city = validationUtil.validateCityExists(cityId);
 
         Trip trip = new Trip(user, title, isPrivate, parsedStartDate, parsedEndDate, budget, city);
@@ -122,8 +135,10 @@ public class TripService {
         String userProfileUrl = imageService.getImageByTarget("userProfile", user.getUserId())
                 .map(img -> urlPrefix + img.getImageUrl())
                 .orElse(null);
-
-        return new TripRespDTO(user, userProfileUrl, trip);
+        String cityImageUrl = imageService.getImageByTarget("city", trip.getCity().getCityId())
+                .map(img -> urlPrefix + img.getImageUrl())
+                .orElse(null);
+        return new TripRespDTO(user, userProfileUrl, trip, cityImageUrl);
     }
 
     /** 좋아요 리스트에 추가 */
@@ -152,8 +167,11 @@ public class TripService {
         String userProfileUrl = imageService.getImageByTarget("userProfile", trip.getUser().getUserId())
                 .map(img -> urlPrefix + img.getImageUrl())
                 .orElse(null);
+        String cityImageUrl = imageService.getImageByTarget("city", trip.getCity().getCityId())
+                .map(img -> urlPrefix + img.getImageUrl())
+                .orElse(null);
         return new TripLikeRespDTO(
-                new MyTripRespDTO(trip.getUser(), userProfileUrl, trip),
+                new MyTripRespDTO(trip.getUser(), userProfileUrl, trip, cityImageUrl),
                 tripLike.getCreatedAt()
         );
     }
@@ -180,7 +198,10 @@ public class TripService {
                     String userProfileUrl = imageService.getImageByTarget("userProfile", trip.getUser().getUserId())
                             .map(img -> urlPrefix + img.getImageUrl())
                             .orElse(null);
-                    return new TripRespDTO(trip.getUser(), userProfileUrl, trip);
+                    String cityImageUrl = imageService.getImageByTarget("city", trip.getCity().getCityId())
+                            .map(img -> urlPrefix + img.getImageUrl())
+                            .orElse(null);
+                    return new TripRespDTO(trip.getUser(), userProfileUrl, trip, cityImageUrl);
                 })
                 .collect(Collectors.toList());
     }
@@ -222,6 +243,9 @@ public class TripService {
         String userProfileUrl = imageService.getImageByTarget("userProfile", user.getUserId())
                 .map(img -> urlPrefix + img.getImageUrl())
                 .orElse(null);
-        return new TripRespDTO(trip.getUser(), userProfileUrl, trip);
+        String cityImageUrl = imageService.getImageByTarget("city", trip.getCity().getCityId())
+                .map(img -> urlPrefix + img.getImageUrl())
+                .orElse(null);
+        return new TripRespDTO(trip.getUser(), userProfileUrl, trip, cityImageUrl);
     }
 }
