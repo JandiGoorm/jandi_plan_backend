@@ -15,9 +15,10 @@ public class TripRespDTO {
     private final Integer likeCount;
     private final Integer budget;
     private final Integer cityId;
+    private final Boolean privatePlan;
 
     public TripRespDTO(UserTripDTO user, Integer tripId, String title, LocalDate startDate, LocalDate endDate,
-                       Integer likeCount, Integer budget, Integer cityId) {
+                       Integer likeCount, Integer budget, Integer cityId, Boolean privatePlan) {
         this.user = user;
         this.tripId = tripId;
         this.title = title;
@@ -26,6 +27,7 @@ public class TripRespDTO {
         this.likeCount = likeCount;
         this.budget = budget;
         this.cityId = cityId;
+        this.privatePlan = privatePlan;
     }
 
     public TripRespDTO(User user, String userProfileUrl, Trip trip) {
@@ -37,5 +39,6 @@ public class TripRespDTO {
         this.likeCount = trip.getLikeCount();
         this.budget = trip.getBudget();
         this.cityId = trip.getCity().getCityId();
+        this.privatePlan = trip.getPrivatePlan();
     }
 }
