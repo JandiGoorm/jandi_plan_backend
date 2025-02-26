@@ -1,5 +1,6 @@
 package com.jandi.plan_backend.trip.entity;
 
+import com.jandi.plan_backend.user.entity.City;
 import jakarta.persistence.*;
 import lombok.Data;
 import com.jandi.plan_backend.user.entity.User;
@@ -24,9 +25,6 @@ public class Trip {
     @Column(nullable = false)
     private String title;
 
-    @Column(columnDefinition = "TEXT")
-    private String description;
-
     @Column(nullable = false)
     private LocalDate startDate;
 
@@ -45,17 +43,25 @@ public class Trip {
     @Column(nullable = false)
     private Integer likeCount;
 
+    @Column(nullable = false)
+    private Integer budget;
+
+    @ManyToOne
+    @JoinColumn(name = "city_id", nullable = false)
+    private City city;
+
     /**
      * 생성자: 엔티티 생성 시 기본 필드 초기화
      */
-    public Trip(User user, String title, String description, Boolean privatePlan,
-                LocalDate startDate, LocalDate endDate) {
+    public Trip(User user, String title, Boolean privatePlan,
+                LocalDate startDate, LocalDate endDate, Integer budget, City city) {
         this.user = user;
         this.title = title;
-        this.description = description;
+        this.privatePlan = privatePlan;
         this.startDate = startDate;
         this.endDate = endDate;
-        this.privatePlan = privatePlan;
+        this.budget = budget;
+        this.city = city;
     }
 
     public Trip() {

@@ -9,7 +9,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
@@ -52,7 +51,7 @@ public class TripController {
         List<TripRespDTO> topTrips = tripService.getTop10Trips();
         return ResponseEntity.ok(topTrips);
     }
-  
+
     /** 내 여행 계획 목록 조회 (본인 명의의 계획만 조회) */
     @GetMapping("/my/allTrips")
     public Map<String, Object> getAllMyTrips(
@@ -103,7 +102,6 @@ public class TripController {
 
     /** 개별 여행 계획 조회
      * 공개로 설정된 다른 유저의 여행 계획 + 공개/비공개 설정된 본인의 여행 계획만 조회 가능
-     * 아직 친구 기능은 구현되지 않아 이 부분은 아직 제외한 채로 구현
      */
     @GetMapping("/{tripId}")
     public ResponseEntity<?> getSpecTrips(
@@ -128,19 +126,19 @@ public class TripController {
     public ResponseEntity<?> writeTrip(
             @RequestHeader("Authorization") String token, // 헤더의 Authorization에서 JWT 토큰 받기
             @RequestParam("title") String title,
-            @RequestParam("description") String description,
             @RequestParam("startDate") String startDate,
             @RequestParam("endDate") String endDate,
             @RequestParam("private") String isPrivate,
-            @RequestParam("image") MultipartFile image
+            @RequestParam("budget") Integer budget,
+            @RequestParam("cityId") Integer cityId
     ){
         // Jwt 토큰으로부터 유저 이메일 추출
         String jwtToken = token.replace("Bearer ", "");
         String userEmail = jwtTokenProvider.getEmail(jwtToken);
 
-        // 여행 계획 생성 및 반환
+        // 여행 계획 생성 및 반환 (이미지 관련 파라미터 제거됨)
         TripRespDTO savedTrip = tripService.writeTrip(
-                userEmail, title, description, startDate, endDate, isPrivate, image);
+                userEmail, title, startDate, endDate, isPrivate, budget, cityId);
         return ResponseEntity.ok(savedTrip);
     }
 
