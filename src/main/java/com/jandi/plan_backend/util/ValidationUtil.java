@@ -159,9 +159,9 @@ public class ValidationUtil {
         return (Country) countryObj;
     }
 
-    public City validateCityExists(String cityName) {
-        return cityRepository.findByName(cityName)
-                .orElseThrow(() -> new BadRequestExceptionMessage("등록되지 않은 도시입니다."));
+    public City validateCityExists(Integer cityId) {
+        return cityRepository.findById(cityId)
+                .orElseThrow(() -> new BadRequestExceptionMessage("존재하지 않는 도시입니다."));
     }
 
     /* ==========================

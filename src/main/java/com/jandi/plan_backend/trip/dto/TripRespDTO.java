@@ -12,30 +12,36 @@ public class TripRespDTO {
     private final String title;
     private final LocalDate startDate;
     private final LocalDate endDate;
-    private final String description;
     private final Integer likeCount;
-    private final String imageUrl;
+    private final Integer budget;
+    private final Integer cityId;
+    private final Boolean privatePlan;
+    private final String cityImageUrl; // 추가된 필드
 
     public TripRespDTO(UserTripDTO user, Integer tripId, String title, LocalDate startDate, LocalDate endDate,
-                       String description, Integer likeCount, String imageUrl) {
+                       Integer likeCount, Integer budget, Integer cityId, Boolean privatePlan, String cityImageUrl) {
         this.user = user;
         this.tripId = tripId;
         this.title = title;
         this.startDate = startDate;
         this.endDate = endDate;
-        this.description = description;
         this.likeCount = likeCount;
-        this.imageUrl = imageUrl;
+        this.budget = budget;
+        this.cityId = cityId;
+        this.privatePlan = privatePlan;
+        this.cityImageUrl = cityImageUrl;
     }
 
-    public TripRespDTO(User user, String userProfileUrl, Trip trip, String TripImageUrl){
+    public TripRespDTO(User user, String userProfileUrl, Trip trip, String cityImageUrl) {
         this.user = new UserTripDTO(user.getUserId(), user.getUserName(), userProfileUrl);
         this.tripId = trip.getTripId();
         this.title = trip.getTitle();
         this.startDate = trip.getStartDate();
         this.endDate = trip.getEndDate();
-        this.description = trip.getDescription();
         this.likeCount = trip.getLikeCount();
-        this.imageUrl = TripImageUrl;
+        this.budget = trip.getBudget();
+        this.cityId = trip.getCity().getCityId();
+        this.privatePlan = trip.getPrivatePlan();
+        this.cityImageUrl = cityImageUrl;
     }
 }
