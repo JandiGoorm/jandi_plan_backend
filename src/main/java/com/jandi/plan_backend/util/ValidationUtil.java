@@ -190,7 +190,7 @@ public class ValidationUtil {
 
     public Reservation validateReservationExists(Long reservationId) {
         return reservationRepository.findByReservationId(reservationId)
-                .orElseThrow(() -> new BadRequestExceptionMessage("존재하지 않는 배너입니다."));
+                .orElseThrow(() -> new BadRequestExceptionMessage("존재하지 않는 예약 일정입니다."));
     }
 
     /* ==========================
