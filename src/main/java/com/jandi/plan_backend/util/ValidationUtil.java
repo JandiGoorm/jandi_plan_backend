@@ -2,6 +2,8 @@ package com.jandi.plan_backend.util;
 
 import com.jandi.plan_backend.commu.entity.Comment;
 import com.jandi.plan_backend.commu.entity.Community;
+import com.jandi.plan_backend.itinerary.entity.Reservation;
+import com.jandi.plan_backend.itinerary.repository.ReservationRepository;
 import com.jandi.plan_backend.resource.repository.BannerRepository;
 import com.jandi.plan_backend.commu.repository.CommentRepository;
 import com.jandi.plan_backend.commu.repository.CommunityRepository;
@@ -19,6 +21,7 @@ import com.jandi.plan_backend.user.repository.ContinentRepository;
 import com.jandi.plan_backend.user.repository.CountryRepository;
 import com.jandi.plan_backend.user.repository.UserRepository;
 import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -27,6 +30,7 @@ import java.util.Objects;
 /**
  * 검증(Validation) 로직을 모아둔 유틸 클래스.
  */
+@Slf4j
 @Component
 public class ValidationUtil {
     private final UserRepository userRepository;
@@ -38,6 +42,7 @@ public class ValidationUtil {
     private final CountryRepository countryRepository;
     private final CityRepository cityRepository;
     private final TripRepository tripRepository;
+    private final ReservationRepository reservationRepository;
 
     public ValidationUtil(UserRepository userRepository,
                           CommunityRepository communityRepository,
@@ -46,7 +51,9 @@ public class ValidationUtil {
                           NoticeRepository noticeRepository,
                           ContinentRepository continentRepository,
                           CountryRepository countryRepository,
-                          CityRepository cityRepository, TripRepository tripRepository) {
+                          CityRepository cityRepository,
+                          TripRepository tripRepository,
+                          ReservationRepository reservationRepository, ReservationRepository reservationRepository1) {
 
         this.userRepository = userRepository;
         this.communityRepository = communityRepository;
@@ -57,6 +64,7 @@ public class ValidationUtil {
         this.countryRepository = countryRepository;
         this.cityRepository = cityRepository;
         this.tripRepository = tripRepository;
+        this.reservationRepository = reservationRepository1;
     }
 
     /* ==========================
@@ -169,6 +177,20 @@ public class ValidationUtil {
             throw new BadRequestExceptionMessage("존재하지 않는 여행 계획입니다.");
         }
         return (Trip) tripObj;
+    }
+
+    public void validateUserIsAuthorOfTrip(User user, Trip trip) {
+        if (!Objects.equals(user.getUserId(), trip.getUser().getUserId())) {
+            log.info("user.getUserId() = {}", user.getUserId());
+            log.info("trip.getUser().getUserId() = {}", trip.getUser().getUserId());
+            throw new BadRequestExceptionMessage("작성자 본인만 수정할 수 있습니다.");
+        }
+    }
+
+
+    public Reservation validateReservationExists(Long reservationId) {
+        return reservationRepository.findByReservationId(reservationId)
+                .orElseThrow(() -> new BadRequestExceptionMessage("존재하지 않는 예약 일정입니다."));
     }
 
     /* ==========================

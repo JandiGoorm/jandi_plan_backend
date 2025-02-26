@@ -10,15 +10,18 @@ import com.jandi.plan_backend.image.repository.ImageRepository;
 import com.jandi.plan_backend.image.service.ImageService;
 import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.util.ValidationUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class BannerService {
     private final BannerRepository bannerRepository;
@@ -86,12 +89,12 @@ public class BannerService {
         Banner banner = validationUtil.validateBannerExists(bannerId);
 
         // 3) 값이 있으면 수정
-        if (title != null) banner.setTitle(title);
-        if (link != null) banner.setLinkUrl(link);
+        if (!Objects.equals(title, "")) banner.setTitle(title);
+        if (!Objects.equals(link, "")) banner.setLinkUrl(link);
         bannerRepository.save(banner);
 
         // 4) 새 파일이 있으면 기존 이미지 삭제 후 재업로드
-        if (file != null) {
+        if (!file.isEmpty()) {
             // 기존 이미지 삭제
             imageRepository.findByTargetTypeAndTargetId("banner", bannerId)
                     .ifPresent(img -> imageService.deleteImage(img.getImageId()));

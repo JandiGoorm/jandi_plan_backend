@@ -23,7 +23,7 @@ public class Reservation {
     @Column(nullable = false, length = 255)
     private String title;
 
-    @Column(nullable = false, length = 255)
+    @Column(length = 255)
     private String description;
 
     @Column(nullable = false)
