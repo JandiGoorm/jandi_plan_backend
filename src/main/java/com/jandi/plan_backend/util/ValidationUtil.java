@@ -171,6 +171,12 @@ public class ValidationUtil {
         return (Trip) tripObj;
     }
 
+    public void validateUserIsAuthorOfTrip(User user, Trip trip) {
+        if (!Objects.equals(user.getUserId(), trip.getUser().getUserId())) {
+            throw new BadRequestExceptionMessage("작성자 본인만 수정할 수 있습니다.");
+        }
+    }
+
     /* ==========================
        7) 기타 유틸 메서드
        ========================== */
