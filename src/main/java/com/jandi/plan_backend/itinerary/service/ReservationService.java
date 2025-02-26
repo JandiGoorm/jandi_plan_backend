@@ -35,19 +35,23 @@ public class ReservationService {
         Trip trip = validationUtil.validateTripExists(tripId);
         validationUtil.validateUserIsAuthorOfTrip(user, trip);
 
+
         List<Reservation> allReservations = reservationRepository.findByTrip_TripId(tripId);
 
-        // 카테고리별 비용 합계
+        // 카테고리별로 예약 정보 그룹핑
+        Map<String, List<ReservationRespDTO>> data = allReservations.stream()
+                .map((Reservation reservation) -> new ReservationRespDTO(reservation, true))
+                .collect(Collectors.groupingBy(ReservationRespDTO::getCategory));
+        // 카테고리별로 비용 소계 그룹핑
         Map<String, Integer> cost = allReservations.stream()
                 .collect(Collectors.groupingBy(
                         reservation -> reservation.getCategory().name(),
                         Collectors.summingInt(Reservation::getCost)
                 ));
-        // 카테고리별 예약 정보
-        Map<String, List<ReservationRespDTO>> data = allReservations.stream()
-                .map((Reservation reservation) -> new ReservationRespDTO(reservation, true))
-                .collect(Collectors.groupingBy(ReservationRespDTO::getCategory));
 
+        // 전체 총계 계산
+        int totalCost = cost.values().stream().mapToInt(Integer::intValue).sum();
+        cost.put("TOTAL", totalCost);
 
         return Map.of(
                 "cost", cost,
