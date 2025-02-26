@@ -77,4 +77,27 @@ public class ReservationService {
         reservationRepository.save(reservation);
         return new ReservationRespDTO(reservation, false);
     }
+
+    /** 예약 수정 */
+    public ReservationRespDTO updateReservation(String userEmail, Integer reservationId, ReservationReqDTO reservedDTO) {
+        // 유저 검증
+        User user = validationUtil.validateUserExists(userEmail);
+        validationUtil.validateUserRestricted(user);
+
+        // 예약 검증
+        Reservation reservation = validationUtil.validateReservationExists(reservationId.longValue());
+        validationUtil.validateUserIsAuthorOfTrip(user, reservation.getTrip());
+
+        log.info("reservedDTO: {}", reservedDTO);
+
+        // 예약 수정
+        if(reservedDTO.getCategory()!=null) reservation.setCategory(reservedDTO.getCategoryEnum());
+        if(reservedDTO.getTitle()!=null) reservation.setTitle(reservedDTO.getTitle());
+        if(reservedDTO.getDescription()!=null) reservation.setDescription(reservedDTO.getDescription());
+        if(reservedDTO.getCost()!=null) reservation.setCost(reservedDTO.getCost());
+
+        // 저장 및 반환
+        reservationRepository.save(reservation);
+        return new ReservationRespDTO(reservation, false);
+    }
 }

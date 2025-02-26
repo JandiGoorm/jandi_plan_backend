@@ -64,5 +64,25 @@ public class ReservationController {
         return ResponseEntity.ok(savedReservation);
     }
 
+    /** 예약 수정 */
+    @PatchMapping("/{reservationId}")
+    public ResponseEntity<?> updateReservation(
+            @PathVariable Integer reservationId,
+            @RequestHeader("Authorization") String token, // 헤더의 Authorization에서 JWT 토큰 받기
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) Integer cost,
+            @RequestParam(required = false) String description //숙박일 때만 필수이므로
+    ) {
+        // Jwt 토큰으로부터 유저 이메일 추출
+        String jwtToken = token.replace("Bearer ", "");
+        String userEmail = jwtTokenProvider.getEmail(jwtToken);
+
+        // DTO로 묶어 category를 한글 -> ENUM 형식으로 변환
+        ReservationReqDTO reservedDTO = new ReservationReqDTO(category, title, description, cost);
+        ReservationRespDTO savedReservation = reservationService.updateReservation(userEmail, reservationId, reservedDTO);
+        return ResponseEntity.ok(savedReservation);
+    }
+
 
 }

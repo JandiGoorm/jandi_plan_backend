@@ -2,6 +2,8 @@ package com.jandi.plan_backend.util;
 
 import com.jandi.plan_backend.commu.entity.Comment;
 import com.jandi.plan_backend.commu.entity.Community;
+import com.jandi.plan_backend.itinerary.entity.Reservation;
+import com.jandi.plan_backend.itinerary.repository.ReservationRepository;
 import com.jandi.plan_backend.resource.repository.BannerRepository;
 import com.jandi.plan_backend.commu.repository.CommentRepository;
 import com.jandi.plan_backend.commu.repository.CommunityRepository;
@@ -40,6 +42,7 @@ public class ValidationUtil {
     private final CountryRepository countryRepository;
     private final CityRepository cityRepository;
     private final TripRepository tripRepository;
+    private final ReservationRepository reservationRepository;
 
     public ValidationUtil(UserRepository userRepository,
                           CommunityRepository communityRepository,
@@ -48,7 +51,9 @@ public class ValidationUtil {
                           NoticeRepository noticeRepository,
                           ContinentRepository continentRepository,
                           CountryRepository countryRepository,
-                          CityRepository cityRepository, TripRepository tripRepository) {
+                          CityRepository cityRepository,
+                          TripRepository tripRepository,
+                          ReservationRepository reservationRepository, ReservationRepository reservationRepository1) {
 
         this.userRepository = userRepository;
         this.communityRepository = communityRepository;
@@ -59,6 +64,7 @@ public class ValidationUtil {
         this.countryRepository = countryRepository;
         this.cityRepository = cityRepository;
         this.tripRepository = tripRepository;
+        this.reservationRepository = reservationRepository1;
     }
 
     /* ==========================
@@ -179,6 +185,12 @@ public class ValidationUtil {
             log.info("trip.getUser().getUserId() = {}", trip.getUser().getUserId());
             throw new BadRequestExceptionMessage("작성자 본인만 수정할 수 있습니다.");
         }
+    }
+
+
+    public Reservation validateReservationExists(Long reservationId) {
+        return reservationRepository.findByReservationId(reservationId)
+                .orElseThrow(() -> new BadRequestExceptionMessage("존재하지 않는 배너입니다."));
     }
 
     /* ==========================
