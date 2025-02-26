@@ -14,10 +14,10 @@ public interface TripRepository extends JpaRepository<Trip, Long> {
     long countByUser(User user);
 
     // 해당 유저의 여행 목록을 페이지네이션하여 가져오기 위한 메서드
-    Page<Object> findByUser(User user, Pageable pageable);
+    Page<Trip> findByUser(User user, Pageable pageable);
 
     // 공개된 여행 목록만 페이지네이션하여 가져오기 위한 메서드
-    Page<Object> findByPrivatePlan(Boolean privatePlan, Pageable pageable);
+    Page<Trip> findByPrivatePlan(Boolean privatePlan, Pageable pageable);
 
     // 공개/비공개된 여행 계획의 수 반환
     long countByPrivatePlan(boolean b);

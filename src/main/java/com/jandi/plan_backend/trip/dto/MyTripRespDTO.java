@@ -8,8 +8,8 @@ import lombok.Getter;
 public class MyTripRespDTO extends TripRespDTO {
     private final Boolean privatePlan;
 
-    public MyTripRespDTO(User user, String userProfileUrl, Trip trip, String TripImageUrl){
-        super(user, userProfileUrl, trip, TripImageUrl);
+    public MyTripRespDTO(User user, String userProfileUrl, Trip trip){
+        super(user, userProfileUrl, trip);
         this.privatePlan = trip.getPrivatePlan();
     }
 }
