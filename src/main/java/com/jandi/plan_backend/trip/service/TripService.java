@@ -3,11 +3,14 @@ package com.jandi.plan_backend.trip.service;
 import com.jandi.plan_backend.image.dto.ImageRespDto;
 import com.jandi.plan_backend.image.entity.Image;
 import com.jandi.plan_backend.image.service.ImageService;
-import com.jandi.plan_backend.trip.dto.*;
+import com.jandi.plan_backend.trip.dto.MyTripRespDTO;
+import com.jandi.plan_backend.trip.dto.TripLikeRespDTO;
+import com.jandi.plan_backend.trip.dto.TripRespDTO;
 import com.jandi.plan_backend.trip.entity.Trip;
 import com.jandi.plan_backend.trip.entity.TripLike;
 import com.jandi.plan_backend.trip.repository.TripLikeRepository;
 import com.jandi.plan_backend.trip.repository.TripRepository;
+import com.jandi.plan_backend.user.entity.City;
 import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.util.ValidationUtil;
 import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
@@ -15,6 +18,7 @@ import com.jandi.plan_backend.util.service.PaginationService;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -104,17 +108,17 @@ public class TripService {
 
     /** 개별 여행 계획 조회 */
     public MyTripRespDTO getSpecTrips(String userEmail, Integer tripId) {
-        //여행 계획 검증
+        // 여행 계획 검증
         Trip trip = validationUtil.validateTripExists(tripId);
 
-        //여행 계획에 대해 유저의 접근 권한 검증: 본인의 여행계획이거나, 공개 설정된 타인의 여행계획일때만 조회 가능
-        //즉 타인의 비공개 여행 계획은 조회 불가
+        // 여행 계획에 대해 유저의 접근 권한 검증: 본인의 여행계획이거나, 공개 설정된 타인의 여행계획일때만 조회 가능
+        // 즉 타인의 비공개 여행 계획은 조회 불가
         User user = validationUtil.validateUserExists(userEmail);
         if (!trip.getUser().getUserId().equals(user.getUserId()) && trip.getPrivatePlan()) {
             throw new BadRequestExceptionMessage("접근 권한이 없습니다.");
         }
 
-        //DTO 생성 및 반환
+        // DTO 생성 및 반환
         Optional<Image> userProfile = imageService.getImageByTarget("userProfile", user.getUserId());
         String userProfileUrl = userProfile.map(Image::getImageUrl).orElse(null);
         Optional<Image> tripImage = imageService.getImageByTarget("trip", trip.getTripId());
@@ -123,13 +127,14 @@ public class TripService {
     }
 
     /** 여행 계획 생성 */
-    public TripRespDTO writeTrip(String userEmail, String title, String description,
-                                 String startDate, String endDate, String privatePlan, MultipartFile image) {
+    public TripRespDTO writeTrip(String userEmail, String title,
+                                 String startDate, String endDate, String privatePlan,
+                                 Integer budget, Integer cityId, MultipartFile image) {
         // 유저 검증
         User user = validationUtil.validateUserExists(userEmail);
         validationUtil.validateUserRestricted(user);
 
-        //데이터 검증
+        // 데이터 검증
         LocalDate parsedStartDate = validationUtil.ValidateDate(startDate);
         LocalDate parsedEndDate = validationUtil.ValidateDate(endDate);
         if (!(Objects.equals(privatePlan, "yes") || Objects.equals(privatePlan, "no"))) {
@@ -137,8 +142,11 @@ public class TripService {
         }
         boolean isPrivate = Objects.equals(privatePlan, "yes");
 
+        // city 검증: cityId로 city 엔티티를 조회 (유효성 검증 메서드가 있다고 가정)
+        City city = validationUtil.validateCityExists(cityId);
+
         // 새 여행 계획 생성
-        Trip trip = new Trip(user, title, description, isPrivate, parsedStartDate, parsedEndDate);
+        Trip trip = new Trip(user, title, isPrivate, parsedStartDate, parsedEndDate, budget, city);
         tripRepository.save(trip);
 
         // 이미지 저장: targetType "trip"
@@ -155,35 +163,35 @@ public class TripService {
 
     /** 좋아요 리스트에 추가 */
     public TripLikeRespDTO addLikeTrip(String userEmail, Integer tripId) {
-        //유저 검증: 미존재, 부적절 유저인 경우 블락처리
+        // 유저 검증: 미존재, 부적절 유저인 경우 블락처리
         User user = validationUtil.validateUserExists(userEmail);
         validationUtil.validateUserRestricted(user);
 
-        //접근 가능 여부 검증: 타인의 비공개 여행계획인 경우 블락처리
+        // 접근 가능 여부 검증: 타인의 비공개 여행계획인 경우 블락처리
         Trip trip = validationUtil.validateTripExists(tripId);
         if (!trip.getUser().getUserId().equals(user.getUserId()) && trip.getPrivatePlan()) {
             throw new BadRequestExceptionMessage("접근 권한이 없습니다.");
         }
 
-        //좋아요 가능 여부 검증: 본인의 여행계획인 경우 블락처리
-        if(trip.getUser().getUserId().equals(user.getUserId())) {
+        // 좋아요 가능 여부 검증: 본인의 여행계획인 경우 블락처리
+        if (trip.getUser().getUserId().equals(user.getUserId())) {
             throw new BadRequestExceptionMessage("본인의 여행계획은 좋아요할 수 없습니다.");
-        }else if(tripLikeRepository.findByTripAndUser(trip, user).isPresent()) {
+        } else if (tripLikeRepository.findByTripAndUser(trip, user).isPresent()) {
             throw new BadRequestExceptionMessage("이미 좋아요한 여행계획입니다.");
         }
 
-        //좋아요 리스트에 추가
+        // 좋아요 리스트에 추가
         TripLike tripLike = new TripLike();
         tripLike.setTrip(trip);
         tripLike.setUser(user);
         tripLike.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
         tripLikeRepository.save(tripLike);
 
-        //좋아요 수 업데이트
+        // 좋아요 수 업데이트
         trip.setLikeCount(trip.getLikeCount() + 1);
         tripRepository.save(trip);
 
-        //DTO 생성 및 반환
+        // DTO 생성 및 반환
         String userProfileUrl = imageService.getImageByTarget("userProfile", trip.getUser().getUserId())
                 .map(img -> urlPrefix + img.getImageUrl())
                 .orElse(null);
@@ -197,20 +205,20 @@ public class TripService {
 
     /** 좋아요 리스트에서 삭제 */
     public boolean deleteLikeTrip(String userEmail, Integer tripId) {
-        //유저 및 여행 계획 검증
+        // 유저 및 여행 계획 검증
         User user = validationUtil.validateUserExists(userEmail);
         Trip trip = validationUtil.validateTripExists(tripId);
 
-        //좋아요 검증: 좋아요하지 않은 여행계획일 경우 블락처리
+        // 좋아요 검증: 좋아요하지 않은 여행계획일 경우 블락처리
         Optional<TripLike> tripLike = tripLikeRepository.findByTripAndUser(trip, user);
-        if(tripLike.isEmpty()) {
+        if (tripLike.isEmpty()) {
             throw new BadRequestExceptionMessage("이미 좋아요 해제되어 있습니다.");
         }
 
-        //좋아요 리스트에서 삭제
+        // 좋아요 리스트에서 삭제
         tripLikeRepository.delete(tripLike.get());
 
-        //좋아요 수 업데이트
+        // 좋아요 수 업데이트
         trip.setLikeCount(trip.getLikeCount() - 1);
         tripRepository.save(trip);
 
@@ -238,22 +246,9 @@ public class TripService {
                             .orElse(null);
 
                     // UserTripDTO 생성
-                    UserTripDTO userTripDTO = new UserTripDTO(
-                            trip.getUser().getUserId(),
-                            trip.getUser().getUserName(),
-                            userProfileUrl
-                    );
-
-                    // TripRespDTO 생성
+                    // (MyTripRespDTO 생성 시와 동일한 방식으로 생성)
                     return new TripRespDTO(
-                            userTripDTO,
-                            trip.getTripId(),
-                            trip.getTitle(),
-                            trip.getStartDate(),
-                            trip.getEndDate(),
-                            trip.getDescription(),
-                            trip.getLikeCount(),
-                            tripImageUrl
+                            trip.getUser(), userProfileUrl, trip, tripImageUrl
                     );
                 })
                 .collect(Collectors.toList());
@@ -328,21 +323,8 @@ public class TripService {
                 .map(img -> urlPrefix + img.getImageUrl())
                 .orElse(null);
 
-        UserTripDTO userTripDTO = new UserTripDTO(
-                user.getUserId(),
-                user.getUserName(),
-                userProfileUrl
-        );
-
         return new TripRespDTO(
-                userTripDTO,
-                trip.getTripId(),
-                trip.getTitle(),
-                trip.getStartDate(),
-                trip.getEndDate(),
-                trip.getDescription(),
-                trip.getLikeCount(),
-                tripImageUrl
+                trip.getUser(), userProfileUrl, trip, tripImageUrl
         );
     }
 }

@@ -52,7 +52,7 @@ public class TripController {
         List<TripRespDTO> topTrips = tripService.getTop10Trips();
         return ResponseEntity.ok(topTrips);
     }
-  
+
     /** 내 여행 계획 목록 조회 (본인 명의의 계획만 조회) */
     @GetMapping("/my/allTrips")
     public Map<String, Object> getAllMyTrips(
@@ -128,10 +128,11 @@ public class TripController {
     public ResponseEntity<?> writeTrip(
             @RequestHeader("Authorization") String token, // 헤더의 Authorization에서 JWT 토큰 받기
             @RequestParam("title") String title,
-            @RequestParam("description") String description,
             @RequestParam("startDate") String startDate,
             @RequestParam("endDate") String endDate,
             @RequestParam("private") String isPrivate,
+            @RequestParam("budget") Integer budget,
+            @RequestParam("cityId") Integer cityId,
             @RequestParam("image") MultipartFile image
     ){
         // Jwt 토큰으로부터 유저 이메일 추출
@@ -140,7 +141,7 @@ public class TripController {
 
         // 여행 계획 생성 및 반환
         TripRespDTO savedTrip = tripService.writeTrip(
-                userEmail, title, description, startDate, endDate, isPrivate, image);
+                userEmail, title, startDate, endDate, isPrivate, budget, cityId, image);
         return ResponseEntity.ok(savedTrip);
     }
 
