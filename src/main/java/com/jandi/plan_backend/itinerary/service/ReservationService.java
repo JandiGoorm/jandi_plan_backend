@@ -7,8 +7,14 @@ import com.jandi.plan_backend.itinerary.repository.ReservationRepository;
 import com.jandi.plan_backend.trip.entity.Trip;
 import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.util.ValidationUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+@Slf4j
 @Service
 public class ReservationService {
     private final ValidationUtil validationUtil;
@@ -17,6 +23,36 @@ public class ReservationService {
     public ReservationService(ValidationUtil validationUtil, ReservationRepository reservationRepository) {
         this.validationUtil = validationUtil;
         this.reservationRepository = reservationRepository;
+    }
+
+    /** 예약 조회 */
+    public Map<String, Object> getReservation(String userEmail, Integer tripId) {
+        // 유저 검증
+        User user = validationUtil.validateUserExists(userEmail);
+        validationUtil.validateUserRestricted(user);
+
+        // 여행 계획 검증
+        Trip trip = validationUtil.validateTripExists(tripId);
+        validationUtil.validateUserIsAuthorOfTrip(user, trip);
+
+        List<Reservation> allReservations = reservationRepository.findByTrip_TripId(tripId);
+
+        // 카테고리별 비용 합계
+        Map<String, Integer> cost = allReservations.stream()
+                .collect(Collectors.groupingBy(
+                        reservation -> reservation.getCategory().name(),
+                        Collectors.summingInt(Reservation::getCost)
+                ));
+        // 카테고리별 예약 정보
+        Map<String, List<ReservationRespDTO>> data = allReservations.stream()
+                .map((Reservation reservation) -> new ReservationRespDTO(reservation, true))
+                .collect(Collectors.groupingBy(ReservationRespDTO::getCategory));
+
+
+        return Map.of(
+                "cost", cost,
+                "data", data
+        );
     }
 
     /** 예약 생성 */
@@ -39,6 +75,6 @@ public class ReservationService {
 
         // 저장 및 반환
         reservationRepository.save(reservation);
-        return new ReservationRespDTO(reservation);
+        return new ReservationRespDTO(reservation, false);
     }
 }

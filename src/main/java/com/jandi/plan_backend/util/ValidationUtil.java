@@ -19,6 +19,7 @@ import com.jandi.plan_backend.user.repository.ContinentRepository;
 import com.jandi.plan_backend.user.repository.CountryRepository;
 import com.jandi.plan_backend.user.repository.UserRepository;
 import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -27,6 +28,7 @@ import java.util.Objects;
 /**
  * 검증(Validation) 로직을 모아둔 유틸 클래스.
  */
+@Slf4j
 @Component
 public class ValidationUtil {
     private final UserRepository userRepository;
@@ -173,6 +175,8 @@ public class ValidationUtil {
 
     public void validateUserIsAuthorOfTrip(User user, Trip trip) {
         if (!Objects.equals(user.getUserId(), trip.getUser().getUserId())) {
+            log.info("user.getUserId() = {}", user.getUserId());
+            log.info("trip.getUser().getUserId() = {}", trip.getUser().getUserId());
             throw new BadRequestExceptionMessage("작성자 본인만 수정할 수 있습니다.");
         }
     }

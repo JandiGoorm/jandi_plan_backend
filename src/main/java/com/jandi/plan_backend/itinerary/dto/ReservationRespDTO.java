@@ -12,9 +12,9 @@ public class ReservationRespDTO {
     private String description;
     private Integer cost;
 
-    public ReservationRespDTO(Reservation reservation) {
+    public ReservationRespDTO(Reservation reservation, boolean isEnglishCategory) {
         reservationId = reservation.getReservationId();
-        category = reservation.getCategory().getDisplayName();
+        category = (isEnglishCategory) ? reservation.getCategory().name() : reservation.getCategory().getDisplayName();
         title = reservation.getTitle();
         description = reservation.getDescription();
         cost = reservation.getCost();
