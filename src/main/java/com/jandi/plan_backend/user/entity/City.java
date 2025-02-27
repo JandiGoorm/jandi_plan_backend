@@ -31,5 +31,8 @@ public class City {
     private String description;
 
     @Column(nullable = false)
+    private Integer likeCount = 0;
+
+    @Column(nullable = false)
     private Integer searchCount = 0;
 }

@@ -16,6 +16,8 @@ import com.jandi.plan_backend.util.ValidationUtil;
 import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
 import com.jandi.plan_backend.util.service.PaginationService;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -33,6 +35,7 @@ public class TripService {
     private final ImageService imageService;
     private final CityRepository cityRepository;
     private final String urlPrefix = "https://storage.googleapis.com/plan-storage/";
+    private final Sort sortByCreate = Sort.by(Sort.Direction.DESC, "createdAt"); //생성일 역순
 
     public TripService(TripRepository tripRepository, TripLikeRepository tripLikeRepository,
                        ValidationUtil validationUtil, ImageService imageService,
@@ -49,7 +52,8 @@ public class TripService {
         long totalCount = tripRepository.countByPrivatePlan(false);
 
         return PaginationService.getPagedData(page, size, totalCount,
-                pageable -> tripRepository.findByPrivatePlan(false, pageable),
+                pageable -> tripRepository.findByPrivatePlan(false, //공개인 것만 선택
+                        PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sortByCreate)), //최근 생성된 순
                 tripObj -> {
                     Trip trip = (Trip) tripObj;
                     String userProfileUrl = imageService.getImageByTarget("userProfile", trip.getUser().getUserId())
@@ -68,7 +72,8 @@ public class TripService {
         long totalCount = tripRepository.countByUser(user);
 
         return PaginationService.getPagedData(page, size, totalCount,
-                pageable -> tripRepository.findByUser(user, pageable),
+                pageable -> tripRepository.findByUser(user, // 본인 계획만 선택
+                        PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sortByCreate)), //최근 생성된 순
                 tripObj -> {
                     Trip trip = (Trip) tripObj;
                     String userProfileUrl = imageService.getImageByTarget("userProfile", user.getUserId())
@@ -87,7 +92,8 @@ public class TripService {
         long totalCount = tripLikeRepository.countByUser(user);
 
         return PaginationService.getPagedData(page, size, totalCount,
-                pageable -> tripLikeRepository.findByUser(user, pageable),
+                pageable -> tripLikeRepository.findByUser(user,
+                        PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sortByCreate)), //최근 생성된 순
                 tripLikeObj -> {
                     TripLike tripLike = (TripLike) tripLikeObj;
                     Trip trip = tripLike.getTrip();

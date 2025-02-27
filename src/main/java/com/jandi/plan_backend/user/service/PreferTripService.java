@@ -1,6 +1,6 @@
 package com.jandi.plan_backend.user.service;
 
-import com.jandi.plan_backend.image.dto.ImageRespDto;
+import com.google.api.client.util.Lists;
 import com.jandi.plan_backend.image.service.ImageService;
 import com.jandi.plan_backend.user.dto.CityRespDTO;
 import com.jandi.plan_backend.user.dto.ContinentRespDTO;
@@ -15,6 +15,7 @@ import com.jandi.plan_backend.user.repository.CityRepository;
 import com.jandi.plan_backend.util.ValidationUtil;
 import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -59,10 +60,30 @@ public class PreferTripService {
     }
 
     // 국가 조회
-    public List<CountryRespDTO> getAllCountries(List<String> filter) {
-        List<Country> countries = (filter.isEmpty()) ?
-                countryRepository.findAll() :
-                countryRepository.findByNameIn(filter);
+    public List<CountryRespDTO> getAllCountries(String category, List<String> filter) {
+        if(category == null) {
+            throw new BadRequestExceptionMessage("카테고리는 필수로 입력되어야 합니다");
+        }
+
+
+        List<Country> countries;
+        switch (category) {
+
+            case "ALL": { //전체 조회
+                countries = countryRepository.findAll();
+                break;
+            }
+            case "CONTINENT":{ //대륙 필터링
+                countries = countryRepository.findByContinent_NameIn(filter);
+                break;
+            }
+            case "COUNTRY":{ //국가 필터링
+                countries = countryRepository.findByNameIn(filter);
+                break;
+            }
+            default:
+                throw new IllegalStateException("카테고리 입력이 잘못되었습니다: " + category);
+        }
 
         return countries.stream()
                 .map(CountryRespDTO::new)
@@ -70,14 +91,69 @@ public class PreferTripService {
     }
 
     /** 도시 목록 조회 (필터가 없으면 전체, 필터가 있으면 부분 조회 예시) */
-    public List<CityRespDTO> getAllCities(List<String> filter) {
+    public List<CityRespDTO> getAllCities(String category, List<String> filter) {
+        if(category == null) {
+            throw new BadRequestExceptionMessage("카테고리는 필수로 입력되어야 합니다");
+        }
+
         // 1) DB에서 City 목록 조회
-        List<City> cities = (filter.isEmpty())
-                ? cityRepository.findAll()
-                : cityRepository.findByNameIn(filter);
+        List<City> cities;
+        switch (category) {
+            case "ALL": { //전체 조회
+                cities = cityRepository.findAll();
+                break;
+            }
+            case "CONTINENT":{ //대륙 필터링
+                cities = cityRepository.findByContinent_NameIn(filter);
+                break;
+            }
+            case "COUNTRY":{ //국가 필터링
+                cities = cityRepository.findByCountry_NameIn(filter);
+                break;
+            }
+            case "CITY":{ //도시 필터링
+                cities = cityRepository.findByNameIn(filter);
+                break;
+            }
+            default:
+                throw new IllegalStateException("카테고리 입력이 잘못되었습니다: " + category);
+        }
 
         // 2) 각각의 City 엔티티에 대해 Image 테이블에서 URL 조회 후 DTO 변환
         return cities.stream()
+                .map(city -> {
+                    // imageService를 통해 targetType="city", targetId=cityId 로 이미지 조회
+                    String cityImageUrl = imageService.getImageByTarget("city", city.getCityId())
+                            .map(img -> urlPrefix + img.getImageUrl())
+                            .orElse(null);
+
+                    // DTO 생성자에 city + cityImageUrl 전달
+                    return new CityRespDTO(city, cityImageUrl);
+                })
+                .collect(Collectors.toList());
+    }
+
+    public List<CityRespDTO> getRankedCities(String sort, Integer size) {
+        // 정렬 기준 생성
+        Sort standard = switch (sort) {
+            case "LIKE" -> //좋아요 많은 순
+                    Sort.by(Sort.Direction.DESC, "likeCount");
+            case "SEARCH" -> //조회수 많은 순
+                    Sort.by(Sort.Direction.DESC, "searchCount");
+            default -> throw new IllegalStateException("정렬 기준 입력이 잘못되었습니다: " + sort);
+        };
+
+        // 정렬된 리스트 생성
+        List<City> rankedCities = cityRepository.findAll(standard);
+
+        // size만큼 잘라내기 : subList에 의한 메모리 누수를 방지하기 위해 따로 리스트 생성
+        if(rankedCities.size() < size || size < 0) {
+            throw new BadRequestExceptionMessage("size는 1~" + rankedCities.size() + "이내여야 합니다");
+        }
+        List<City> resultCities = Lists.newArrayList(rankedCities.subList(0, size));
+
+        // 각각의 City 엔티티에 대해 Image 테이블에서 URL 조회 후 DTO 변환
+        return resultCities.stream()
                 .map(city -> {
                     // imageService를 통해 targetType="city", targetId=cityId 로 이미지 조회
                     String cityImageUrl = imageService.getImageByTarget("city", city.getCityId())
