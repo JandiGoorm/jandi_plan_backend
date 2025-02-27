@@ -1,6 +1,6 @@
 package com.jandi.plan_backend.user.service;
 
-import com.jandi.plan_backend.image.dto.ImageRespDto;
+import com.google.api.client.util.Lists;
 import com.jandi.plan_backend.image.service.ImageService;
 import com.jandi.plan_backend.user.dto.CityRespDTO;
 import com.jandi.plan_backend.user.dto.ContinentRespDTO;
@@ -15,6 +15,7 @@ import com.jandi.plan_backend.user.repository.CityRepository;
 import com.jandi.plan_backend.util.ValidationUtil;
 import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -120,6 +121,39 @@ public class PreferTripService {
 
         // 2) 각각의 City 엔티티에 대해 Image 테이블에서 URL 조회 후 DTO 변환
         return cities.stream()
+                .map(city -> {
+                    // imageService를 통해 targetType="city", targetId=cityId 로 이미지 조회
+                    String cityImageUrl = imageService.getImageByTarget("city", city.getCityId())
+                            .map(img -> urlPrefix + img.getImageUrl())
+                            .orElse(null);
+
+                    // DTO 생성자에 city + cityImageUrl 전달
+                    return new CityRespDTO(city, cityImageUrl);
+                })
+                .collect(Collectors.toList());
+    }
+
+    public List<CityRespDTO> getRankedCities(String rank, Integer size) {
+        // 정렬 기준 생성
+        Sort sort = switch (rank) {
+            case "LIKE" -> //좋아요 많은 순
+                    Sort.by(Sort.Direction.DESC, "likeCount");
+            case "SEARCH" -> //조회수 많은 순
+                    Sort.by(Sort.Direction.DESC, "searchCount");
+            default -> throw new IllegalStateException("정렬 기준 입력이 잘못되었습니다: " + rank);
+        };
+
+        // 정렬된 리스트 생성
+        List<City> rankedCities = cityRepository.findAll(sort);
+
+        // size만큼 잘라내기 : subList에 의한 메모리 누수를 방지하기 위해 따로 리스트 생성
+        if(rankedCities.size() < size || size < 0) {
+            throw new BadRequestExceptionMessage("size는 1~" + rankedCities.size() + "이내여야 합니다");
+        }
+        List<City> resultCities = Lists.newArrayList(rankedCities.subList(0, size));
+
+        // 각각의 City 엔티티에 대해 Image 테이블에서 URL 조회 후 DTO 변환
+        return resultCities.stream()
                 .map(city -> {
                     // imageService를 통해 targetType="city", targetId=cityId 로 이미지 조회
                     String cityImageUrl = imageService.getImageByTarget("city", city.getCityId())

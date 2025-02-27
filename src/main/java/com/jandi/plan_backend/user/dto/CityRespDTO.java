@@ -10,6 +10,7 @@ public class CityRespDTO {
     private String description;
     private String imageUrl;
     private Integer searchCount;
+    private Integer likeCount;
     private CountryRespDTO country;
 
     public CityRespDTO(City destination, String imageUrl) {
@@ -18,6 +19,7 @@ public class CityRespDTO {
         this.description = destination.getDescription();
         this.imageUrl = imageUrl;
         this.searchCount = destination.getSearchCount();
+        this.likeCount = destination.getLikeCount();
         this.country = new CountryRespDTO(destination.getCountry());
     }
 }
