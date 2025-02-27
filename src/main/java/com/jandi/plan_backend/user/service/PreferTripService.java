@@ -59,10 +59,30 @@ public class PreferTripService {
     }
 
     // 국가 조회
-    public List<CountryRespDTO> getAllCountries(List<String> filter) {
-        List<Country> countries = (filter.isEmpty()) ?
-                countryRepository.findAll() :
-                countryRepository.findByNameIn(filter);
+    public List<CountryRespDTO> getAllCountries(String category, List<String> filter) {
+        if(category == null) {
+            throw new BadRequestExceptionMessage("카테고리는 필수로 입력되어야 합니다");
+        }
+
+
+        List<Country> countries;
+        switch (category) {
+
+            case "ALL": { //전체 조회
+                countries = countryRepository.findAll();
+                break;
+            }
+            case "CONTINENT":{ //대륙 필터링
+                countries = countryRepository.findByContinent_NameIn(filter);
+                break;
+            }
+            case "COUNTRY":{ //국가 필터링
+                countries = countryRepository.findByNameIn(filter);
+                break;
+            }
+            default:
+                throw new IllegalStateException("카테고리 입력이 잘못되었습니다: " + category);
+        }
 
         return countries.stream()
                 .map(CountryRespDTO::new)
@@ -70,11 +90,33 @@ public class PreferTripService {
     }
 
     /** 도시 목록 조회 (필터가 없으면 전체, 필터가 있으면 부분 조회 예시) */
-    public List<CityRespDTO> getAllCities(List<String> filter) {
+    public List<CityRespDTO> getAllCities(String category, List<String> filter) {
+        if(category == null) {
+            throw new BadRequestExceptionMessage("카테고리는 필수로 입력되어야 합니다");
+        }
+
         // 1) DB에서 City 목록 조회
-        List<City> cities = (filter.isEmpty())
-                ? cityRepository.findAll()
-                : cityRepository.findByNameIn(filter);
+        List<City> cities;
+        switch (category) {
+            case "ALL": { //전체 조회
+                cities = cityRepository.findAll();
+                break;
+            }
+            case "CONTINENT":{ //대륙 필터링
+                cities = cityRepository.findByContinent_NameIn(filter);
+                break;
+            }
+            case "COUNTRY":{ //국가 필터링
+                cities = cityRepository.findByCountry_NameIn(filter);
+                break;
+            }
+            case "CITY":{ //도시 필터링
+                cities = cityRepository.findByNameIn(filter);
+                break;
+            }
+            default:
+                throw new IllegalStateException("카테고리 입력이 잘못되었습니다: " + category);
+        }
 
         // 2) 각각의 City 엔티티에 대해 Image 테이블에서 URL 조회 후 DTO 변환
         return cities.stream()
