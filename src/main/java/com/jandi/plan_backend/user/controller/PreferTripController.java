@@ -57,10 +57,10 @@ public class PreferTripController {
     // 상위 10개 도시 조회: 좋아요순, 조회수순 선택
     @GetMapping("/rank")
     public ResponseEntity<List<CityRespDTO>> getRankedCities(
-            @RequestParam(value = "rank", defaultValue = "LIKE") String rank,
+            @RequestParam(value = "sort", defaultValue = "LIKE") String sort,
             @RequestParam(value = "size", defaultValue = "10") Integer size
     ){
-        List<CityRespDTO> rankedCities = preferTripService.getRankedCities(rank, size);
+        List<CityRespDTO> rankedCities = preferTripService.getRankedCities(sort, size);
         return ResponseEntity.ok(rankedCities);
     }
 }

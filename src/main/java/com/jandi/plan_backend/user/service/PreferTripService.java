@@ -133,18 +133,18 @@ public class PreferTripService {
                 .collect(Collectors.toList());
     }
 
-    public List<CityRespDTO> getRankedCities(String rank, Integer size) {
+    public List<CityRespDTO> getRankedCities(String sort, Integer size) {
         // 정렬 기준 생성
-        Sort sort = switch (rank) {
+        Sort standard = switch (sort) {
             case "LIKE" -> //좋아요 많은 순
                     Sort.by(Sort.Direction.DESC, "likeCount");
             case "SEARCH" -> //조회수 많은 순
                     Sort.by(Sort.Direction.DESC, "searchCount");
-            default -> throw new IllegalStateException("정렬 기준 입력이 잘못되었습니다: " + rank);
+            default -> throw new IllegalStateException("정렬 기준 입력이 잘못되었습니다: " + sort);
         };
 
         // 정렬된 리스트 생성
-        List<City> rankedCities = cityRepository.findAll(sort);
+        List<City> rankedCities = cityRepository.findAll(standard);
 
         // size만큼 잘라내기 : subList에 의한 메모리 누수를 방지하기 위해 따로 리스트 생성
         if(rankedCities.size() < size || size < 0) {
