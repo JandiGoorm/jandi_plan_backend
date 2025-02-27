@@ -1,5 +1,6 @@
 package com.jandi.plan_backend.user.service;
 
+import com.jandi.plan_backend.image.entity.Image;
 import com.jandi.plan_backend.image.service.ImageService;
 import com.jandi.plan_backend.user.dto.AuthRespDTO;
 import com.jandi.plan_backend.user.dto.ChangePasswordDTO;
@@ -149,8 +150,11 @@ public class UserService {
     }
 
     public UserInfoRespDTO getUserInfo(Integer userId) {
+        // 1. 사용자 정보 조회
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("사용자 정보를 찾을 수 없습니다."));
+
+        // 2. 기본 DTO 생성
         UserInfoRespDTO dto = new UserInfoRespDTO();
         dto.setEmail(user.getEmail());
         dto.setFirstName(user.getFirstName());
@@ -160,11 +164,25 @@ public class UserService {
         dto.setUsername(user.getUserName());
         dto.setVerified(user.getVerified());
         dto.setReported(user.getReported());
-        // 프로필 이미지 조회: ImageService를 통해 targetType "userProfile"인 이미지 조회
-        String profileImageUrl = imageService.getImageByTarget("userProfile", user.getUserId())
-                .map(img -> "https://storage.googleapis.com/plan-storage/" + img.getImageUrl())
-                .orElse(null);
+
+        // 3. 사용자 프로필 이미지 조회
+        //    targetType이 "userProfile"이고, targetId가 userId인 Image를 조회
+        Optional<Image> optionalProfileImage = imageService.getImageByTarget("userProfile", user.getUserId());
+
+        String profileImageUrl;
+        if (optionalProfileImage.isPresent()) {
+            // (1) 프로필 이미지가 존재하면 해당 이미지 URL 사용
+            Image profileImage = optionalProfileImage.get();
+            profileImageUrl = "https://storage.googleapis.com/plan-storage/" + profileImage.getImageUrl();
+        } else {
+            // (2) 프로필 이미지가 없으면 imageId=1(가정) 인 이미지를 대신 사용
+            String fallbackUrl = imageService.getPublicUrlByImageId(1);  // imageId=1로 조회
+            // fallbackUrl이 null인 경우(1번 이미지도 없다면) 최종 null 처리
+            profileImageUrl = (fallbackUrl != null) ? fallbackUrl : null;
+        }
+
         dto.setProfileImageUrl(profileImageUrl);
+
         return dto;
     }
 
