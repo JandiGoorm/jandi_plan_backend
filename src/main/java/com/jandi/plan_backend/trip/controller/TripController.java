@@ -1,9 +1,7 @@
 package com.jandi.plan_backend.trip.controller;
 
 import com.jandi.plan_backend.security.JwtTokenProvider;
-import com.jandi.plan_backend.trip.dto.MyTripRespDTO;
-import com.jandi.plan_backend.trip.dto.TripLikeRespDTO;
-import com.jandi.plan_backend.trip.dto.TripRespDTO;
+import com.jandi.plan_backend.trip.dto.*;
 import com.jandi.plan_backend.trip.service.TripService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -124,21 +122,21 @@ public class TripController {
     /** 여행 계획 생성 */
     @PostMapping("/my/create")
     public ResponseEntity<?> writeTrip(
-            @RequestHeader("Authorization") String token, // 헤더의 Authorization에서 JWT 토큰 받기
-            @RequestParam("title") String title,
-            @RequestParam("startDate") String startDate,
-            @RequestParam("endDate") String endDate,
-            @RequestParam("private") String isPrivate,
-            @RequestParam("budget") Integer budget,
-            @RequestParam("cityId") Integer cityId
+            @RequestHeader("Authorization") String token,
+            @RequestBody TripCreateReqDTO tripCreateReqDTO
     ){
-        // Jwt 토큰으로부터 유저 이메일 추출
         String jwtToken = token.replace("Bearer ", "");
         String userEmail = jwtTokenProvider.getEmail(jwtToken);
 
-        // 여행 계획 생성 및 반환 (이미지 관련 파라미터 제거됨)
         TripRespDTO savedTrip = tripService.writeTrip(
-                userEmail, title, startDate, endDate, isPrivate, budget, cityId);
+                userEmail,
+                tripCreateReqDTO.getTitle(),
+                tripCreateReqDTO.getStartDate(),
+                tripCreateReqDTO.getEndDate(),
+                tripCreateReqDTO.getPrivatePlan(),
+                tripCreateReqDTO.getBudget(),
+                tripCreateReqDTO.getCityId()
+        );
         return ResponseEntity.ok(savedTrip);
     }
 
@@ -199,23 +197,23 @@ public class TripController {
      *
      * @param token         사용자 인증 토큰 (Authorization 헤더)
      * @param tripId        수정할 여행 계획 ID
-     * @param title         수정할 여행 제목
-     * @param isPrivate     "yes" 또는 "no"로 전달, "yes"면 비공개, "no"면 공개
      * @return 수정된 여행 계획 정보를 담은 TripRespDTO
      */
     @PatchMapping("/my/{tripId}")
     public ResponseEntity<?> updateMyTripBasicInfo(
             @RequestHeader("Authorization") String token,
             @PathVariable("tripId") Integer tripId,
-            @RequestParam("title") String title,
-            @RequestParam("private") String isPrivate
+            @RequestBody TripUpdateReqDTO tripUpdateReqDTO
     ) {
-        // JWT 토큰에서 이메일 추출
         String jwtToken = token.replace("Bearer ", "");
         String userEmail = jwtTokenProvider.getEmail(jwtToken);
 
-        // 여행 계획 수정
-        TripRespDTO updatedTrip = tripService.updateTripBasicInfo(userEmail, tripId, title, isPrivate);
+        TripRespDTO updatedTrip = tripService.updateTripBasicInfo(
+                userEmail,
+                tripId,
+                tripUpdateReqDTO.getTitle(),
+                tripUpdateReqDTO.getPrivatePlan()
+        );
         return ResponseEntity.ok(updatedTrip);
     }
 }

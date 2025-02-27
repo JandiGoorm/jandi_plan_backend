@@ -11,6 +11,7 @@ import com.jandi.plan_backend.trip.repository.TripLikeRepository;
 import com.jandi.plan_backend.trip.repository.TripRepository;
 import com.jandi.plan_backend.user.entity.City;
 import com.jandi.plan_backend.user.entity.User;
+import com.jandi.plan_backend.user.repository.CityRepository;
 import com.jandi.plan_backend.util.ValidationUtil;
 import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
 import com.jandi.plan_backend.util.service.PaginationService;
@@ -30,14 +31,17 @@ public class TripService {
     private final TripLikeRepository tripLikeRepository;
     private final ValidationUtil validationUtil;
     private final ImageService imageService;
+    private final CityRepository cityRepository;
     private final String urlPrefix = "https://storage.googleapis.com/plan-storage/";
 
     public TripService(TripRepository tripRepository, TripLikeRepository tripLikeRepository,
-                       ValidationUtil validationUtil, ImageService imageService) {
+                       ValidationUtil validationUtil, ImageService imageService,
+                       CityRepository cityRepository) {
         this.tripRepository = tripRepository;
         this.tripLikeRepository = tripLikeRepository;
         this.validationUtil = validationUtil;
         this.imageService = imageService;
+        this.cityRepository = cityRepository;
     }
 
     /** 여행 계획 목록 전체 조회 (공개 설정된 것만 조회) */
@@ -97,17 +101,25 @@ public class TripService {
                 });
     }
 
-    /** 개별 여행 계획 조회 */
+    /** 개별 여행 계획 조회
+     * 공개로 설정된 다른 유저의 여행 계획 + 공개/비공개 설정된 본인의 여행 계획만 조회 가능
+     * 조회 시, 연결된 도시의 searchCount가 1 증가합니다.
+     */
     public MyTripRespDTO getSpecTrips(String userEmail, Integer tripId) {
         Trip trip = validationUtil.validateTripExists(tripId);
         User user = validationUtil.validateUserExists(userEmail);
         if (!trip.getUser().getUserId().equals(user.getUserId()) && trip.getPrivatePlan()) {
             throw new BadRequestExceptionMessage("접근 권한이 없습니다.");
         }
+        // 도시 검색 횟수 증가 처리
+        City city = trip.getCity();
+        city.setSearchCount(city.getSearchCount() + 1);
+        cityRepository.save(city);
+
         String userProfileUrl = imageService.getImageByTarget("userProfile", user.getUserId())
                 .map(Image::getImageUrl)
                 .orElse(null);
-        String cityImageUrl = imageService.getImageByTarget("city", trip.getCity().getCityId())
+        String cityImageUrl = imageService.getImageByTarget("city", city.getCityId())
                 .map(img -> urlPrefix + img.getImageUrl())
                 .orElse(null);
         return new MyTripRespDTO(user, userProfileUrl, trip, cityImageUrl);
