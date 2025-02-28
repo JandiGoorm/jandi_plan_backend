@@ -269,6 +269,7 @@ public class UserService {
         User admin = validationUtil.validateUserExists(userEmail);
         validationUtil.validateUserIsAdmin(admin);
 
+        //유저 찾기
         User user = userRepository.findByUserId(userId).orElse(null);
         if(user==null) { //사용자 미존재 시 오류 반환
             throw new BadRequestExceptionMessage("사용자가 존재하지 않습니다");
@@ -279,5 +280,21 @@ public class UserService {
         user.setReported(!user.getReported());
         userRepository.save(user);
         return user.getReported();
+    }
+
+    public Boolean withdrawUser(String userEmail, Integer userId) {
+        User admin = validationUtil.validateUserExists(userEmail);
+        validationUtil.validateUserIsAdmin(admin);
+
+        //유저 찾기
+        User user = userRepository.findByUserId(userId).orElse(null);
+        if(user==null) { //사용자 미존재 시 오류 반환
+            throw new BadRequestExceptionMessage("사용자가 존재하지 않습니다");
+        }
+        log.info("선택된 유저: {}{}", user.getEmail(), user.getReported() ? "(제재)" : "(일반)");
+
+        //탈퇴 후 유저 존재여부 반환(탈퇴가 잘 되었다면 true)
+        deleteUser(user.getEmail());
+        return userRepository.findByUserId(userId).isEmpty();
     }
 }

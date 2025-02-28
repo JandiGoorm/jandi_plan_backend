@@ -67,4 +67,20 @@ public class ManageUserController {
         return ResponseEntity.ok((isReported) ?
                 "제한되었습니다" : "제한 해제되었습니다");
     }
+
+    /** 부적절 유저 제한/제한 해제 */
+    //제한된 유저 -> 해제 / 일반 유저 -> 제한
+    @PostMapping("/withdraw/{userId}")
+    public ResponseEntity<?> withdrawUser(
+        @PathVariable Integer userId,
+        @RequestHeader("Authorization") String token // 헤더의 Authorization에서 JWT 토큰 받기
+        ){
+        // Jwt 토큰으로부터 유저 이메일 추출
+        String jwtToken = token.replace("Bearer ", "");
+        String userEmail = jwtTokenProvider.getEmail(jwtToken);
+
+        Boolean isWithdraw = userService.withdrawUser(userEmail, userId);
+        return ResponseEntity.ok((isWithdraw) ?
+                "탈퇴되었습니다" : "탈퇴에 문제가 발생했습니다");
+    }
 }
