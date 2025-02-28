@@ -1,6 +1,8 @@
 package com.jandi.plan_backend.user.repository;
 
 import com.jandi.plan_backend.user.entity.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDateTime;
@@ -45,4 +47,8 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     Optional<User> findByVerificationToken(String token);
 
     List<User> findByVerifiedFalseAndTokenExpiresBefore(LocalDateTime dateTime);
+
+    // 부적절 유저 조회용
+    Integer countByReportedIsTrue();
+    Page<User> findByReportedIsTrue(Pageable pageable);
 }

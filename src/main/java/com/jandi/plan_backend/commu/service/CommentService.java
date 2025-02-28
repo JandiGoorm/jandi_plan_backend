@@ -11,6 +11,7 @@ import com.jandi.plan_backend.commu.repository.CommunityRepository;
 import com.jandi.plan_backend.image.service.ImageService;
 import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.util.ValidationUtil;
+import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
 import com.jandi.plan_backend.util.service.PaginationService;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
@@ -153,5 +154,24 @@ public class CommentService {
         // 댓글 삭제 및 반환
         commentRepository.delete(comment);
         return repliesCount;
+    }
+
+    /** 댓글 좋아요 */
+    public void likeComment(String userEmail, Integer commentId) {
+        // 댓글 검증
+        Comment comment = validationUtil.validateCommentExists(commentId);
+
+        // 유저 검증
+        User user = validationUtil.validateUserExists(userEmail);
+        validationUtil.validateUserRestricted(user);
+
+        // 셀프 좋아요 방지
+        if(user.getUserId().equals(comment.getUserId())){
+            throw new BadRequestExceptionMessage("본인의 댓글에 좋아요할 수 없습니다");
+        }
+
+        // 댓글 좋아요 수 증가
+        comment.setLikeCount(comment.getLikeCount() + 1);
+        commentRepository.save(comment);
     }
 }
