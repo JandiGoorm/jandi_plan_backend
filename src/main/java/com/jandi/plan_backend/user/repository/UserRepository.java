@@ -48,5 +48,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
     List<User> findByVerifiedFalseAndTokenExpiresBefore(LocalDateTime dateTime);
 
-
+    // 부적절 유저 조회용
+    Integer countByReportedIsTrue();
+    Page<User> findByReportedIsTrue(Pageable pageable);
 }

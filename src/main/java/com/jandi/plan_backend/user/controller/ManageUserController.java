@@ -21,7 +21,7 @@ public class ManageUserController {
     }
 
     /** 유저 목록 조회 */
-    @GetMapping("/")
+    @GetMapping("/all")
     public ResponseEntity<?> getAllUsers(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -32,6 +32,22 @@ public class ManageUserController {
         String userEmail = jwtTokenProvider.getEmail(jwtToken);
 
         Page<UserListDTO> userPage = userService.getAllUsers(userEmail, page, size);
+
+        return ResponseEntity.ok(userPage.getContent());
+    }
+
+    /** 부적절 유저 목록 조회 */
+    @GetMapping("/restricted")
+    public ResponseEntity<?> getRestrictedUsers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestHeader("Authorization") String token // 헤더의 Authorization에서 JWT 토큰 받기
+    ) {
+        // Jwt 토큰으로부터 유저 이메일 추출
+        String jwtToken = token.replace("Bearer ", "");
+        String userEmail = jwtTokenProvider.getEmail(jwtToken);
+
+        Page<UserListDTO> userPage = userService.getRestrictedUsers(userEmail, page, size);
 
         return ResponseEntity.ok(userPage.getContent());
     }

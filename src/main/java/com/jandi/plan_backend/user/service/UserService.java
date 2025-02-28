@@ -254,6 +254,16 @@ public class UserService {
                 userRepository::findAll, UserListDTO::new);
     }
 
+    //부적절 유저 목록 로드
+    public Page<UserListDTO> getRestrictedUsers(String userEmail, int page, int size) {
+        User admin = validationUtil.validateUserExists(userEmail);
+        validationUtil.validateUserIsAdmin(admin);
+
+        long totalCount = userRepository.countByReportedIsTrue();
+        return PaginationService.getPagedData(page, size, totalCount,
+                userRepository::findByReportedIsTrue, UserListDTO::new);
+    }
+
     //유저 제재하기
     public Boolean permitUser(String userEmail, Integer userId) {
         User admin = validationUtil.validateUserExists(userEmail);
