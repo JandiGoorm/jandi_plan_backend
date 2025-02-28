@@ -75,7 +75,6 @@ public class ItineraryService {
         itinerary.setPlaceId(reqDTO.getPlaceId());
         itinerary.setDate(date);
         itinerary.setStartTime(startTime);
-        itinerary.setEndTime(endTime);
         itinerary.setTitle(reqDTO.getTitle());
         itinerary.setCost(reqDTO.getCost());
         // createdAt은 여기서는 date로 설정 (실제 상황에 맞게 조정)
@@ -107,9 +106,6 @@ public class ItineraryService {
         }
         if (reqDTO.getStartTime() != null) {
             itinerary.setStartTime(LocalTime.parse(reqDTO.getStartTime()));
-        }
-        if (reqDTO.getEndTime() != null) {
-            itinerary.setEndTime(LocalTime.parse(reqDTO.getEndTime()));
         }
         if (reqDTO.getTitle() != null) {
             itinerary.setTitle(reqDTO.getTitle());

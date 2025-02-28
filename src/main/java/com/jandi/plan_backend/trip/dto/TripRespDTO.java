@@ -15,11 +15,14 @@ public class TripRespDTO {
     private final Integer likeCount;
     private final Integer budget;
     private final Integer cityId;
+    private final String cityName;
+    private final String countryName;
     private final Boolean privatePlan;
-    private final String cityImageUrl; // 추가된 필드
+    private final String cityImageUrl;
 
     public TripRespDTO(UserTripDTO user, Integer tripId, String title, LocalDate startDate, LocalDate endDate,
-                       Integer likeCount, Integer budget, Integer cityId, Boolean privatePlan, String cityImageUrl) {
+                       Integer likeCount, Integer budget, Integer cityId, String cityName, String countryName,
+                       Boolean privatePlan, String cityImageUrl) {
         this.user = user;
         this.tripId = tripId;
         this.title = title;
@@ -28,6 +31,8 @@ public class TripRespDTO {
         this.likeCount = likeCount;
         this.budget = budget;
         this.cityId = cityId;
+        this.cityName = cityName;
+        this.countryName = countryName;
         this.privatePlan = privatePlan;
         this.cityImageUrl = cityImageUrl;
     }
@@ -41,6 +46,8 @@ public class TripRespDTO {
         this.likeCount = trip.getLikeCount();
         this.budget = trip.getBudget();
         this.cityId = trip.getCity().getCityId();
+        this.cityName = trip.getCity().getName();
+        this.countryName = trip.getCity().getCountry().getName();
         this.privatePlan = trip.getPrivatePlan();
         this.cityImageUrl = cityImageUrl;
     }
