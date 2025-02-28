@@ -165,7 +165,7 @@ public class CommentService {
         User user = validationUtil.validateUserExists(userEmail);
         validationUtil.validateUserRestricted(user);
 
-        // 본인의 댓글엔 좋아요할 수 없음
+        // 셀프 좋아요 방지
         if(user.getUserId().equals(comment.getUserId())){
             throw new BadRequestExceptionMessage("본인의 댓글에 좋아요할 수 없습니다");
         }

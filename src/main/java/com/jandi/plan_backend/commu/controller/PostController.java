@@ -1,6 +1,7 @@
 package com.jandi.plan_backend.commu.controller;
 
 import com.jandi.plan_backend.commu.dto.*;
+import com.jandi.plan_backend.commu.entity.Reported;
 import com.jandi.plan_backend.commu.service.PostService;
 import com.jandi.plan_backend.security.JwtTokenProvider;
 import org.springframework.data.domain.Page;
@@ -98,8 +99,9 @@ public class PostController {
         return ResponseEntity.ok(returnMsg);
     }
 
+    /** 게시물 좋아요 API */
     @PostMapping("/posts/likes/{postId}")
-    public ResponseEntity<?> likeComment(
+    public ResponseEntity<?> likePost(
             @PathVariable Integer postId,
             @RequestHeader("Authorization") String token // 헤더의 Authorization에서 JWT 토큰 받기
     ){
@@ -109,5 +111,20 @@ public class PostController {
 
         postService.likePost(userEmail, postId);
         return ResponseEntity.ok("좋아요 성공");
+    }
+
+    /** 게시물 신고 API */
+    @PostMapping("/posts/reports/{postId}")
+    public ResponseEntity<?> reportPost(
+            @PathVariable Integer postId,
+            @RequestBody ReportReqDTO reportDTO,
+            @RequestHeader("Authorization") String token // 헤더의 Authorization에서 JWT 토큰 받기
+    ){
+        // Jwt 토큰으로부터 유저 이메일 추출
+        String jwtToken = token.replace("Bearer ", "");
+        String userEmail = jwtTokenProvider.getEmail(jwtToken);
+
+        ReportRespDTO reported = postService.reportPost(userEmail, postId, reportDTO);
+        return ResponseEntity.ok(reported);
     }
 }
