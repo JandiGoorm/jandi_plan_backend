@@ -5,6 +5,7 @@ import com.jandi.plan_backend.commu.entity.Comment;
 import com.jandi.plan_backend.commu.entity.Community;
 import com.jandi.plan_backend.commu.repository.CommentRepository;
 import com.jandi.plan_backend.commu.repository.CommunityRepository;
+import com.jandi.plan_backend.image.repository.ImageRepository;
 import com.jandi.plan_backend.image.service.ImageService;
 import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.util.ValidationUtil;
@@ -28,14 +29,16 @@ public class PostService {
     private final ValidationUtil validationUtil;
     private final ImageService imageService;
     private final CommentRepository commentRepository;
+    private final ImageRepository imageRepository;
 
     // 생성자를 통해 필요한 의존성들을 주입받음.
     public PostService(
-            CommunityRepository communityRepository, ValidationUtil validationUtil, ImageService imageService, CommentRepository commentRepository) {
+            CommunityRepository communityRepository, ValidationUtil validationUtil, ImageService imageService, CommentRepository commentRepository, ImageRepository imageRepository) {
         this.communityRepository = communityRepository;
         this.validationUtil = validationUtil;
         this.imageService = imageService;
         this.commentRepository = commentRepository;
+        this.imageRepository = imageRepository;
     }
 
     /** 특정 게시글 조회 */
@@ -117,6 +120,10 @@ public class PostService {
         List<Comment> comments = commentRepository.findByCommunity(post);
         int commentsCount = comments.size();
         commentRepository.deleteAll(comments);
+
+        //연결된 이미지 모두 삭제
+        imageRepository.findByTargetTypeAndTargetId("community", postId)
+            .ifPresent(image -> imageService.deleteImage(image.getImageId()));
 
         // 게시물 삭제 및 삭제된 댓글 수 반환
         communityRepository.delete(post);
