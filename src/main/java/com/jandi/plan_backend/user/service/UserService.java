@@ -156,6 +156,7 @@ public class UserService {
 
         // 2. 기본 DTO 생성
         UserInfoRespDTO dto = new UserInfoRespDTO();
+        dto.setUserId(user.getUserId());
         dto.setEmail(user.getEmail());
         dto.setFirstName(user.getFirstName());
         dto.setLastName(user.getLastName());
