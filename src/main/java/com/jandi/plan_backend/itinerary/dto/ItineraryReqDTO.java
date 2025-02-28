@@ -10,15 +10,13 @@ public class ItineraryReqDTO {
     private Long placeId;      // 장소 ID
     private String date;       // 일정 날짜 (YYYY-MM-DD)
     private String startTime;  // 시작 시간 (HH:mm:ss 또는 HH:mm)
-    private String endTime;    // 종료 시간 (HH:mm:ss 또는 HH:mm)
     private String title;      // 일정 제목
     private Integer cost;      // 비용
 
-    public ItineraryReqDTO(Long placeId, String date, String startTime, String endTime, String title, Integer cost) {
+    public ItineraryReqDTO(Long placeId, String date, String startTime, String title, Integer cost) {
         this.placeId = placeId;
         this.date = date;
         this.startTime = startTime;
-        this.endTime = endTime;
         this.title = title;
         this.cost = cost;
     }

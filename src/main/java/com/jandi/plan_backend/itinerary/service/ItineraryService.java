@@ -67,7 +67,6 @@ public class ItineraryService {
         // DTO의 문자열 데이터를 LocalDate, LocalTime으로 변환
         LocalDate date = LocalDate.parse(reqDTO.getDate());
         LocalTime startTime = LocalTime.parse(reqDTO.getStartTime());
-        LocalTime endTime = LocalTime.parse(reqDTO.getEndTime());
 
         // 새로운 Itinerary 엔티티 생성
         Itinerary itinerary = new Itinerary();
