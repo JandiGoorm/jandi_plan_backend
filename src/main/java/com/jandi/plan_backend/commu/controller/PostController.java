@@ -15,10 +15,12 @@ public class PostController {
 
     private final PostService communityService;
     private final JwtTokenProvider jwtTokenProvider;
+    private final PostService postService;
 
     public PostController(PostService postService, JwtTokenProvider jwtTokenProvider) {
         this.communityService = postService;
         this.jwtTokenProvider = jwtTokenProvider;
+        this.postService = postService;
     }
 
     /** 게시물 목록 조회 API*/
@@ -96,4 +98,16 @@ public class PostController {
         return ResponseEntity.ok(returnMsg);
     }
 
+    @PostMapping("/posts/likes/{postId}")
+    public ResponseEntity<?> likeComment(
+            @PathVariable Integer postId,
+            @RequestHeader("Authorization") String token // 헤더의 Authorization에서 JWT 토큰 받기
+    ){
+        // Jwt 토큰으로부터 유저 이메일 추출
+        String jwtToken = token.replace("Bearer ", "");
+        String userEmail = jwtTokenProvider.getEmail(jwtToken);
+
+        postService.likePost(userEmail, postId);
+        return ResponseEntity.ok("좋아요 성공");
+    }
 }

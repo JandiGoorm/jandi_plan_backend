@@ -129,4 +129,17 @@ public class CommentController {
                 "댓글이 삭제되었습니다": "선택된 댓글과 하위 답글 " + deletedRepliesCount +"개가 삭제되었습니다";
         return ResponseEntity.ok(returnMsg);
     }
+
+    @PostMapping("/comments/likes/{commentId}")
+    public ResponseEntity<?> likeComment(
+            @PathVariable Integer commentId,
+            @RequestHeader("Authorization") String token // 헤더의 Authorization에서 JWT 토큰 받기
+    ){
+        // Jwt 토큰으로부터 유저 이메일 추출
+        String jwtToken = token.replace("Bearer ", "");
+        String userEmail = jwtTokenProvider.getEmail(jwtToken);
+
+        commentService.likeComment(userEmail, commentId);
+        return ResponseEntity.ok("좋아요 성공");
+    }
 }

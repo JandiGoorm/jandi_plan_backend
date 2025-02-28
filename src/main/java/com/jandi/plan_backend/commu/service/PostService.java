@@ -9,6 +9,7 @@ import com.jandi.plan_backend.image.repository.ImageRepository;
 import com.jandi.plan_backend.image.service.ImageService;
 import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.util.ValidationUtil;
+import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -128,6 +129,25 @@ public class PostService {
         // 게시물 삭제 및 삭제된 댓글 수 반환
         communityRepository.delete(post);
         return commentsCount;
+    }
+
+    /** 댓글 좋아요 */
+    public void likePost(String userEmail, Integer postId) {
+        //게시글 검증
+        Community post = validationUtil.validatePostExists(postId);
+
+        // 유저 검증
+        User user = validationUtil.validateUserExists(userEmail);
+        validationUtil.validateUserRestricted(user);
+
+        // 본인의 게시물엔 좋아요할 수 없음
+        if(user.getUserId().equals(post.getUser().getUserId())){
+            throw new BadRequestExceptionMessage("본인의 게시글에 좋아요할 수 없습니다");
+        }
+
+        // 게시물 좋아요 수 증가
+        post.setLikeCount(post.getLikeCount() + 1);
+        communityRepository.save(post);
     }
 
 }
