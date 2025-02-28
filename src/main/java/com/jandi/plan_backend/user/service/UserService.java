@@ -1,5 +1,6 @@
 package com.jandi.plan_backend.user.service;
 
+import com.jandi.plan_backend.commu.dto.UserListDTO;
 import com.jandi.plan_backend.image.entity.Image;
 import com.jandi.plan_backend.image.service.ImageService;
 import com.jandi.plan_backend.user.dto.AuthRespDTO;
@@ -10,7 +11,12 @@ import com.jandi.plan_backend.user.dto.UserInfoRespDTO;
 import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.user.repository.UserRepository;
 import com.jandi.plan_backend.security.JwtTokenProvider;
+import com.jandi.plan_backend.util.ValidationUtil;
+import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
+import com.jandi.plan_backend.util.service.PaginationService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +30,7 @@ import java.util.UUID;
  * 회원가입, 로그인, 이메일 인증, 비밀번호 재발급, 사용자 상세 정보 조회,
  * 비밀번호 변경, 리프레시 토큰 갱신, 회원 탈퇴(계정 삭제) 등의 기능을 제공한다.
  */
+@Slf4j
 @Service
 @Transactional
 public class UserService {
@@ -33,6 +40,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final ImageService imageService;
+    private final ValidationUtil validationUtil;
 
     @Value("${app.verify.url}")
     private String verifyUrl;
@@ -41,12 +49,13 @@ public class UserService {
                        EmailService emailService,
                        PasswordEncoder passwordEncoder,
                        JwtTokenProvider jwtTokenProvider,
-                       ImageService imageService) {
+                       ImageService imageService, ValidationUtil validationUtil) {
         this.userRepository = userRepository;
         this.emailService = emailService;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
         this.imageService = imageService;
+        this.validationUtil = validationUtil;
     }
 
     public User registerUser(UserRegisterDTO dto) {
@@ -232,5 +241,33 @@ public class UserService {
     // 중복 닉네임 검증
     public boolean isExistUserName(String userName) {
         return userRepository.findByUserName(userName).isPresent();
+    }
+
+    /** 관리자 전용 */
+    //유저 목록 로드
+    public Page<UserListDTO> getAllUsers(String userEmail, int page, int size) {
+        User admin = validationUtil.validateUserExists(userEmail);
+        validationUtil.validateUserIsAdmin(admin);
+
+        long totalCount = userRepository.count();
+        return PaginationService.getPagedData(page, size, totalCount,
+                userRepository::findAll, UserListDTO::new);
+    }
+
+    //유저 제재하기
+    public Boolean permitUser(String userEmail, Integer userId) {
+        User admin = validationUtil.validateUserExists(userEmail);
+        validationUtil.validateUserIsAdmin(admin);
+
+        User user = userRepository.findByUserId(userId).orElse(null);
+        if(user==null) { //사용자 미존재 시 오류 반환
+            throw new BadRequestExceptionMessage("사용자가 존재하지 않습니다");
+        }
+        log.info("선택된 유저: {}{}", user.getEmail(), user.getReported() ? "(제재)" : "(일반)");
+
+        //유저 제재/제한 해제 후 제한 여부 반환
+        user.setReported(!user.getReported());
+        userRepository.save(user);
+        return user.getReported();
     }
 }
