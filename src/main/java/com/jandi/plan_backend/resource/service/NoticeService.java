@@ -1,5 +1,7 @@
 package com.jandi.plan_backend.resource.service;
 
+import com.jandi.plan_backend.image.repository.ImageRepository;
+import com.jandi.plan_backend.image.service.ImageService;
 import com.jandi.plan_backend.resource.dto.NoticeReqDTO;
 import com.jandi.plan_backend.resource.dto.NoticeRespDTO;
 import com.jandi.plan_backend.resource.entity.Notice;
@@ -16,10 +18,18 @@ import java.util.List;
 public class NoticeService {
     private final NoticeRepository noticeRepository;
     private final ValidationUtil validationUtil;
+    private final ImageRepository imageRepository;
+    private final ImageService imageService;
 
-    public NoticeService(NoticeRepository noticeRepository, ValidationUtil validationUtil) {
+    public NoticeService(
+            NoticeRepository noticeRepository,
+            ValidationUtil validationUtil,
+            ImageRepository imageRepository,
+            ImageService imageService) {
         this.noticeRepository = noticeRepository;
         this.validationUtil = validationUtil;
+        this.imageRepository = imageRepository;
+        this.imageService = imageService;
     }
 
     /**
@@ -70,6 +80,10 @@ public class NoticeService {
 
         // 공지글 검증
         Notice notice = validationUtil.validateNoticeExists(noticeId);
+
+        // 공지글에 있던 이미지 삭제
+        imageRepository.findByTargetTypeAndTargetId("notice", noticeId)
+                .ifPresent(img -> imageService.deleteImage(img.getImageId()));
 
         // 공지글 삭제 및 반환
         noticeRepository.delete(notice);
