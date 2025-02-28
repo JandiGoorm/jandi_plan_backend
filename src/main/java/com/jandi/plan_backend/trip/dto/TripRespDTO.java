@@ -20,6 +20,23 @@ public class TripRespDTO {
     private final Boolean privatePlan;
     private final String cityImageUrl;
 
+    public TripRespDTO(UserTripDTO user, Integer tripId, String title, LocalDate startDate, LocalDate endDate,
+                       Integer likeCount, Integer budget, Integer cityId, String cityName, String countryName,
+                       Boolean privatePlan, String cityImageUrl) {
+        this.user = user;
+        this.tripId = tripId;
+        this.title = title;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.likeCount = likeCount;
+        this.budget = budget;
+        this.cityId = cityId;
+        this.cityName = cityName;
+        this.countryName = countryName;
+        this.privatePlan = privatePlan;
+        this.cityImageUrl = cityImageUrl;
+    }
+
     public TripRespDTO(User user, String userProfileUrl, Trip trip, String cityImageUrl) {
         this.user = new UserTripDTO(user.getUserId(), user.getUserName(), userProfileUrl);
         this.tripId = trip.getTripId();
