@@ -29,28 +29,24 @@ public class PlanImageController {
     }
 
     /**
-     * 게시글 이미지 업로드 API.
-     *
-     * @param file 업로드할 게시글 이미지 파일
-     * @param targetId 게시글의 고유 ID (이미지가 연결될 커뮤니티 게시글의 ID)
-     * @param userDetails 인증된 사용자 정보 (UserDetails)
-     * @return 업로드 결과를 담은 ImageRespDto (이미지 ID, 전체 공개 URL, 메시지)
+     * 게시글 이미지 업로드 API
+     * targetId: 음수 int (임시 postId) or 양수 int (실제 postId)
      */
     @PostMapping("/community")
     public ResponseEntity<?> uploadPostImage(
             @RequestParam("file") MultipartFile file,
-            @RequestParam("targetId") Integer targetId,
-            @AuthenticationPrincipal UserDetails userDetails) {
-
-        if (userDetails == null) {
+            @RequestParam("targetId") int targetId,  // 음수 int 가능
+            @AuthenticationPrincipal CustomUserDetails customUserDetails
+    ) {
+        if (customUserDetails == null) {
             log.warn("인증되지 않은 사용자로부터 게시글 이미지 업로드 시도");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body("게시글 이미지를 업로드하려면 로그인이 필요합니다.");
         }
-        String ownerEmail = userDetails.getUsername();
+        String ownerEmail = customUserDetails.getUsername();
         log.info("사용자 '{}'가 게시글 이미지 업로드 요청 (targetId: {})", ownerEmail, targetId);
 
-        // targetType을 "community"로 고정하여 이미지 업로드 처리
+        // targetType="community"
         ImageRespDto responseDto = imageService.uploadImage(file, ownerEmail, targetId, "community");
         return ResponseEntity.ok(responseDto);
     }

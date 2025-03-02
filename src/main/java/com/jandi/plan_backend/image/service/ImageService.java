@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -53,6 +54,14 @@ public class ImageService {
         responseDto.setImageUrl(fullPublicUrl);
         responseDto.setMessage("이미지 업로드 및 DB 저장 성공");
         return responseDto;
+    }
+
+    public void updateTargetId(String targetType, int oldTargetId, int newTargetId) {
+        List<Image> images = imageRepository.findAllByTargetTypeAndTargetId(targetType, oldTargetId);
+        for (Image image : images) {
+            image.setTargetId(newTargetId);
+            imageRepository.save(image);
+        }
     }
 
     /**
