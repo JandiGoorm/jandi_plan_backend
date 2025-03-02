@@ -3,8 +3,10 @@ package com.jandi.plan_backend.commu.service;
 import com.jandi.plan_backend.commu.dto.*;
 import com.jandi.plan_backend.commu.entity.Comment;
 import com.jandi.plan_backend.commu.entity.Community;
+import com.jandi.plan_backend.commu.entity.CommunityLike;
 import com.jandi.plan_backend.commu.entity.Reported;
 import com.jandi.plan_backend.commu.repository.CommentRepository;
+import com.jandi.plan_backend.commu.repository.CommunityLikeRepository;
 import com.jandi.plan_backend.commu.repository.CommunityRepository;
 import com.jandi.plan_backend.commu.repository.ReportedRepository;
 import com.jandi.plan_backend.image.repository.ImageRepository;
@@ -34,6 +36,7 @@ public class PostService {
     private final CommentRepository commentRepository;
     private final ImageRepository imageRepository;
     private final ReportedRepository reportedRepository;
+    private final CommunityLikeRepository communityLikeRepository;
 
     // 생성자를 통해 필요한 의존성들을 주입받음.
     public PostService(
@@ -41,13 +44,15 @@ public class PostService {
             ValidationUtil validationUtil, ImageService imageService,
             CommentRepository commentRepository,
             ImageRepository imageRepository,
-            ReportedRepository reportedRepository) {
+            ReportedRepository reportedRepository,
+            CommunityLikeRepository communityLikeRepository) {
         this.communityRepository = communityRepository;
         this.validationUtil = validationUtil;
         this.imageService = imageService;
         this.commentRepository = commentRepository;
         this.imageRepository = imageRepository;
         this.reportedRepository = reportedRepository;
+        this.communityLikeRepository = communityLikeRepository;
     }
 
     /** 특정 게시글 조회 */
@@ -141,20 +146,50 @@ public class PostService {
 
     /** 게시물 좋아요 */
     public void likePost(String userEmail, Integer postId) {
-        //게시글 검증
-        Community post = validationUtil.validatePostExists(postId);
-
         // 유저 검증
         User user = validationUtil.validateUserExists(userEmail);
         validationUtil.validateUserRestricted(user);
 
-        // 셀프 좋아요 방지
-        if(user.getUserId().equals(post.getUser().getUserId())){
-            throw new BadRequestExceptionMessage("본인의 게시글에 좋아요할 수 없습니다");
+        //게시글 검증
+        Community post = validationUtil.validatePostExists(postId);
+
+        // 좋아요 검증
+        if(user.getUserId().equals(post.getUser().getUserId())){ // 셀프 좋아요 방지
+            throw new BadRequestExceptionMessage("본인의 게시글에 좋아요할 수 없습니다.");
         }
+        if(communityLikeRepository.findByCommunityAndUser(post, user).isPresent()){ // 중복 좋아요 방지
+            throw new BadRequestExceptionMessage("이미 좋아요한 게시물입니다.");
+        }
+
+        // community_like에 반영
+        CommunityLike communityLike = new CommunityLike();
+        communityLike.setCommunity(post);
+        communityLike.setUser(user);
+        communityLike.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
+        communityLikeRepository.save(communityLike);
+        log.info("좋아요 추가 완료: {}", communityLike.getCommunity());
 
         // 게시물 좋아요 수 증가
         post.setLikeCount(post.getLikeCount() + 1);
+        communityRepository.save(post);
+    }
+
+    /** 게시물 좋아요 취소 */
+    public void deleteLikePost(String userEmail, Integer postId) {
+        // 유저 검증
+        User user = validationUtil.validateUserExists(userEmail);
+        validationUtil.validateUserRestricted(user);
+
+        //게시글 검증
+        Community post = validationUtil.validatePostExists(postId);
+
+        //좋아요 검증
+        Optional<CommunityLike> communityLike = communityLikeRepository.findByCommunityAndUser(post, user);
+        if(communityLike.isEmpty()){ // 좋아요되지 않은 게시물일 때
+            throw new BadRequestExceptionMessage("좋아요한 적 없는 게시물입니다.");
+        }
+        communityLikeRepository.delete(communityLike.get());
+        post.setLikeCount(post.getLikeCount() - 1);
         communityRepository.save(post);
     }
 
