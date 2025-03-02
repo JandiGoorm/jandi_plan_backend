@@ -1,9 +1,6 @@
 package com.jandi.plan_backend.commu.controller;
 
-import com.jandi.plan_backend.commu.dto.CommentReqDTO;
-import com.jandi.plan_backend.commu.dto.CommentRespDTO;
-import com.jandi.plan_backend.commu.dto.ParentCommentDTO;
-import com.jandi.plan_backend.commu.dto.RepliesDTO;
+import com.jandi.plan_backend.commu.dto.*;
 import com.jandi.plan_backend.commu.service.CommentService;
 import com.jandi.plan_backend.security.JwtTokenProvider;
 import org.springframework.data.domain.Page;
@@ -158,4 +155,20 @@ public class CommentController {
         commentService.deleteLikeComment(userEmail, commentId);
         return ResponseEntity.ok("좋아요 취소되었습니다.");
     }
+
+    /** 댓글 신고 API */
+    @PostMapping("/comments/reports/{commentId}")
+    public ResponseEntity<?> reportComment(
+            @PathVariable Integer commentId,
+            @RequestBody ReportReqDTO reportDTO,
+            @RequestHeader("Authorization") String token // 헤더의 Authorization에서 JWT 토큰 받기
+    ){
+        // Jwt 토큰으로부터 유저 이메일 추출
+        String jwtToken = token.replace("Bearer ", "");
+        String userEmail = jwtTokenProvider.getEmail(jwtToken);
+
+        CommentReportRespDTO reported = commentService.reportComment(userEmail, commentId, reportDTO);
+        return ResponseEntity.ok(reported);
+    }
+
 }

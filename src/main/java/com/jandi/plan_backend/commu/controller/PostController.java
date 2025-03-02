@@ -1,11 +1,9 @@
 package com.jandi.plan_backend.commu.controller;
 
 import com.jandi.plan_backend.commu.dto.*;
-import com.jandi.plan_backend.commu.entity.Reported;
 import com.jandi.plan_backend.commu.service.PostService;
 import com.jandi.plan_backend.security.JwtTokenProvider;
 import org.springframework.data.domain.Page;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -124,7 +122,7 @@ public class PostController {
         String jwtToken = token.replace("Bearer ", "");
         String userEmail = jwtTokenProvider.getEmail(jwtToken);
 
-        ReportRespDTO reported = postService.reportPost(userEmail, postId, reportDTO);
+        PostReportRespDTO reported = postService.reportPost(userEmail, postId, reportDTO);
         return ResponseEntity.ok(reported);
     }
 

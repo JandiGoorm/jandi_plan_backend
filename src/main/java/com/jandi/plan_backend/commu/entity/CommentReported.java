@@ -1,0 +1,30 @@
+package com.jandi.plan_backend.commu.entity;
+
+import com.jandi.plan_backend.user.entity.User;
+import jakarta.persistence.*;
+import lombok.Data;
+
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "comment_reported")
+@Data
+public class CommentReported {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer reportId;
+
+    @ManyToOne
+    @JoinColumn(name = "comment_id", nullable = false)
+    private Comment comment;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    @Column(nullable = false)
+    private LocalDateTime createdAt;
+
+    @Column(columnDefinition = "TEXT")
+    private String contents;
+}

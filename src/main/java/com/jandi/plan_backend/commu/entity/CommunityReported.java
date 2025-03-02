@@ -6,9 +6,9 @@ import com.jandi.plan_backend.user.entity.User;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "reported")
+@Table(name = "community_reported")
 @Data
-public class Reported {
+public class CommunityReported {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
