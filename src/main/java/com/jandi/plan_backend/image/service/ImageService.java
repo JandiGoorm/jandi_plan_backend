@@ -125,11 +125,8 @@ public class ImageService {
     }
 
     /**
-     * 이미지 삭제 기능.
-     * 이미지 ID에 해당하는 이미지를 클라우드 스토리지에서 삭제한 후, DB 레코드도 삭제합니다.
-     *
-     * @param imageId 삭제할 이미지의 DB ID
-     * @return 삭제 성공 시 true, 실패 시 false
+     * 삭제 시, DB의 imageUrl = rawFileName
+     * googleCloudStorageService.deleteFile(rawFileName) → 실제 GCS 삭제
      */
     public boolean deleteImage(Integer imageId) {
         Optional<Image> imageOptional = imageRepository.findById(imageId);
@@ -138,6 +135,10 @@ public class ImageService {
             return false;
         }
         Image image = imageOptional.get();
+
+        // DB에 인코딩된 형태로 저장되어 있어도,
+        // googleCloudStorageService.deleteFile(...) 내부에서 URLDecoder.decode(...)
+        // -> 실제 GCS 파일명으로 삭제
         boolean storageDeleted = googleCloudStorageService.deleteFile(image.getImageUrl());
         if (storageDeleted) {
             imageRepository.delete(image);
@@ -148,4 +149,5 @@ public class ImageService {
             return false;
         }
     }
+
 }
