@@ -8,6 +8,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @Slf4j
 @RestController
 @RequestMapping("/api/manage/user")
@@ -22,7 +24,7 @@ public class ManageUserController {
 
     /** 유저 목록 조회 */
     @GetMapping("/all")
-    public ResponseEntity<?> getAllUsers(
+    public Map<String, Object> getAllUsers(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestHeader("Authorization") String token // 헤더의 Authorization에서 JWT 토큰 받기
@@ -33,12 +35,20 @@ public class ManageUserController {
 
         Page<UserListDTO> userPage = userService.getAllUsers(userEmail, page, size);
 
-        return ResponseEntity.ok(userPage.getContent());
+        return Map.of(
+                "pageInfo", Map.of(
+                        "currentPage", userPage.getNumber(),  // 현재 페이지 번호
+                        "currentSize", userPage.getContent().size(), //현재 페이지 리스트 갯수
+                        "totalPages", userPage.getTotalPages(),  // 전체 페이지 번호 개수
+                        "totalSize", userPage.getTotalElements() // 전체 게시물 리스트 개수
+                ),
+                "items", userPage.getContent()   // 현재 페이지의 게시물 데이터
+        );
     }
 
     /** 부적절 유저 목록 조회 */
     @GetMapping("/restricted")
-    public ResponseEntity<?> getRestrictedUsers(
+    public Map<String, Object> getRestrictedUsers(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestHeader("Authorization") String token // 헤더의 Authorization에서 JWT 토큰 받기
@@ -49,7 +59,15 @@ public class ManageUserController {
 
         Page<UserListDTO> userPage = userService.getRestrictedUsers(userEmail, page, size);
 
-        return ResponseEntity.ok(userPage.getContent());
+        return Map.of(
+                "pageInfo", Map.of(
+                        "currentPage", userPage.getNumber(),  // 현재 페이지 번호
+                        "currentSize", userPage.getContent().size(), //현재 페이지 리스트 갯수
+                        "totalPages", userPage.getTotalPages(),  // 전체 페이지 번호 개수
+                        "totalSize", userPage.getTotalElements() // 전체 게시물 리스트 개수
+                ),
+                "items", userPage.getContent()   // 현재 페이지의 게시물 데이터
+        );
     }
 
     /** 부적절 유저 제한/제한 해제 */
@@ -68,7 +86,7 @@ public class ManageUserController {
                 "제한되었습니다" : "제한 해제되었습니다");
     }
 
-    /** 부적절 유저 제한/제한 해제 */
+    /** 부적절 유저 탈퇴 */
     //제한된 유저 -> 해제 / 일반 유저 -> 제한
     @PostMapping("/withdraw/{userId}")
     public ResponseEntity<?> withdrawUser(

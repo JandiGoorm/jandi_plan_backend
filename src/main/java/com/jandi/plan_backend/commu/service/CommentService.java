@@ -5,7 +5,9 @@ import com.jandi.plan_backend.commu.dto.CommentRespDTO;
 import com.jandi.plan_backend.commu.dto.ParentCommentDTO;
 import com.jandi.plan_backend.commu.dto.RepliesDTO;
 import com.jandi.plan_backend.commu.entity.Comment;
+import com.jandi.plan_backend.commu.entity.CommentLike;
 import com.jandi.plan_backend.commu.entity.Community;
+import com.jandi.plan_backend.commu.repository.CommentLikeRepository;
 import com.jandi.plan_backend.commu.repository.CommentRepository;
 import com.jandi.plan_backend.commu.repository.CommunityRepository;
 import com.jandi.plan_backend.image.service.ImageService;
@@ -19,6 +21,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class CommentService {
@@ -26,13 +29,15 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final ValidationUtil validationUtil;
     private final ImageService imageService;
+    private final CommentLikeRepository commentLikeRepository;
 
     // 생성자를 통해 필요한 의존성들을 주입받음.
-    public CommentService(CommunityRepository communityRepository, CommentRepository commentRepository, ValidationUtil validationUtil, ImageService imageService) {
+    public CommentService(CommunityRepository communityRepository, CommentRepository commentRepository, ValidationUtil validationUtil, ImageService imageService, CommentLikeRepository commentLikeRepository) {
         this.communityRepository = communityRepository;
         this.commentRepository = commentRepository;
         this.validationUtil = validationUtil;
         this.imageService = imageService;
+        this.commentLikeRepository = commentLikeRepository;
     }
 
     /** 댓글 목록 조회 */
@@ -158,20 +163,50 @@ public class CommentService {
 
     /** 댓글 좋아요 */
     public void likeComment(String userEmail, Integer commentId) {
-        // 댓글 검증
-        Comment comment = validationUtil.validateCommentExists(commentId);
-
         // 유저 검증
         User user = validationUtil.validateUserExists(userEmail);
         validationUtil.validateUserRestricted(user);
 
-        // 셀프 좋아요 방지
-        if(user.getUserId().equals(comment.getUserId())){
+        // 댓글 검증
+        Comment comment = validationUtil.validateCommentExists(commentId);
+
+        // 좋아요 검증
+        if(user.getUserId().equals(comment.getUserId())){ // 셀프 좋아요 방지
             throw new BadRequestExceptionMessage("본인의 댓글에 좋아요할 수 없습니다");
         }
+        if(commentLikeRepository.findByCommentAndUser(comment, user).isPresent()){ //중복 좋아요 방지
+            throw new BadRequestExceptionMessage("이미 좋아요한 댓글입니다.");
+        }
+
+        // commentLike에 반영
+        CommentLike commentLike = new CommentLike();
+        commentLike.setComment(comment);
+        commentLike.setUser(user);
+        commentLike.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
+        commentLikeRepository.save(commentLike);
 
         // 댓글 좋아요 수 증가
         comment.setLikeCount(comment.getLikeCount() + 1);
+        commentRepository.save(comment);
+    }
+
+    /** 댓글 좋아요 취소 */
+    public void deleteLikeComment(String userEmail, Integer commentId) {
+        // 유저 검증
+        User user = validationUtil.validateUserExists(userEmail);
+        validationUtil.validateUserRestricted(user);
+
+        // 댓글 검증
+        Comment comment = validationUtil.validateCommentExists(commentId);
+
+        // 좋아요 검증
+        Optional<CommentLike> commentLike = commentLikeRepository.findByCommentAndUser(comment, user);
+        if(commentLike.isEmpty()){ // 좋아요되지 않은 댓글일 때
+            throw new BadRequestExceptionMessage("좋아요한 적 없는 게시물입니다.");
+        }
+
+        commentLikeRepository.delete(commentLike.get());
+        comment.setLikeCount(comment.getLikeCount() - 1);
         commentRepository.save(comment);
     }
 }

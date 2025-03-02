@@ -12,11 +12,15 @@ public class CityRespDTO {
     private Integer searchCount;
     private Integer likeCount;
     private CountryRespDTO country;
+    private Double latitude;
+    private Double longitude;
 
     public CityRespDTO(City destination, String imageUrl) {
         this.cityId = destination.getCityId();
         this.name = destination.getName();
         this.description = destination.getDescription();
+        this.latitude = destination.getLatitude();
+        this.longitude = destination.getLongitude();
         this.imageUrl = imageUrl;
         this.searchCount = destination.getSearchCount();
         this.likeCount = destination.getLikeCount();

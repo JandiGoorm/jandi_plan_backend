@@ -1,6 +1,7 @@
 package com.jandi.plan_backend.user.service;
 
 import com.google.api.client.util.Lists;
+import com.jandi.plan_backend.image.dto.ImageRespDto;
 import com.jandi.plan_backend.image.service.ImageService;
 import com.jandi.plan_backend.user.dto.CityRespDTO;
 import com.jandi.plan_backend.user.dto.ContinentRespDTO;
@@ -168,7 +169,7 @@ public class PreferTripService {
 
     /** 생성 관련 */
     //대륙 생성: 디버깅용, 실제 서비스 중엔 대륙이 추가될 것 같지 않음!
-    public Continent createNewContinent(String userEmail, String continentName, MultipartFile file) {
+    public ContinentRespDTO createNewContinent(String userEmail, String continentName, MultipartFile file) {
         // 유저 & 권한 검증
         User user = validationUtil.validateUserExists(userEmail);
         validationUtil.validateUserIsAdmin(user);
@@ -187,11 +188,11 @@ public class PreferTripService {
         // targetType="continent", targetId=continentId
         imageService.uploadImage(file, userEmail, continent.getContinentId(), "continent");
 
-        return continent;
+        return new ContinentRespDTO(continent);
     }
 
     //국가 생성
-    public Country createNewCountry(
+    public CountryRespDTO createNewCountry(
             String userEmail, String continentName, String countryName) {
         //유저 검증
         User user = validationUtil.validateUserExists(userEmail);
@@ -211,11 +212,12 @@ public class PreferTripService {
         newCountry.setContinent(continent);
         countryRepository.save(newCountry);
 
-        return newCountry;
+        return new CountryRespDTO(newCountry);
     }
 
-    public City createNewCity(String userEmail, String countryName,
-                              String cityName, String description, MultipartFile file) {
+    public CityRespDTO createNewCity(String userEmail, String countryName,
+                              String cityName, String description, MultipartFile file,
+                              Double latitude, Double longitude) {
         // 유저 & 권한 검증
         User user = validationUtil.validateUserExists(userEmail);
         validationUtil.validateUserIsAdmin(user);
@@ -234,13 +236,15 @@ public class PreferTripService {
         newCity.setCountry(country);
         newCity.setContinent(country.getContinent());
         newCity.setDescription(description);
+        newCity.setLatitude(latitude);
+        newCity.setLongitude(longitude);
         cityRepository.save(newCity);
 
         // 이미지 업로드 (Image 테이블에 저장)
         // targetType="city", targetId=cityId
-        imageService.uploadImage(file, userEmail, newCity.getCityId(), "city");
+        ImageRespDto imageUrl = imageService.uploadImage(file, userEmail, newCity.getCityId(), "city");
 
-        return newCity;
+        return new CityRespDTO(newCity, imageUrl.getImageUrl());
     }
 
 }

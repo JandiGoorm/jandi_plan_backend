@@ -283,6 +283,7 @@ public class UserService {
         return user.getReported();
     }
 
+    //아직 게시물 탈퇴 등은 이루어지지 않음!
     public Boolean withdrawUser(String userEmail, Integer userId) {
         User admin = validationUtil.validateUserExists(userEmail);
         validationUtil.validateUserIsAdmin(admin);
