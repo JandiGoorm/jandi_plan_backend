@@ -52,21 +52,6 @@ public class PostController {
         return Map.of("items", communityService.getSpecPost(postId));
     }
 
-    /** 게시글 작성 API */
-    @PostMapping("/posts")
-    public ResponseEntity<?> writePost(
-            @RequestHeader("Authorization") String token, // 헤더의 Authorization에서 JWT 토큰 받기
-            @RequestBody CommunityReqDTO postDTO // JSON 형식으로 게시글 작성 정보 받기
-    ){
-        // Jwt 토큰으로부터 유저 이메일 추출
-        String jwtToken = token.replace("Bearer ", "");
-        String userEmail = jwtTokenProvider.getEmail(jwtToken);
-
-        // 게시글 저장 및 반환
-        CommunityRespDTO savedPost = communityService.writePost(postDTO, userEmail);
-        return ResponseEntity.ok(savedPost);
-    }
-
     /** 게시물 수정 API */
     @PatchMapping("/posts/{postId}")
     public ResponseEntity<?> updatePost(
@@ -141,5 +126,20 @@ public class PostController {
 
         ReportRespDTO reported = postService.reportPost(userEmail, postId, reportDTO);
         return ResponseEntity.ok(reported);
+    }
+
+    /**
+     * 최종 게시글 생성 API
+     */
+    @PostMapping("/posts")
+    public ResponseEntity<CommunityRespDTO> finalizePost(
+            @RequestHeader("Authorization") String token,
+            @RequestBody PostFinalizeReqDTO finalizeReqDTO
+    ) {
+        String jwtToken = token.replace("Bearer ", "");
+        String userEmail = jwtTokenProvider.getEmail(jwtToken);
+
+        CommunityRespDTO respDTO = postService.finalizePost(userEmail, finalizeReqDTO);
+        return ResponseEntity.ok(respDTO);
     }
 }

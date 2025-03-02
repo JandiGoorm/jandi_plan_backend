@@ -14,6 +14,7 @@ import com.jandi.plan_backend.image.service.ImageService;
 import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.util.ValidationUtil;
 import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
+import com.jandi.plan_backend.util.service.PaginationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -37,15 +38,22 @@ public class PostService {
     private final ImageRepository imageRepository;
     private final ReportedRepository reportedRepository;
     private final CommunityLikeRepository communityLikeRepository;
+    private final PaginationService paginationService;
 
-    // 생성자를 통해 필요한 의존성들을 주입받음.
+    // ↓↓↓ 추가: 임시 postId(음수) 관리를 위한 서비스
+    private final InMemoryTempPostService inMemoryTempPostService;
+
+    // 생성자 주입
     public PostService(
             CommunityRepository communityRepository,
-            ValidationUtil validationUtil, ImageService imageService,
+            ValidationUtil validationUtil,
+            ImageService imageService,
             CommentRepository commentRepository,
             ImageRepository imageRepository,
             ReportedRepository reportedRepository,
-            CommunityLikeRepository communityLikeRepository) {
+            CommunityLikeRepository communityLikeRepository, PaginationService paginationService,
+            InMemoryTempPostService inMemoryTempPostService  // ← 추가
+    ) {
         this.communityRepository = communityRepository;
         this.validationUtil = validationUtil;
         this.imageService = imageService;
@@ -53,6 +61,8 @@ public class PostService {
         this.imageRepository = imageRepository;
         this.reportedRepository = reportedRepository;
         this.communityLikeRepository = communityLikeRepository;
+        this.paginationService = paginationService;
+        this.inMemoryTempPostService = inMemoryTempPostService; // ← 필드 초기화
     }
 
     /** 특정 게시글 조회 */
@@ -101,6 +111,40 @@ public class PostService {
         return new CommunityRespDTO(community, imageService);
     }
 
+    /**
+     * 최종 게시글 생성 (임시 postId(음수) → 실제 postId)
+     */
+    public CommunityRespDTO finalizePost(String userEmail, PostFinalizeReqDTO reqDTO) {
+        // 1) 사용자 검증
+        User user = validationUtil.validateUserExists(userEmail);
+        validationUtil.validateUserRestricted(user);
+
+        // 2) 임시 postId 검증 (InMemoryTempPostService)
+        inMemoryTempPostService.validateTempId(reqDTO.getTempPostId(), user.getUserId());
+
+        // 3) 실제 게시글 생성
+        Community community = new Community();
+        community.setUser(user);
+        community.setTitle(reqDTO.getTitle());
+        community.setContents(reqDTO.getContent());
+        community.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
+        community.setLikeCount(0);
+        community.setCommentCount(0);
+        communityRepository.save(community);
+
+        int realPostId = community.getPostId();
+
+        // 4) 이미지 targetId 업데이트 (임시 → 실제)
+        // (예) imageService.updateTargetId("community", -1234567, realPostId);
+        imageService.updateTargetId("community", reqDTO.getTempPostId(), realPostId);
+
+        // 5) 임시 postId 제거
+        inMemoryTempPostService.removeTempId(reqDTO.getTempPostId());
+
+        // 6) 반환
+        return new CommunityRespDTO(community, imageService);
+    }
+
     /** 게시물 수정 */
     public CommunityRespDTO updatePost(CommunityReqDTO postDTO, Integer postId, String userEmail) {
         //게시글 검증
@@ -137,7 +181,7 @@ public class PostService {
 
         //연결된 이미지 모두 삭제
         imageRepository.findByTargetTypeAndTargetId("community", postId)
-            .ifPresent(image -> imageService.deleteImage(image.getImageId()));
+                .ifPresent(image -> imageService.deleteImage(image.getImageId()));
 
         // 게시물 삭제 및 삭제된 댓글 수 반환
         communityRepository.delete(post);
