@@ -130,6 +130,8 @@ public class CommentController {
         return ResponseEntity.ok(returnMsg);
     }
 
+
+    /** 댓글 좋아요 API */
     @PostMapping("/comments/likes/{commentId}")
     public ResponseEntity<?> likeComment(
             @PathVariable Integer commentId,
@@ -141,5 +143,19 @@ public class CommentController {
 
         commentService.likeComment(userEmail, commentId);
         return ResponseEntity.ok("좋아요 성공");
+    }
+
+    /** 댓글 좋아요 취소 API */
+    @DeleteMapping("/comments/likes/{commentId}")
+    public ResponseEntity<?> deleteLikeComment(
+            @PathVariable Integer commentId,
+            @RequestHeader("Authorization") String token // 헤더의 Authorization에서 JWT 토큰 받기
+    ){
+        // Jwt 토큰으로부터 유저 이메일 추출
+        String jwtToken = token.replace("Bearer ", "");
+        String userEmail = jwtTokenProvider.getEmail(jwtToken);
+
+        commentService.deleteLikeComment(userEmail, commentId);
+        return ResponseEntity.ok("좋아요 취소되었습니다.");
     }
 }

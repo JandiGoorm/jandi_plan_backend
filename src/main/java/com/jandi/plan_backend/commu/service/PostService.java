@@ -167,7 +167,6 @@ public class PostService {
         communityLike.setUser(user);
         communityLike.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
         communityLikeRepository.save(communityLike);
-        log.info("좋아요 추가 완료: {}", communityLike.getCommunity());
 
         // 게시물 좋아요 수 증가
         post.setLikeCount(post.getLikeCount() + 1);
