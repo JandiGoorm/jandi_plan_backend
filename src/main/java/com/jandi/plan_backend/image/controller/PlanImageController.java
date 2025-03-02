@@ -52,6 +52,29 @@ public class PlanImageController {
     }
 
     /**
+     * 공지사항 이미지 업로드 API.
+     * targetType은 "notice"로 고정되며, targetId는 공지글의 ID(임시 또는 실제)입니다.
+     */
+    @PostMapping("/notice")
+    public ResponseEntity<?> uploadNoticeImage(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("targetId") int targetId,
+            @AuthenticationPrincipal CustomUserDetails customUserDetails
+    ) {
+        if (customUserDetails == null) {
+            log.warn("인증되지 않은 사용자로부터 공지사항 이미지 업로드 시도");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("공지사항 이미지를 업로드하려면 로그인이 필요합니다.");
+        }
+        String ownerEmail = customUserDetails.getUsername();
+        log.info("사용자 '{}'가 공지사항 이미지 업로드 요청 (targetId: {})", ownerEmail, targetId);
+
+        // targetType="notice"
+        ImageRespDto responseDto = imageService.uploadImage(file, ownerEmail, targetId, "notice");
+        return ResponseEntity.ok(responseDto);
+    }
+
+    /**
      * 프로필 이미지 업로드 API.
      *
      * @param file 업로드할 프로필 이미지 파일

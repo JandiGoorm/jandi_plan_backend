@@ -1,17 +1,17 @@
-package com.jandi.plan_backend.commu.controller;
+package com.jandi.plan_backend.util.controller;
 
 import com.jandi.plan_backend.commu.dto.TempPostRespDTO;
-import com.jandi.plan_backend.commu.service.InMemoryTempPostService;
-import com.jandi.plan_backend.commu.util.TempPostIdGenerator;
+import com.jandi.plan_backend.util.TempPostIdGenerator;
+import com.jandi.plan_backend.util.ValidationUtil;
+import com.jandi.plan_backend.util.service.InMemoryTempPostService;
 import com.jandi.plan_backend.security.JwtTokenProvider;
 import com.jandi.plan_backend.user.entity.User;
-import com.jandi.plan_backend.util.ValidationUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/community/temp")
+@RequestMapping("/api/temp")
 @RequiredArgsConstructor
 public class TempPostController {
 
