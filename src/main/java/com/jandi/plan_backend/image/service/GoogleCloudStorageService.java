@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
@@ -63,21 +64,23 @@ public class GoogleCloudStorageService {
     }
 
     /**
-     * 지정된 파일명을 가진 파일을 GCS 버킷에서 삭제합니다.
-     *
-     * @param fileName 삭제할 파일명 (DB에 저장된 파일명)
-     * @return 삭제 성공 시 true, 실패 시 false
+     * 지정된 fileName(인코딩된 가능)을 디코딩하여 GCS 객체를 삭제.
      */
     public boolean deleteFile(String fileName) {
         try {
-            // BlobId 생성: bucketName과 fileName을 이용하여 GCS 객체를 식별
-            BlobId blobId = BlobId.of(bucketName, fileName);
-            // storage.delete()는 파일 삭제 성공 시 true를 반환
+            // DB에 인코딩된 형태로 저장된 파일명을 디코딩
+            String decodedFileName = URLDecoder.decode(fileName, StandardCharsets.UTF_8);
+            // 예: "0831bfc8-c9c8-452c-b8e3-854307f5a1bc_%EC%8A%A4..."
+            //  -> "0831bfc8-c9c8-452c-b8e3-854307f5a1bc_스크린샷 2025-01-06 095410.png"
+
+            log.info("디코딩된 파일명: {}", decodedFileName);
+
+            BlobId blobId = BlobId.of(bucketName, decodedFileName);
             boolean deleted = storage.delete(blobId);
             if (deleted) {
-                log.info("파일 삭제 성공: {}", fileName);
+                log.info("파일 삭제 성공: {}", decodedFileName);
             } else {
-                log.warn("파일 삭제 실패 (파일이 존재하지 않음?): {}", fileName);
+                log.warn("파일 삭제 실패 (파일이 존재하지 않음?): {}", decodedFileName);
             }
             return deleted;
         } catch (Exception e) {
