@@ -20,7 +20,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import com.jandi.plan_backend.util.service.PaginationService;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -38,7 +37,6 @@ public class PostService {
     private final ImageRepository imageRepository;
     private final ReportedRepository reportedRepository;
     private final CommunityLikeRepository communityLikeRepository;
-    private final PaginationService paginationService;
 
     // ↓↓↓ 추가: 임시 postId(음수) 관리를 위한 서비스
     private final InMemoryTempPostService inMemoryTempPostService;
@@ -51,7 +49,7 @@ public class PostService {
             CommentRepository commentRepository,
             ImageRepository imageRepository,
             ReportedRepository reportedRepository,
-            CommunityLikeRepository communityLikeRepository, PaginationService paginationService,
+            CommunityLikeRepository communityLikeRepository,
             InMemoryTempPostService inMemoryTempPostService  // ← 추가
     ) {
         this.communityRepository = communityRepository;
@@ -61,7 +59,6 @@ public class PostService {
         this.imageRepository = imageRepository;
         this.reportedRepository = reportedRepository;
         this.communityLikeRepository = communityLikeRepository;
-        this.paginationService = paginationService;
         this.inMemoryTempPostService = inMemoryTempPostService; // ← 필드 초기화
     }
 
