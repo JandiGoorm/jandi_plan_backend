@@ -1,5 +1,8 @@
 package com.jandi.plan_backend.user.controller;
 
+import com.jandi.plan_backend.user.dto.CityRespDTO;
+import com.jandi.plan_backend.user.dto.ContinentRespDTO;
+import com.jandi.plan_backend.user.dto.CountryRespDTO;
 import com.jandi.plan_backend.user.entity.Continent;
 import com.jandi.plan_backend.user.entity.Country;
 import com.jandi.plan_backend.user.entity.City;
@@ -35,7 +38,7 @@ public class ManageTripController {
         }
 
         String userEmail = userDetails.getUsername();
-        Continent newCountry = preferTripService.createNewContinent(userEmail, continentName, file);
+        ContinentRespDTO newCountry = preferTripService.createNewContinent(userEmail, continentName, file);
 
         return ResponseEntity.ok(newCountry);
     }
@@ -52,7 +55,7 @@ public class ManageTripController {
         }
 
         String userEmail = userDetails.getUsername();
-        Country newCountry = preferTripService.createNewCountry(userEmail, continentName, countryName);
+        CountryRespDTO newCountry = preferTripService.createNewCountry(userEmail, continentName, countryName);
 
         return ResponseEntity.ok(newCountry);
     }
@@ -64,16 +67,17 @@ public class ManageTripController {
             @RequestParam("country") String countryName,
             @RequestParam("city") String cityName,
             @RequestParam("description") String description,
-            @RequestParam("file") MultipartFile file
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("latitude") Double latitude,
+            @RequestParam("longitude") Double longitude
     ) {
         if(userDetails == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
         }
 
         String userEmail = userDetails.getUsername();
-        City newCity = preferTripService.createNewCity(
-                userEmail, countryName, cityName, description, file
-        );
+        CityRespDTO newCity = preferTripService.createNewCity(
+                userEmail, countryName, cityName, description, file, latitude, longitude);
 
         return ResponseEntity.ok(newCity);
     }
