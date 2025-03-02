@@ -15,11 +15,13 @@ public class Reported {
     private Integer reportId;
 
     @ManyToOne
-    @JoinColumn(name = "post_id", nullable = false)
+    @JoinColumn(name = "post_id", nullable = false,
+            foreignKey = @ForeignKey(name = "FK_REPORTED_COMMUNITY"))
     private Community community;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = false,
+            foreignKey = @ForeignKey(name = "FK_REPORTED_USER"))
     private User user;
 
     @Column(nullable = false)
