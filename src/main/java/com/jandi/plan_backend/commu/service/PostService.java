@@ -9,11 +9,13 @@ import com.jandi.plan_backend.commu.repository.CommentRepository;
 import com.jandi.plan_backend.commu.repository.CommunityLikeRepository;
 import com.jandi.plan_backend.commu.repository.CommunityRepository;
 import com.jandi.plan_backend.commu.repository.CommunityReportedRepository;
+import com.jandi.plan_backend.image.entity.Image;
 import com.jandi.plan_backend.image.repository.ImageRepository;
 import com.jandi.plan_backend.image.service.ImageService;
 import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.util.ValidationUtil;
 import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
+import com.jandi.plan_backend.util.service.InMemoryTempPostService;
 import com.jandi.plan_backend.util.service.PaginationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -163,27 +165,32 @@ public class PostService {
 
     /** 게시물 삭제 */
     public int deletePost(Integer postId, String userEmail) {
-        //게시글 검증
+        // 게시글 검증 및 유저 검증
         Community post = validationUtil.validatePostExists(postId);
 
         // 유저 검증
         User user = validationUtil.validateUserExists(userEmail);
         validationUtil.validateUserRestricted(user);
-        if(user.getUserId()!=1) validationUtil.validateUserIsAuthorOfPost(user, post);
+        if (user.getUserId() != 1) {
+            validationUtil.validateUserIsAuthorOfPost(user, post);
+        }
 
-        //하위 댓글 모두 삭제
+        // 하위 댓글 모두 삭제
         List<Comment> comments = commentRepository.findByCommunity(post);
         int commentsCount = comments.size();
         commentRepository.deleteAll(comments);
 
-        //연결된 이미지 모두 삭제
-        imageRepository.findByTargetTypeAndTargetId("community", postId)
-                .ifPresent(image -> imageService.deleteImage(image.getImageId()));
+        // 연결된 모든 이미지 삭제
+        List<Image> images = imageRepository.findAllByTargetTypeAndTargetId("community", postId);
+        for (Image image : images) {
+            imageService.deleteImage(image.getImageId());
+        }
 
-        // 게시물 삭제 및 삭제된 댓글 수 반환
+        // 게시글 삭제
         communityRepository.delete(post);
         return commentsCount;
     }
+
 
     /** 게시물 좋아요 */
     public void likePost(String userEmail, Integer postId) {
