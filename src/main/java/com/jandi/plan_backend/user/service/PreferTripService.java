@@ -2,17 +2,16 @@ package com.jandi.plan_backend.user.service;
 
 import com.google.api.client.util.Lists;
 import com.jandi.plan_backend.image.dto.ImageRespDto;
+import com.jandi.plan_backend.image.entity.Image;
 import com.jandi.plan_backend.image.service.ImageService;
 import com.jandi.plan_backend.user.dto.CityRespDTO;
 import com.jandi.plan_backend.user.dto.ContinentRespDTO;
 import com.jandi.plan_backend.user.dto.CountryRespDTO;
-import com.jandi.plan_backend.user.entity.Continent;
-import com.jandi.plan_backend.user.entity.Country;
-import com.jandi.plan_backend.user.entity.City;
-import com.jandi.plan_backend.user.entity.User;
+import com.jandi.plan_backend.user.entity.*;
 import com.jandi.plan_backend.user.repository.ContinentRepository;
 import com.jandi.plan_backend.user.repository.CountryRepository;
 import com.jandi.plan_backend.user.repository.CityRepository;
+import com.jandi.plan_backend.user.repository.UserCityPreferenceRepository;
 import com.jandi.plan_backend.util.ValidationUtil;
 import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +19,11 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -31,18 +34,20 @@ public class PreferTripService {
     private final CityRepository cityRepository;
     private final ValidationUtil validationUtil;
     private final ImageService imageService;
+    private final UserCityPreferenceRepository userCityPreferenceRepository;
     private final String urlPrefix = "https://storage.googleapis.com/plan-storage/";
 
-    public PreferTripService(ContinentRepository continentRepository, CountryRepository countryRepository, CityRepository cityRepository, ValidationUtil validationUtil, ImageService imageService) {
+    public PreferTripService(ContinentRepository continentRepository, CountryRepository countryRepository, CityRepository cityRepository, ValidationUtil validationUtil, ImageService imageService, UserCityPreferenceRepository userCityPreferenceRepository) {
         this.continentRepository = continentRepository;
         this.countryRepository = countryRepository;
         this.cityRepository = cityRepository;
         this.validationUtil = validationUtil;
         this.imageService = imageService;
+        this.userCityPreferenceRepository = userCityPreferenceRepository;
     }
 
-    /** 조회 관련 */
-    // 대륙 조회
+    /** 조회 및 필터링 관련 */
+    // 대륙 필터링 조회
     public List<ContinentRespDTO> getAllContinents(List<String> filter) {
         List<Continent> continents = (filter.isEmpty())
                 ? continentRepository.findAll()
@@ -60,7 +65,7 @@ public class PreferTripService {
                 .collect(Collectors.toList());
     }
 
-    // 국가 조회
+    // 국가 필터링 조회
     public List<CountryRespDTO> getAllCountries(String category, List<String> filter) {
         if(category == null) {
             throw new BadRequestExceptionMessage("카테고리는 필수로 입력되어야 합니다");
@@ -91,7 +96,7 @@ public class PreferTripService {
                 .collect(Collectors.toList());
     }
 
-    /** 도시 목록 조회 (필터가 없으면 전체, 필터가 있으면 부분 조회 예시) */
+    // 도시 필터링 조회 (필터가 없으면 전체, 필터가 있으면 부분 조회 예시)
     public List<CityRespDTO> getAllCities(String category, List<String> filter) {
         if(category == null) {
             throw new BadRequestExceptionMessage("카테고리는 필수로 입력되어야 합니다");
@@ -134,6 +139,7 @@ public class PreferTripService {
                 .collect(Collectors.toList());
     }
 
+    // 도시 정렬 조회 (좋아요 순 / 조회 순으로 N개 조회)
     public List<CityRespDTO> getRankedCities(String sort, Integer size) {
         // 정렬 기준 생성
         Sort standard = switch (sort) {
@@ -215,6 +221,7 @@ public class PreferTripService {
         return new CountryRespDTO(newCountry);
     }
 
+    // 도시 생성
     public CityRespDTO createNewCity(String userEmail, String countryName,
                               String cityName, String description, MultipartFile file,
                               Double latitude, Double longitude) {
@@ -247,4 +254,94 @@ public class PreferTripService {
         return new CityRespDTO(newCity, imageUrl.getImageUrl());
     }
 
+    /** 선호 도시 관련 CRUD */
+    // 선호 도시 조회
+    public List<CityRespDTO> getPreferCities(String userEmail) {
+        // 유저 검증
+        User user = validationUtil.validateUserExists(userEmail);
+
+        // 선호 도시 찾기
+        List<UserCityPreference> preferences = userCityPreferenceRepository.findByUser_UserId(user.getUserId());
+
+        // CityRespDTO 리스트로 만들어 반환
+        return preferences.stream()
+                .map(pref -> {
+                    City curCity = pref.getCity(); //도시
+                    String cityImageUrl = //이미지
+                            imageService.getImageByTarget("city", curCity.getCityId())
+                            .map(img -> urlPrefix + img.getImageUrl())
+                            .orElse(null);
+                    return new CityRespDTO(curCity, cityImageUrl);
+                })
+                .toList();
+    }
+
+    // 선호 도시 생성
+    public int addPreferCities(List<String> cities, String userEmail) {
+        // 유저 & 권한 검증
+        User user = validationUtil.validateUserExists(userEmail);
+
+        // 선택된 도시들을 선호 도시에 추가
+        int successCount = 0;
+        for (String cityName : cities) {
+            //예외 처리: 존재하지 않는 도시명이라면 건너뜀
+            City curCity = cityRepository.findByName(cityName).orElse(null);
+            if(curCity == null ){
+                log.info("도시 {}은/는 테이블에 없는 도시이므로 건너뜀", cityName);
+                continue;
+            }
+
+            //예외 처리: 이미 선호 도시로 등록되어 있다면 건너뜀
+            Optional<Object> preference = userCityPreferenceRepository.findByCityAndUser(curCity, user);
+            if(preference.isPresent()){
+                log.info("도시 {}은/는 이미 선호 도시로 등록되어 있으므로 건너뜀", cityName);
+                continue;
+            }
+
+            UserCityPreference userCityPreference = new UserCityPreference();
+            userCityPreference.setCity(curCity);
+            userCityPreference.setUser(user);
+            userCityPreference.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
+            userCityPreferenceRepository.save(userCityPreference);
+            log.info("도시 {}을/를 선호 도시로 등록 성공", cityName);
+            successCount++;
+        }
+        return successCount;
+    }
+
+    // 선호 도시 부분 혹은 전체 삭제
+    public int deletePreferCities(List<String> cities, String userEmail) {
+        User user = validationUtil.validateUserExists(userEmail);
+
+        //cities가 빈 객체일 경우 전체 삭제로 취급
+        if (cities.isEmpty()) {
+            List<UserCityPreference> preferences = userCityPreferenceRepository.findByUser_UserId(user.getUserId());
+            cities = preferences.stream()
+                    .map(pref -> pref.getCity().getName()) // City에서 도시 이름 추출
+                    .collect(Collectors.toList()); // List<String>으로 변환
+        }
+
+        // 선택된 도시들을 선호 도시에서 삭제
+        int successCount = 0;
+        for (String cityName : cities) {
+            //예외 처리: 존재하지 않는 도시명이라면 건너뜀
+            City curCity = cityRepository.findByName(cityName).orElse(null);
+            if(curCity == null ){
+                log.info("도시 {}은/는 테이블에 없는 도시이므로 건너뜀", cityName);
+                continue;
+            }
+
+            //예외 처리: 선호 도시가 아니라면 건너뜀
+            Optional<Object> preference = userCityPreferenceRepository.findByCityAndUser(curCity, user);
+            if(preference.isEmpty()){
+                log.info("도시 {}은/는 이미 선호 도시로 등록되어 있지 않으므로 건너뜀", cityName);
+                continue;
+            }
+
+            userCityPreferenceRepository.delete((UserCityPreference) preference.get());
+            log.info("도시 {}을/를 선호 도시에서 삭제 성공", cityName);
+            successCount++;
+        }
+        return successCount;
+    }
 }

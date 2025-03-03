@@ -1,27 +1,25 @@
 package com.jandi.plan_backend.commu.entity;
 
+import com.jandi.plan_backend.user.entity.User;
 import jakarta.persistence.*;
 import lombok.Data;
-import com.jandi.plan_backend.user.entity.User;
+
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "reported")
+@Table(name = "comment_reported")
 @Data
-public class Reported {
-
+public class CommentReported {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer reportId;
 
     @ManyToOne
-    @JoinColumn(name = "post_id", nullable = false,
-            foreignKey = @ForeignKey(name = "FK_REPORTED_COMMUNITY"))
-    private Community community;
+    @JoinColumn(name = "comment_id", nullable = false)
+    private Comment comment;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false,
-            foreignKey = @ForeignKey(name = "FK_REPORTED_USER"))
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @Column(nullable = false)

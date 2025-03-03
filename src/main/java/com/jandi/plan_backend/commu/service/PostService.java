@@ -4,11 +4,11 @@ import com.jandi.plan_backend.commu.dto.*;
 import com.jandi.plan_backend.commu.entity.Comment;
 import com.jandi.plan_backend.commu.entity.Community;
 import com.jandi.plan_backend.commu.entity.CommunityLike;
-import com.jandi.plan_backend.commu.entity.Reported;
+import com.jandi.plan_backend.commu.entity.CommunityReported;
 import com.jandi.plan_backend.commu.repository.CommentRepository;
 import com.jandi.plan_backend.commu.repository.CommunityLikeRepository;
 import com.jandi.plan_backend.commu.repository.CommunityRepository;
-import com.jandi.plan_backend.commu.repository.ReportedRepository;
+import com.jandi.plan_backend.commu.repository.CommunityReportedRepository;
 import com.jandi.plan_backend.image.entity.Image;
 import com.jandi.plan_backend.image.repository.ImageRepository;
 import com.jandi.plan_backend.image.service.ImageService;
@@ -38,7 +38,7 @@ public class PostService {
     private final ImageService imageService;
     private final CommentRepository commentRepository;
     private final ImageRepository imageRepository;
-    private final ReportedRepository reportedRepository;
+    private final CommunityReportedRepository communityReportedRepository;
     private final CommunityLikeRepository communityLikeRepository;
     private final InMemoryTempPostService inMemoryTempPostService;
 
@@ -48,7 +48,7 @@ public class PostService {
             ImageService imageService,
             CommentRepository commentRepository,
             ImageRepository imageRepository,
-            ReportedRepository reportedRepository,
+            CommunityReportedRepository communityReportedRepository,
             CommunityLikeRepository communityLikeRepository,
             InMemoryTempPostService inMemoryTempPostService
     ) {
@@ -57,7 +57,7 @@ public class PostService {
         this.imageService = imageService;
         this.commentRepository = commentRepository;
         this.imageRepository = imageRepository;
-        this.reportedRepository = reportedRepository;
+        this.communityReportedRepository = communityReportedRepository;
         this.communityLikeRepository = communityLikeRepository;
         this.inMemoryTempPostService = inMemoryTempPostService;
     }
@@ -129,6 +129,8 @@ public class PostService {
     /** 게시글 삭제 */
     public int deletePost(Integer postId, String userEmail) {
         Community post = validationUtil.validatePostExists(postId);
+
+        // 유저 검증
         User user = validationUtil.validateUserExists(userEmail);
         validationUtil.validateUserRestricted(user);
         if (user.getUserId() != 1) {
@@ -187,23 +189,26 @@ public class PostService {
     }
 
     /** 게시물 신고 */
-    public ReportRespDTO reportPost(String userEmail, Integer postId, ReportReqDTO reportDTO) {
+    public PostReportRespDTO reportPost(String userEmail, Integer postId, ReportReqDTO reportDTO) {
+        //게시글 검증
         Community post = validationUtil.validatePostExists(postId);
         User user = validationUtil.validateUserExists(userEmail);
         validationUtil.validateUserRestricted(user);
 
-        if(reportedRepository.findByUser_userIdAndCommunity_postId(user.getUserId(), postId).isPresent()){
+        // 중복 신고 방지
+        if(communityReportedRepository.findByUser_userIdAndCommunity_postId(user.getUserId(), postId).isPresent()){
             throw new BadRequestExceptionMessage("이미 신고한 게시글입니다.");
         }
 
-        Reported reported = new Reported();
-        reported.setUser(user);
-        reported.setCommunity(post);
-        reported.setContents(reportDTO.getContents());
-        reported.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
-        reportedRepository.save(reported);
+        // 게시물 신고 생성
+        CommunityReported communityReported = new CommunityReported();
+        communityReported.setUser(user);
+        communityReported.setCommunity(post);
+        communityReported.setContents(reportDTO.getContents());
+        communityReported.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
+        communityReportedRepository.save(communityReported);
 
-        return new ReportRespDTO(reported);
+        return new PostReportRespDTO(communityReported);
     }
 
     /**
