@@ -19,10 +19,12 @@ public class TripRespDTO {
     private final String countryName;
     private final Boolean privatePlan;
     private final String cityImageUrl;
+    private final Double latitude;
+    private final Double longitude;
 
     public TripRespDTO(UserTripDTO user, Integer tripId, String title, LocalDate startDate, LocalDate endDate,
                        Integer likeCount, Integer budget, Integer cityId, String cityName, String countryName,
-                       Boolean privatePlan, String cityImageUrl) {
+                       Boolean privatePlan, String cityImageUrl, Double latitude, Double longitude) {
         this.user = user;
         this.tripId = tripId;
         this.title = title;
@@ -35,6 +37,8 @@ public class TripRespDTO {
         this.countryName = countryName;
         this.privatePlan = privatePlan;
         this.cityImageUrl = cityImageUrl;
+        this.latitude = latitude;
+        this.longitude = longitude;
     }
 
     public TripRespDTO(User user, String userProfileUrl, Trip trip, String cityImageUrl) {
@@ -48,6 +52,8 @@ public class TripRespDTO {
         this.cityId = trip.getCity().getCityId();
         this.cityName = trip.getCity().getName();
         this.countryName = trip.getCity().getCountry().getName();
+        this.latitude = trip.getCity().getLatitude();
+        this.longitude = trip.getCity().getLongitude();
         this.privatePlan = trip.getPrivatePlan();
         this.cityImageUrl = cityImageUrl;
     }
