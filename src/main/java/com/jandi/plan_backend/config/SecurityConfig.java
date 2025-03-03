@@ -43,7 +43,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(List.of("*")); // 필요 시 구체적으로 설정
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true); // 쿠키 및 인증 정보 허용
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -69,14 +69,15 @@ public class SecurityConfig {
                 // 요청에 대한 접근 권한 설정
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(
-                                "/api/users/login", "/api/users/register", "/api/users/register/checkEmail","/api/users/register/checkName", "/api/users/forgot", "/api/users/verify",
+                                "/api/users/login", "/api/users/register", "/api/users/register/checkEmail",
+                                "/api/users/register/checkName", "/api/users/forgot", "/api/users/verify",
                                 "/api/users/token/refresh","/api/notice/lists",
-                                "api/community/posts", "api/community/posts/*",
-                                "api/community/comments", "api/community/comments/{postId}",
-                                "api/community/replies/{commentId}", "api/community/posts", 
+                                "api/community/posts", "api/community/posts/*", "api/community/comments",
+                                "api/community/comments/{postId}", "api/community/replies/{commentId}", "api/community/posts",
                                 "/api/images/**",
                                 "/api/banner/lists",
-                                "/api/trip/*", "api/trip/itinerary/*"
+                                "/api/trip/*",
+                                "api/trip/itinerary/*"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
