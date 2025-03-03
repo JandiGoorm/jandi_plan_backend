@@ -1,6 +1,7 @@
 package com.jandi.plan_backend.config;
 
 import com.jandi.plan_backend.security.CustomUserDetailsService;
+import com.jandi.plan_backend.security.JwtAuthenticationEntryPoint;
 import com.jandi.plan_backend.security.JwtAuthenticationFilter;
 import com.jandi.plan_backend.security.JwtTokenProvider;
 import org.springframework.context.annotation.Bean;
@@ -26,13 +27,16 @@ public class SecurityConfig {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final CustomUserDetailsService customUserDetailsService;
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+
 
     /**
      * 생성자 주입: JWT 토큰 생성/검증과 사용자 정보 로드를 위한 CustomUserDetailsService를 주입받습니다.
      */
-    public SecurityConfig(JwtTokenProvider jwtTokenProvider, CustomUserDetailsService customUserDetailsService) {
+    public SecurityConfig(JwtTokenProvider jwtTokenProvider, CustomUserDetailsService customUserDetailsService, JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint) {
         this.jwtTokenProvider = jwtTokenProvider;
         this.customUserDetailsService = customUserDetailsService;
+        this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
     }
 
     /**
@@ -43,7 +47,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(List.of("*")); // 필요 시 구체적으로 설정
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true); // 쿠키 및 인증 정보 허용
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -69,16 +73,32 @@ public class SecurityConfig {
                 // 요청에 대한 접근 권한 설정
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(
-                                "/api/users/login", "/api/users/register", "/api/users/register/checkEmail","/api/users/register/checkName", "/api/users/forgot", "/api/users/verify",
-                                "/api/users/token/refresh","/api/notice/lists",
-                                "api/community/posts", "api/community/posts/*",
-                                "api/community/comments", "api/community/comments/{postId}",
-                                "api/community/replies/{commentId}", "api/community/posts", 
+                                // user - login & register 관련
+                                "/api/users/login", "/api/users/register", "/api/users/register/checkEmail",
+                                "/api/users/register/checkName", "/api/users/forgot", "/api/users/verify",
+                                "/api/users/token/refresh",
+
+                                // community - post 관련
+                                "/api/community/posts", "/api/community/posts/{postId}",
+
+                                // community - comment 관련
+                                "/api/community/comments/{postId}", "/api/community/replies/{commentId}",
+
+                                // resource - notice & banner 관련
+                                "/api/banner/lists", "/api/notice/lists",
+
+                                // image 관련
                                 "/api/images/**",
-                                "/api/banner/lists",
-                                "/api/trip/*", "api/trip/itinerary/*"
+
+                                // trip 관련
+                                "/api/trip/*",
+                                "api/trip/itinerary/*"
                         ).permitAll()
                         .anyRequest().authenticated()
+                )
+                // 미인증 예외는 401 에러를 반환하도록 변경
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(jwtAuthenticationEntryPoint)
                 )
                 // JWT 인증 필터를 UsernamePasswordAuthenticationFilter 전에 추가
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, customUserDetailsService),
