@@ -83,7 +83,7 @@ public class JwtTokenProvider {
             return claims.getSubject();
         } catch (JwtException | IllegalArgumentException e) {
             log.error("토큰에서 이메일 추출 실패: {}", e.getMessage());
-            throw e;
+            return null; //예외를 그대로 반환하면 400 에러가 될 가능성이 크므로, null을 반환시켜 에러를 숨기고 인증을 진행하여 401 에러가 나도록 함
         }
     }
 

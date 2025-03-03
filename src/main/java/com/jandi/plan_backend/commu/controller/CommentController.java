@@ -4,6 +4,7 @@ import com.jandi.plan_backend.commu.dto.*;
 import com.jandi.plan_backend.commu.service.CommentService;
 import com.jandi.plan_backend.security.JwtTokenProvider;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -67,10 +68,12 @@ public class CommentController {
             @RequestHeader("Authorization") String token, // 헤더의 Authorization에서 JWT 토큰 받기
             @RequestBody CommentReqDTO commentDTO // JSON 형식으로 게시글 작성 정보 받기
     ){
-
         // Jwt 토큰으로부터 유저 이메일 추출
         String jwtToken = token.replace("Bearer ", "");
         String userEmail = jwtTokenProvider.getEmail(jwtToken);
+        if (userEmail == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
 
         // 댓글 저장 및 반환
         CommentRespDTO savedComment = commentService.writeComment(commentDTO, postId, userEmail);
@@ -84,10 +87,12 @@ public class CommentController {
             @RequestHeader("Authorization") String token, // 헤더의 Authorization에서 JWT 토큰 받기
             @RequestBody CommentReqDTO commentDTO // JSON 형식으로 게시글 작성 정보 받기
     ){
-
         // Jwt 토큰으로부터 유저 이메일 추출
         String jwtToken = token.replace("Bearer ", "");
         String userEmail = jwtTokenProvider.getEmail(jwtToken);
+        if (userEmail == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
 
         // 댓글 저장 및 반환
         CommentRespDTO savedComment = commentService.writeReplies(commentDTO, commentId, userEmail);
@@ -104,6 +109,9 @@ public class CommentController {
         // Jwt 토큰으로부터 유저 이메일 추출
         String jwtToken = token.replace("Bearer ", "");
         String userEmail = jwtTokenProvider.getEmail(jwtToken);
+        if (userEmail == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
 
         // 게시물 수정 및 반환
         CommentRespDTO updatedPost = commentService.updateComment(commentDTO, commentId, userEmail);
@@ -119,6 +127,9 @@ public class CommentController {
         // Jwt 토큰으로부터 유저 이메일 추출
         String jwtToken = token.replace("Bearer ", "");
         String userEmail = jwtTokenProvider.getEmail(jwtToken);
+        if (userEmail == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
 
         // 답글 삭제 및 반환
         int deletedRepliesCount = (commentService.deleteComments(userEmail, commentId));
