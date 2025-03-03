@@ -144,14 +144,18 @@ public class CommentService {
         validationUtil.validateUserRestricted(user);
         if(user.getUserId()!=1) validationUtil.validateUserIsAuthorOfComment(user, comment);
 
-        // 만약 댓글일 경우 하위 답글 모두 삭제
         int repliesCount = 0;
         if(comment.getParentComment() == null){
+            // 만약 댓글일 경우 하위 답글 모두 삭제
             List<Comment> replies = commentRepository.findByParentCommentCommentId(commentId);
             repliesCount = replies.size();
             commentRepository.deleteAll(replies);
+        }else{
+            // 삭제하는 게 답글인 경우 상위 댓글의 답글 수 반영
+            Comment parentComment = comment.getParentComment();
+            parentComment.setRepliesCount(parentComment.getRepliesCount() - 1);
+            commentRepository.save(parentComment);
         }
-
         // 게시글에 댓글 수 반영
         Community post = comment.getCommunity();
         post.setCommentCount(post.getCommentCount() - 1 - repliesCount);
