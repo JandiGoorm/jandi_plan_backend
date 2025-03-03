@@ -11,7 +11,6 @@ import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Integer> {
     Optional<User> findByUserId(Integer userId);
-
     /**
      * 주어진 이메일을 가진 User 엔티티를 Optional로 반환.
      * 이메일은 고유하다고 가정함.

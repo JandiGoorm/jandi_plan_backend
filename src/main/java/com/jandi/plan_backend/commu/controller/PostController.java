@@ -6,6 +6,8 @@ import com.jandi.plan_backend.security.JwtTokenProvider;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -45,9 +47,12 @@ public class PostController {
     /** 특정 게시물 조회 API */
     @GetMapping("/posts/{postId}")
     public Map<String, Object> getPosts(
-            @PathVariable Integer postId
+            @PathVariable Integer postId,
+            @AuthenticationPrincipal UserDetails userDetails
     ) {
-        return Map.of("items", communityService.getSpecPost(postId));
+        String userEmail = (userDetails != null) ? userDetails.getUsername() : null;
+
+        return Map.of("items", communityService.getSpecPost(postId, userEmail));
     }
 
     /** 게시물 수정 API */

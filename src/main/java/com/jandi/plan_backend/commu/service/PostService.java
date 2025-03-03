@@ -13,6 +13,7 @@ import com.jandi.plan_backend.image.entity.Image;
 import com.jandi.plan_backend.image.repository.ImageRepository;
 import com.jandi.plan_backend.image.service.ImageService;
 import com.jandi.plan_backend.user.entity.User;
+import com.jandi.plan_backend.user.repository.UserRepository;
 import com.jandi.plan_backend.util.ValidationUtil;
 import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
 import com.jandi.plan_backend.util.service.InMemoryTempPostService;
@@ -42,6 +43,7 @@ public class PostService {
 
     // ↓↓↓ 추가: 임시 postId(음수) 관리를 위한 서비스
     private final InMemoryTempPostService inMemoryTempPostService;
+    private final UserRepository userRepository;
 
     // 생성자 주입
     public PostService(
@@ -52,8 +54,8 @@ public class PostService {
             ImageRepository imageRepository,
             CommunityReportedRepository communityReportedRepository,
             CommunityLikeRepository communityLikeRepository,
-            InMemoryTempPostService inMemoryTempPostService  // ← 추가
-    ) {
+            InMemoryTempPostService inMemoryTempPostService,  // ← 추가
+            UserRepository userRepository) {
         this.communityRepository = communityRepository;
         this.validationUtil = validationUtil;
         this.imageService = imageService;
@@ -62,10 +64,11 @@ public class PostService {
         this.communityReportedRepository = communityReportedRepository;
         this.communityLikeRepository = communityLikeRepository;
         this.inMemoryTempPostService = inMemoryTempPostService; // ← 필드 초기화
+        this.userRepository = userRepository;
     }
 
     /** 특정 게시글 조회 */
-    public Optional<CommunityItemDTO> getSpecPost(Integer postId) {
+    public Optional<CommunityItemDTO> getSpecPost(Integer postId, String userEmail) {
         //게시글의 존재 여부 검증
         Community community = validationUtil.validatePostExists(postId);
 
@@ -73,9 +76,13 @@ public class PostService {
         community.setViewCount(community.getViewCount() + 1);
         communityRepository.save(community);
 
+        //게시글 좋아요 여부
+        User user = userRepository.findByEmail(userEmail).orElse(null);
+        boolean isLike = user != null && communityLikeRepository.findByCommunityAndUser(community, user).isPresent();
+
         //게시글 반환
         Optional<Community> post = communityRepository.findByPostId(postId);
-        return post.map(p -> new CommunityItemDTO(p, imageService)); // imageService 포함
+        return post.map(p -> new CommunityItemDTO(p, imageService, isLike)); // imageService 포함
     }
 
     /** 게시글 목록 전체 조회 */
