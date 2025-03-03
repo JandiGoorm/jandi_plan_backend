@@ -25,8 +25,9 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Slf4j
 @Service
@@ -39,11 +40,8 @@ public class PostService {
     private final ImageRepository imageRepository;
     private final CommunityReportedRepository communityReportedRepository;
     private final CommunityLikeRepository communityLikeRepository;
-
-    // ↓↓↓ 추가: 임시 postId(음수) 관리를 위한 서비스
     private final InMemoryTempPostService inMemoryTempPostService;
 
-    // 생성자 주입
     public PostService(
             CommunityRepository communityRepository,
             ValidationUtil validationUtil,
@@ -52,7 +50,7 @@ public class PostService {
             ImageRepository imageRepository,
             CommunityReportedRepository communityReportedRepository,
             CommunityLikeRepository communityLikeRepository,
-            InMemoryTempPostService inMemoryTempPostService  // ← 추가
+            InMemoryTempPostService inMemoryTempPostService
     ) {
         this.communityRepository = communityRepository;
         this.validationUtil = validationUtil;
@@ -61,67 +59,35 @@ public class PostService {
         this.imageRepository = imageRepository;
         this.communityReportedRepository = communityReportedRepository;
         this.communityLikeRepository = communityLikeRepository;
-        this.inMemoryTempPostService = inMemoryTempPostService; // ← 필드 초기화
+        this.inMemoryTempPostService = inMemoryTempPostService;
     }
 
     /** 특정 게시글 조회 */
     public Optional<CommunityItemDTO> getSpecPost(Integer postId) {
-        //게시글의 존재 여부 검증
         Community community = validationUtil.validatePostExists(postId);
-
-        //게시글 조회수 카운팅
         community.setViewCount(community.getViewCount() + 1);
         communityRepository.save(community);
-
-        //게시글 반환
         Optional<Community> post = communityRepository.findByPostId(postId);
-        return post.map(p -> new CommunityItemDTO(p, imageService)); // imageService 포함
+        return post.map(p -> new CommunityItemDTO(p, imageService));
     }
 
     /** 게시글 목록 전체 조회 */
     public Page<CommunityListDTO> getAllPosts(int page, int size) {
         long totalCount = communityRepository.count();
-
-        // postId 내림차순 정렬
         Sort sort = Sort.by(Sort.Direction.DESC, "postId");
-
         return PaginationService.getPagedData(page, size, totalCount,
                 (pageable) -> communityRepository.findAll(PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort)),
                 community -> new CommunityListDTO(community, imageService));
     }
 
-    /** 게시글 작성 */
-    public CommunityRespDTO writePost(CommunityReqDTO postDTO, String userEmail) {
-        // 유저 검증
-        User user = validationUtil.validateUserExists(userEmail);
-        validationUtil.validateUserRestricted(user);
-
-        // 게시글 생성
-        Community community = new Community();
-        community.setUser(user);
-        community.setTitle(postDTO.getTitle());
-        community.setContents(postDTO.getContent());
-        community.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
-        community.setLikeCount(0);
-        community.setCommentCount(0);
-
-        // DB 저장 및 반환
-        communityRepository.save(community);
-        return new CommunityRespDTO(community, imageService);
-    }
-
     /**
-     * 최종 게시글 생성 (임시 postId(음수) → 실제 postId)
+     * 최종 게시글 생성 (임시 postId(음수)를 실제 postId로 전환)
      */
     public CommunityRespDTO finalizePost(String userEmail, PostFinalizeReqDTO reqDTO) {
-        // 1) 사용자 검증
         User user = validationUtil.validateUserExists(userEmail);
         validationUtil.validateUserRestricted(user);
-
-        // 2) 임시 postId 검증 (InMemoryTempPostService)
         inMemoryTempPostService.validateTempId(reqDTO.getTempPostId(), user.getUserId());
 
-        // 3) 실제 게시글 생성
         Community community = new Community();
         community.setUser(user);
         community.setTitle(reqDTO.getTitle());
@@ -133,39 +99,35 @@ public class PostService {
 
         int realPostId = community.getPostId();
 
-        // 4) 이미지 targetId 업데이트 (임시 → 실제)
-        // (예) imageService.updateTargetId("community", -1234567, realPostId);
+        // 임시 postId를 실제 postId로 업데이트
         imageService.updateTargetId("community", reqDTO.getTempPostId(), realPostId);
-
-        // 5) 임시 postId 제거
         inMemoryTempPostService.removeTempId(reqDTO.getTempPostId());
 
-        // 6) 반환
+        // 최종 게시글 생성 후, 사용되지 않는 이미지 삭제
+        cleanupUnusedImages(community);
+
         return new CommunityRespDTO(community, imageService);
     }
 
-    /** 게시물 수정 */
+    /** 게시글 수정 */
     public CommunityRespDTO updatePost(CommunityReqDTO postDTO, Integer postId, String userEmail) {
-        //게시글 검증
         Community post = validationUtil.validatePostExists(postId);
-
-        // 유저 검증
         User user = validationUtil.validateUserExists(userEmail);
         validationUtil.validateUserRestricted(user);
         validationUtil.validateUserIsAuthorOfPost(user, post);
 
-        // 게시글 수정
         post.setTitle(postDTO.getTitle());
         post.setContents(postDTO.getContent());
-
-        // DB 저장 및 반환
         communityRepository.save(post);
+
+        // 게시글 수정 후, 사용되지 않는 이미지 삭제
+        cleanupUnusedImages(post);
+
         return new CommunityRespDTO(post, imageService);
     }
 
-    /** 게시물 삭제 */
+    /** 게시글 삭제 */
     public int deletePost(Integer postId, String userEmail) {
-        // 게시글 검증 및 유저 검증
         Community post = validationUtil.validatePostExists(postId);
 
         // 유저 검증
@@ -174,65 +136,51 @@ public class PostService {
         if (user.getUserId() != 1) {
             validationUtil.validateUserIsAuthorOfPost(user, post);
         }
-
-        // 하위 댓글 모두 삭제
         List<Comment> comments = commentRepository.findByCommunity(post);
         int commentsCount = comments.size();
         commentRepository.deleteAll(comments);
 
-        // 연결된 모든 이미지 삭제
+        // 게시글과 연결된 모든 이미지 삭제
         List<Image> images = imageRepository.findAllByTargetTypeAndTargetId("community", postId);
         for (Image image : images) {
             imageService.deleteImage(image.getImageId());
         }
 
-        // 게시글 삭제
         communityRepository.delete(post);
         return commentsCount;
     }
 
-
     /** 게시물 좋아요 */
     public void likePost(String userEmail, Integer postId) {
-        // 유저 검증
         User user = validationUtil.validateUserExists(userEmail);
         validationUtil.validateUserRestricted(user);
-
-        //게시글 검증
         Community post = validationUtil.validatePostExists(postId);
 
-        // 좋아요 검증
-        if(user.getUserId().equals(post.getUser().getUserId())){ // 셀프 좋아요 방지
+        if(user.getUserId().equals(post.getUser().getUserId())){
             throw new BadRequestExceptionMessage("본인의 게시글에 좋아요할 수 없습니다.");
         }
-        if(communityLikeRepository.findByCommunityAndUser(post, user).isPresent()){ // 중복 좋아요 방지
+        if(communityLikeRepository.findByCommunityAndUser(post, user).isPresent()){
             throw new BadRequestExceptionMessage("이미 좋아요한 게시물입니다.");
         }
 
-        // community_like에 반영
         CommunityLike communityLike = new CommunityLike();
         communityLike.setCommunity(post);
         communityLike.setUser(user);
         communityLike.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
         communityLikeRepository.save(communityLike);
 
-        // 게시물 좋아요 수 증가
         post.setLikeCount(post.getLikeCount() + 1);
         communityRepository.save(post);
     }
 
     /** 게시물 좋아요 취소 */
     public void deleteLikePost(String userEmail, Integer postId) {
-        // 유저 검증
         User user = validationUtil.validateUserExists(userEmail);
         validationUtil.validateUserRestricted(user);
-
-        //게시글 검증
         Community post = validationUtil.validatePostExists(postId);
 
-        //좋아요 검증
         Optional<CommunityLike> communityLike = communityLikeRepository.findByCommunityAndUser(post, user);
-        if(communityLike.isEmpty()){ // 좋아요되지 않은 게시물일 때
+        if(communityLike.isEmpty()){
             throw new BadRequestExceptionMessage("좋아요한 적 없는 게시물입니다.");
         }
         communityLikeRepository.delete(communityLike.get());
@@ -244,8 +192,6 @@ public class PostService {
     public PostReportRespDTO reportPost(String userEmail, Integer postId, ReportReqDTO reportDTO) {
         //게시글 검증
         Community post = validationUtil.validatePostExists(postId);
-
-        // 유저 검증
         User user = validationUtil.validateUserExists(userEmail);
         validationUtil.validateUserRestricted(user);
 
@@ -263,6 +209,33 @@ public class PostService {
         communityReportedRepository.save(communityReported);
 
         return new PostReportRespDTO(communityReported);
+    }
+
+    /**
+     * 게시글 내용에서 실제 사용 중인 이미지 파일명을 추출합니다.
+     * 예: "https://storage.googleapis.com/plan-storage/encodedFileName.jpg"에서 "encodedFileName.jpg" 추출
+     */
+    private Set<String> extractImageFileNamesFromContent(String content) {
+        Set<String> fileNames = new HashSet<>();
+        Pattern pattern = Pattern.compile("https://storage.googleapis.com/plan-storage/([^\"\\s]+)");
+        Matcher matcher = pattern.matcher(content);
+        while (matcher.find()) {
+            fileNames.add(matcher.group(1));
+        }
+        return fileNames;
+    }
+
+    /**
+     * 게시글과 연결된 이미지 중, 게시글 내용에 포함되지 않은 이미지를 삭제합니다.
+     */
+    private void cleanupUnusedImages(Community post) {
+        Set<String> usedFileNames = extractImageFileNamesFromContent(post.getContents());
+        List<Image> images = imageRepository.findAllByTargetTypeAndTargetId("community", post.getPostId());
+        for (Image image : images) {
+            if (!usedFileNames.contains(image.getImageUrl())) {
+                imageService.deleteImage(image.getImageId());
+            }
+        }
     }
 
 }
