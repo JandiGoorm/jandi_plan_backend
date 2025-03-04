@@ -312,4 +312,13 @@ public class TripService {
                 .orElse(null);
         return new TripRespDTO(trip.getUser(), userProfileUrl, trip, cityImageUrl);
     }
+
+    /**
+     * 현재 사용자(userEmail)가 특정 tripId 여행 계획의 작성자인지 확인
+     */
+    public boolean isOwnerOfTrip(String userEmail, int tripId) {
+        Trip trip = validationUtil.validateTripExists(tripId);
+        User user = validationUtil.validateUserExists(userEmail);
+        return trip.getUser().getUserId().equals(user.getUserId());
+    }
 }
