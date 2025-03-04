@@ -85,7 +85,6 @@ public class ManageTripController {
     @PatchMapping("/cities/{cityId}")
     public ResponseEntity<?> updateCity(
             @AuthenticationPrincipal UserDetails userDetails,
-            @RequestParam(value = "country", required = false) String countryName,
             @RequestParam(value = "city", required = false) String cityName,
             @RequestParam(value = "description", required = false) String description,
             @RequestParam(value = "file", required = false) MultipartFile file,

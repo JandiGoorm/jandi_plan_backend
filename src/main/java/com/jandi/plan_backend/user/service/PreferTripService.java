@@ -4,6 +4,7 @@ import com.google.api.client.util.Lists;
 import com.jandi.plan_backend.image.dto.ImageRespDto;
 import com.jandi.plan_backend.image.repository.ImageRepository;
 import com.jandi.plan_backend.image.service.ImageService;
+import com.jandi.plan_backend.trip.repository.TripRepository;
 import com.jandi.plan_backend.user.dto.CityRespDTO;
 import com.jandi.plan_backend.user.dto.ContinentRespDTO;
 import com.jandi.plan_backend.user.dto.CountryRespDTO;
@@ -36,8 +37,9 @@ public class PreferTripService {
     private final UserCityPreferenceRepository userCityPreferenceRepository;
     private final ImageRepository imageRepository;
     private final String urlPrefix = "https://storage.googleapis.com/plan-storage/";
+    private final TripRepository tripRepository;
 
-    public PreferTripService(ContinentRepository continentRepository, CountryRepository countryRepository, CityRepository cityRepository, ValidationUtil validationUtil, ImageService imageService, UserCityPreferenceRepository userCityPreferenceRepository, ImageRepository imageRepository) {
+    public PreferTripService(ContinentRepository continentRepository, CountryRepository countryRepository, CityRepository cityRepository, ValidationUtil validationUtil, ImageService imageService, UserCityPreferenceRepository userCityPreferenceRepository, ImageRepository imageRepository, TripRepository tripRepository) {
         this.continentRepository = continentRepository;
         this.countryRepository = countryRepository;
         this.cityRepository = cityRepository;
@@ -45,6 +47,7 @@ public class PreferTripService {
         this.imageService = imageService;
         this.userCityPreferenceRepository = userCityPreferenceRepository;
         this.imageRepository = imageRepository;
+        this.tripRepository = tripRepository;
     }
 
     /** 조회 및 필터링 관련 */
@@ -304,6 +307,14 @@ public class PreferTripService {
 
         // 도시 검증
         City city = validationUtil.validateCityExists(cityId);
+
+        // 삭제할 수 없는 경우 삭제 금지
+        if(userCityPreferenceRepository.existsByCity(city)){ // 1. 선호 도시로 등록된 경우
+            throw new BadRequestExceptionMessage(city.getName() + "을/를 선호 도시로 등록한 유저가 있어 삭제가 불가능합니다.");
+        }
+        else if(tripRepository.existsByCity(city)){ // 2. 여행 계획의 목적지로 등록된 경우
+            throw new BadRequestExceptionMessage(city.getName() + "을/를 목적지로 지정한 여행 계획이 있어 삭제가 불가능합니다.");
+        }
 
         // 이미지 삭제
         imageRepository.findByTargetTypeAndTargetId("city", cityId)
