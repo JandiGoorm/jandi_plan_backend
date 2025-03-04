@@ -99,4 +99,29 @@ public class PlanImageController {
         ImageRespDto responseDto = imageService.uploadImage(file, ownerEmail, userId, "profile");
         return ResponseEntity.ok(responseDto);
     }
+
+    /**
+     * 여행계획 이미지 업로드 API
+     * targetType="trip"
+     * targetId=양수 tripId (이미 생성된 여행 계획)
+     */
+    @PostMapping("/trip")
+    public ResponseEntity<?> uploadTripImage(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("targetId") int tripId,
+            @AuthenticationPrincipal CustomUserDetails customUserDetails
+    ) {
+        if (customUserDetails == null) {
+            log.warn("인증되지 않은 사용자로부터 여행계획 이미지 업로드 시도");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("여행계획 이미지를 업로드하려면 로그인이 필요합니다.");
+        }
+        String ownerEmail = customUserDetails.getUsername();
+        log.info("사용자 '{}'가 여행계획 이미지 업로드 요청 (tripId: {})", ownerEmail, tripId);
+
+        // targetType="trip"으로 이미지 업로드
+        ImageRespDto responseDto = imageService.uploadImage(file, ownerEmail, tripId, "trip");
+        return ResponseEntity.ok(responseDto);
+    }
+
 }

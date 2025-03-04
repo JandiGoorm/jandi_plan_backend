@@ -47,25 +47,6 @@ public class TripService {
         this.cityRepository = cityRepository;
     }
 
-    /** 여행 계획 목록 전체 조회 (공개 설정된 것만 조회) */
-    public Page<TripRespDTO> getAllTrips(int page, int size) {
-        long totalCount = tripRepository.countByPrivatePlan(false);
-
-        return PaginationService.getPagedData(page, size, totalCount,
-                pageable -> tripRepository.findByPrivatePlan(false, //공개인 것만 선택
-                        PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sortByCreate)), //최근 생성된 순
-                tripObj -> {
-                    Trip trip = (Trip) tripObj;
-                    String userProfileUrl = imageService.getImageByTarget("userProfile", trip.getUser().getUserId())
-                            .map(img -> urlPrefix + img.getImageUrl())
-                            .orElse(null);
-                    String cityImageUrl = imageService.getImageByTarget("city", trip.getCity().getCityId())
-                            .map(img -> urlPrefix + img.getImageUrl())
-                            .orElse(null);
-                    return new TripRespDTO(trip.getUser(), userProfileUrl, trip, cityImageUrl);
-                });
-    }
-
     /** 내 여행 계획 목록 전체 조회 (본인 명의의 계획만 조회) */
     public Page<MyTripRespDTO> getAllMyTrips(String userEmail, int page, int size) {
         User user = validationUtil.validateUserExists(userEmail);
@@ -107,48 +88,94 @@ public class TripService {
                 });
     }
 
-    /** 개별 여행 계획 조회
-     * 공개로 설정된 다른 유저의 여행 계획 + 공개/비공개 설정된 본인의 여행 계획만 조회 가능
-     * 조회 시, 연결된 도시의 searchCount가 1 증가합니다.
+    /** 전체 여행 계획 조회 (공개 플랜만) 예시 */
+    public Page<TripRespDTO> getAllTrips(int page, int size) {
+        long totalCount = tripRepository.countByPrivatePlan(false);
+
+        return PaginationService.getPagedData(page, size, totalCount,
+                pageable -> tripRepository.findByPrivatePlan(false,
+                        PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sortByCreate)),
+                tripObj -> {
+                    Trip trip = (Trip) tripObj;
+                    // 1) 작성자 프로필
+                    String userProfileUrl = imageService.getImageByTarget("userProfile", trip.getUser().getUserId())
+                            .map(img -> urlPrefix + img.getImageUrl())
+                            .orElse(null);
+
+                    // 2) 도시 이미지
+                    String cityImageUrl = imageService.getImageByTarget("city", trip.getCity().getCityId())
+                            .map(img -> urlPrefix + img.getImageUrl())
+                            .orElse(null);
+
+                    // 3) 여행계획 이미지 (사용자가 업로드한 경우)
+                    // 없으면 null
+                    String tripImageUrl = imageService.getImageByTarget("trip", trip.getTripId())
+                            .map(img -> urlPrefix + img.getImageUrl())
+                            .orElse(null);
+
+                    // 4) DTO 생성 (5개 인자)
+                    return new TripRespDTO(
+                            trip.getUser(),
+                            userProfileUrl,
+                            trip,
+                            cityImageUrl,
+                            tripImageUrl
+                    );
+                });
+    }
+
+    /**
+     * 개별 여행 계획 조회
+     * - 비공개 플랜이면 작성자만
+     * - 공개 플랜이면 누구나
      */
     public MyTripRespDTO getSpecTrips(String userEmail, Integer tripId) {
         Trip trip = validationUtil.validateTripExists(tripId);
 
-        // 1) 비공개 플랜인지 확인
+        // (A) 비공개 접근 권한 체크
         if (trip.getPrivatePlan()) {
-            // 1-1) 토큰이 없으면 에러
+            // 로그인 안 된 경우 → 에러
             if (userEmail == null) {
-                throw new BadRequestExceptionMessage("로그인 필요: 비공개 여행 계획에 접근할 수 없습니다.");
+                throw new BadRequestExceptionMessage("비공개 여행 계획: 로그인 필요");
             }
-            // 1-2) 로그인 사용자 검증
-            User user = validationUtil.validateUserExists(userEmail);
-            // 1-3) 여행 계획 소유자가 아니면 에러
-            if (!trip.getUser().getUserId().equals(user.getUserId())) {
-                throw new BadRequestExceptionMessage("접근 권한이 없습니다.");
+            // 사용자 검증
+            User currentUser = validationUtil.validateUserExists(userEmail);
+            // 작성자와 다른 유저 → 에러
+            if (!trip.getUser().getUserId().equals(currentUser.getUserId())) {
+                throw new BadRequestExceptionMessage("비공개 여행 계획: 접근 권한 없음");
             }
         }
-        // → 여기까지 통과하면,
-        //    - 공개 플랜이거나,
-        //    - 비공개 플랜이지만 소유자임이 확인됨.
+        // 공개 플랜이면 로그인 없이 접근 가능
 
-        // 2) 도시 검색 횟수 증가
+        // (B) 도시 검색 횟수 증가
         City city = trip.getCity();
         city.setSearchCount(city.getSearchCount() + 1);
         cityRepository.save(city);
 
-        // 3) 작성자 프로필 이미지 조회
+        // (C) 작성자 프로필
         String userProfileUrl = imageService.getImageByTarget("userProfile", trip.getUser().getUserId())
-                .map(Image::getImageUrl)
+                .map(img -> urlPrefix + img.getImageUrl())
                 .orElse(null);
+
+        // (D) 도시 이미지
         String cityImageUrl = imageService.getImageByTarget("city", city.getCityId())
                 .map(img -> urlPrefix + img.getImageUrl())
                 .orElse(null);
 
-        // 4) 작성자 정보: trip.getUser()
-        return new MyTripRespDTO(trip.getUser(), userProfileUrl, trip, cityImageUrl);
+        // (E) 여행계획 이미지 (사용자가 업로드했을 경우)
+        String tripImageUrl = imageService.getImageByTarget("trip", trip.getTripId())
+                .map(img -> urlPrefix + img.getImageUrl())
+                .orElse(null);
+
+        // (F) DTO 생성
+        return new MyTripRespDTO(
+                trip.getUser(),
+                userProfileUrl,
+                trip,
+                cityImageUrl,
+                tripImageUrl
+        );
     }
-
-
 
     /** 여행 계획 생성 (이미지 입력 제거됨) */
     public TripRespDTO writeTrip(String userEmail, String title, String startDate, String endDate,
