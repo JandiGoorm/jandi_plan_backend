@@ -81,7 +81,7 @@ public class PlanImageController {
     }
 
     /**
-     * 프로필 이미지 업로드 API.
+     * 프로필 이미지 업로드 API (수정/대체 방식)
      *
      * @param file 업로드할 프로필 이미지 파일
      * @param customUserDetails 인증된 사용자 정보 (CustomUserDetails)
@@ -95,13 +95,20 @@ public class PlanImageController {
         if (customUserDetails == null) {
             log.warn("인증되지 않은 사용자로부터 프로필 이미지 업로드 시도");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("프로필 이미지를 업로드하려면 로그인이 필요합니다.");
+                    .body(Collections.singletonMap("error", "프로필 이미지를 업로드하려면 로그인이 필요합니다."));
         }
         String ownerEmail = customUserDetails.getUsername();
         Integer userId = customUserDetails.getUserId();
 
         log.info("사용자 '{}' (ID: {})가 프로필 이미지 업로드 요청", ownerEmail, userId);
-        // targetType을 "profile"로 고정하여 이미지 업로드 처리
+
+        // 1) 기존 프로필 이미지 삭제 (이미 userId에 연결된 profile 이미지가 있으면 제거)
+        imageService.getImageByTarget("profile", userId).ifPresent(img -> {
+            log.info("기존 프로필 이미지(imageId={}) 삭제 후 새 이미지로 교체", img.getImageId());
+            imageService.deleteImage(img.getImageId());
+        });
+
+        // 2) 새 프로필 이미지 업로드
         ImageRespDto responseDto = imageService.uploadImage(file, ownerEmail, userId, "profile");
         return ResponseEntity.ok(responseDto);
     }
