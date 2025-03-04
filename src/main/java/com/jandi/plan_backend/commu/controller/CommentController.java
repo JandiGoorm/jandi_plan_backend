@@ -6,6 +6,8 @@ import com.jandi.plan_backend.security.JwtTokenProvider;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -26,9 +28,12 @@ public class CommentController {
     public Map<String, Object> getComments(
             @PathVariable Integer postId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "10") int size,
+            @AuthenticationPrincipal UserDetails userDetails
+
     ){
-        Page<ParentCommentDTO> parentCommentsPage = commentService.getAllComments(postId, page, size);
+        String userEmail = (userDetails != null) ? userDetails.getUsername() : null;
+        Page<ParentCommentDTO> parentCommentsPage = commentService.getAllComments(postId, page, size, userEmail);
 
         return Map.of(
                 "pageInfo", Map.of(
@@ -46,9 +51,12 @@ public class CommentController {
     public Map<String, Object> getReplies(
             @PathVariable Integer commentId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "10") int size,
+            @AuthenticationPrincipal UserDetails userDetails
+
     ){
-        Page<RepliesDTO> repliesPage = commentService.getAllReplies(commentId, page, size);
+        String userEmail = (userDetails != null) ? userDetails.getUsername() : null;
+        Page<RepliesDTO> repliesPage = commentService.getAllReplies(commentId, page, size, userEmail);
 
         return Map.of(
                 "pageInfo", Map.of(
