@@ -90,6 +90,19 @@ public class PreferTripController {
         return ResponseEntity.ok(successCount + "개의 도시가 선호 도시로 등록되었습니다");
     }
 
+    @PatchMapping("/cities/prefer")
+    public ResponseEntity<?> updatePreferCities(
+            @RequestBody PreferCityReqDTO reqDTO,
+            @RequestHeader("Authorization") String token
+    ) {
+        // Jwt 토큰으로부터 유저 이메일 추출
+        String jwtToken = token.replace("Bearer ", "");
+        String userEmail = jwtTokenProvider.getEmail(jwtToken);
+
+        int successCount = preferTripService.updatePreferCities(reqDTO.getCities(), userEmail);
+        return ResponseEntity.ok(successCount + "개의 도시가 선호 도시로 등록되었습니다");
+    }
+
     @DeleteMapping("/cities/prefer")
     public ResponseEntity<?> deletePreferCities(
             @RequestBody PreferCityReqDTO reqDTO,

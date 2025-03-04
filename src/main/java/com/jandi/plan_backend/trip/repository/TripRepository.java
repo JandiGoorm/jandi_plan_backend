@@ -1,6 +1,7 @@
 package com.jandi.plan_backend.trip.repository;
 
 import com.jandi.plan_backend.trip.entity.Trip;
+import com.jandi.plan_backend.user.entity.City;
 import com.jandi.plan_backend.user.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -24,4 +25,6 @@ public interface TripRepository extends JpaRepository<Trip, Long> {
 
     // 공개된 여행 계획 중 좋아요 수가 많은 상위 10개 조회
     List<Trip> findTop10ByPrivatePlanFalseOrderByLikeCountDesc();
+
+    boolean existsByCity(City city);
 }
