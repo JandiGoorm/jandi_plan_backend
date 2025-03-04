@@ -13,8 +13,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Collections;
 
-import static com.fasterxml.jackson.databind.type.LogicalType.Map;
-
 /**
  * 게시글 이미지 업로드 API를 제공하는 컨트롤러.
  * - 업로드: POST /api/images/upload/community
