@@ -22,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -378,6 +379,14 @@ public class PreferTripService {
             successCount++;
         }
         return successCount;
+    }
+
+    public int updatePreferCities(List<String> cities, String userEmail) {
+        // 기존에 저장된 모든 선호 도시 삭제
+        deletePreferCities(new ArrayList<>(), userEmail);
+
+        // 새로운 선호 도시로 저장
+        return addPreferCities(cities, userEmail);
     }
 
     // 선호 도시 부분 혹은 전체 삭제
