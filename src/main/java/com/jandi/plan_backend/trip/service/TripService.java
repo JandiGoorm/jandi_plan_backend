@@ -113,23 +113,42 @@ public class TripService {
      */
     public MyTripRespDTO getSpecTrips(String userEmail, Integer tripId) {
         Trip trip = validationUtil.validateTripExists(tripId);
-        User user = validationUtil.validateUserExists(userEmail);
-        if (!trip.getUser().getUserId().equals(user.getUserId()) && trip.getPrivatePlan()) {
-            throw new BadRequestExceptionMessage("접근 권한이 없습니다.");
+
+        // 1) 비공개 플랜인지 확인
+        if (trip.getPrivatePlan()) {
+            // 1-1) 토큰이 없으면 에러
+            if (userEmail == null) {
+                throw new BadRequestExceptionMessage("로그인 필요: 비공개 여행 계획에 접근할 수 없습니다.");
+            }
+            // 1-2) 로그인 사용자 검증
+            User user = validationUtil.validateUserExists(userEmail);
+            // 1-3) 여행 계획 소유자가 아니면 에러
+            if (!trip.getUser().getUserId().equals(user.getUserId())) {
+                throw new BadRequestExceptionMessage("접근 권한이 없습니다.");
+            }
         }
-        // 도시 검색 횟수 증가 처리
+        // → 여기까지 통과하면,
+        //    - 공개 플랜이거나,
+        //    - 비공개 플랜이지만 소유자임이 확인됨.
+
+        // 2) 도시 검색 횟수 증가
         City city = trip.getCity();
         city.setSearchCount(city.getSearchCount() + 1);
         cityRepository.save(city);
 
-        String userProfileUrl = imageService.getImageByTarget("userProfile", user.getUserId())
+        // 3) 작성자 프로필 이미지 조회
+        String userProfileUrl = imageService.getImageByTarget("userProfile", trip.getUser().getUserId())
                 .map(Image::getImageUrl)
                 .orElse(null);
         String cityImageUrl = imageService.getImageByTarget("city", city.getCityId())
                 .map(img -> urlPrefix + img.getImageUrl())
                 .orElse(null);
-        return new MyTripRespDTO(user, userProfileUrl, trip, cityImageUrl);
+
+        // 4) 작성자 정보: trip.getUser()
+        return new MyTripRespDTO(trip.getUser(), userProfileUrl, trip, cityImageUrl);
     }
+
+
 
     /** 여행 계획 생성 (이미지 입력 제거됨) */
     public TripRespDTO writeTrip(String userEmail, String title, String startDate, String endDate,
