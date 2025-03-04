@@ -81,4 +81,43 @@ public class ManageTripController {
 
         return ResponseEntity.ok(newCity);
     }
+
+    @PatchMapping("/cities/{cityId}")
+    public ResponseEntity<?> updateCity(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam(value = "country", required = false) String countryName,
+            @RequestParam(value = "city", required = false) String cityName,
+            @RequestParam(value = "description", required = false) String description,
+            @RequestParam(value = "file", required = false) MultipartFile file,
+            @RequestParam(value = "latitude", required = false) Double latitude,
+            @RequestParam(value = "longitude", required = false) Double longitude,
+            @PathVariable Integer cityId
+    ){
+        if(userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
+        }
+        String userEmail = userDetails.getUsername();
+
+        CityRespDTO newCity = preferTripService.updateCity(
+                userEmail, cityId, cityName, description, file, latitude, longitude);
+
+        return ResponseEntity.ok(newCity);
+    }
+
+    @DeleteMapping("/cities/{cityId}")
+    public ResponseEntity<?> deleteCity(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Integer cityId
+    ){
+        if(userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
+        }
+        String userEmail = userDetails.getUsername();
+
+        boolean isDeleted = preferTripService.deleteCity(userEmail, cityId);
+
+        return (isDeleted) ?
+                ResponseEntity.ok("도시가 삭제되었습니다.") :
+                ResponseEntity.badRequest().body("알 수 없는 오류가 발생했습니다. 다시 시도해주세요");
+    }
 }

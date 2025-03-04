@@ -2,7 +2,7 @@ package com.jandi.plan_backend.user.service;
 
 import com.google.api.client.util.Lists;
 import com.jandi.plan_backend.image.dto.ImageRespDto;
-import com.jandi.plan_backend.image.entity.Image;
+import com.jandi.plan_backend.image.repository.ImageRepository;
 import com.jandi.plan_backend.image.service.ImageService;
 import com.jandi.plan_backend.user.dto.CityRespDTO;
 import com.jandi.plan_backend.user.dto.ContinentRespDTO;
@@ -21,7 +21,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -35,15 +34,17 @@ public class PreferTripService {
     private final ValidationUtil validationUtil;
     private final ImageService imageService;
     private final UserCityPreferenceRepository userCityPreferenceRepository;
+    private final ImageRepository imageRepository;
     private final String urlPrefix = "https://storage.googleapis.com/plan-storage/";
 
-    public PreferTripService(ContinentRepository continentRepository, CountryRepository countryRepository, CityRepository cityRepository, ValidationUtil validationUtil, ImageService imageService, UserCityPreferenceRepository userCityPreferenceRepository) {
+    public PreferTripService(ContinentRepository continentRepository, CountryRepository countryRepository, CityRepository cityRepository, ValidationUtil validationUtil, ImageService imageService, UserCityPreferenceRepository userCityPreferenceRepository, ImageRepository imageRepository) {
         this.continentRepository = continentRepository;
         this.countryRepository = countryRepository;
         this.cityRepository = cityRepository;
         this.validationUtil = validationUtil;
         this.imageService = imageService;
         this.userCityPreferenceRepository = userCityPreferenceRepository;
+        this.imageRepository = imageRepository;
     }
 
     /** 조회 및 필터링 관련 */
@@ -252,6 +253,65 @@ public class PreferTripService {
         ImageRespDto imageUrl = imageService.uploadImage(file, userEmail, newCity.getCityId(), "city");
 
         return new CityRespDTO(newCity, imageUrl.getImageUrl());
+    }
+
+    /** 수정 관련 */
+    // 도시 수정
+    public CityRespDTO updateCity(String userEmail, Integer cityId, String cityName,
+                                  String description, MultipartFile file, Double latitude, Double longitude) {
+        // 유저 검증
+        User user = validationUtil.validateUserExists(userEmail);
+        validationUtil.validateUserIsAdmin(user);
+
+        // 도시 검증
+        City city = validationUtil.validateCityExists(cityId);
+
+        // 이미지 제외한 정보 저장
+        if(cityName != null && !cityName.isEmpty()) {city.setName(cityName);}
+        if(description != null && !description.isEmpty()) {city.setDescription(description);}
+        if(latitude != null && !latitude.isNaN()) {city.setLatitude(latitude);}
+        if(longitude != null && !longitude.isNaN()) {city.setLongitude(longitude);}
+        cityRepository.save(city);
+
+        // 대체될 이미지가 있다면 기존 이미지 삭제 후 신규 이미지로 치환
+        String imageUrl = null;
+        if(file != null && !file.isEmpty()) {
+            // 기존 이미지 삭제
+            imageRepository.findByTargetTypeAndTargetId("city", cityId)
+                    .ifPresent(img -> imageService.deleteImage(img.getImageId()));
+
+            // 새 이미지 업로드
+            ImageRespDto imageDto = imageService.uploadImage(file, user.getEmail(), cityId, "city");
+            imageUrl = imageDto.getImageUrl();
+
+            if(imageUrl == null) {
+                throw new BadRequestExceptionMessage("신규 이미지 저장에 실패했습니다.");
+            }
+        }
+        return new CityRespDTO(city, imageUrl);
+    }
+
+    /**
+     * 삭제 관련
+     *
+     * @return 존재 여부를 반환함으로써 잘 지워졌는지 확인
+     */
+    // 도시 삭제
+    public boolean deleteCity(String userEmail, Integer cityId) {
+        // 유저 검증
+        User user = validationUtil.validateUserExists(userEmail);
+        validationUtil.validateUserIsAdmin(user);
+
+        // 도시 검증
+        City city = validationUtil.validateCityExists(cityId);
+
+        // 이미지 삭제
+        imageRepository.findByTargetTypeAndTargetId("city", cityId)
+                        .ifPresent(img -> imageService.deleteImage(img.getImageId()));
+
+        // 도시 정보 삭제 및 삭제 결과 반환
+        cityRepository.delete(city);
+        return cityRepository.findById(cityId).isEmpty();
     }
 
     /** 선호 도시 관련 CRUD */
