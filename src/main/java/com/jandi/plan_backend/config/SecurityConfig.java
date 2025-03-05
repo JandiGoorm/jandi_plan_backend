@@ -79,7 +79,7 @@ public class SecurityConfig {
                                 "/api/users/token/refresh",
 
                                 // community - post 관련
-                                "/api/community/posts", "/api/community/posts/{postId}",
+                                "/api/community/posts", "/api/community/posts/{postId}", "/api/community/search",
 
                                 // community - comment 관련
                                 "/api/community/comments/{postId}", "/api/community/replies/{commentId}",

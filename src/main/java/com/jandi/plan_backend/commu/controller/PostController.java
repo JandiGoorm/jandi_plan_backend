@@ -149,4 +149,24 @@ public class PostController {
         CommunityRespDTO respDTO = postService.finalizePost(userEmail, finalizeReqDTO);
         return ResponseEntity.ok(respDTO);
     }
+
+    /** 게시물 검색 */
+    @GetMapping("/search")
+    public Map<String, Object> search(
+            @RequestParam(value = "category", required = false, defaultValue = "BOTH") String category,
+            @RequestParam(value = "keyword", required = false) String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ){
+        Page<CommunityListDTO> postsPage = communityService.search(category, keyword, page, size);
+        return Map.of(
+                "pageInfo", Map.of(
+                        "currentPage", postsPage.getNumber(),
+                        "currentSize", postsPage.getContent().size(),
+                        "totalPages", postsPage.getTotalPages(),
+                        "totalSize", postsPage.getTotalElements()
+                ),
+                "items", postsPage.getContent()
+        );
+    }
 }
