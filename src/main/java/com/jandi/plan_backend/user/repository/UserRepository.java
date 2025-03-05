@@ -50,4 +50,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     // 부적절 유저 조회용
     Integer countByReportedIsTrue();
     Page<User> findByReportedIsTrue(Pageable pageable);
+
+    // 지난 7일간 신규 가입된 유저 수 반환
+    long countByCreatedAtBetween(LocalDateTime today, LocalDateTime last7Days);
 }

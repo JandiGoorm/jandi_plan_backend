@@ -3,10 +3,7 @@ package com.jandi.plan_backend.user.controller;
 import com.jandi.plan_backend.user.dto.CityRespDTO;
 import com.jandi.plan_backend.user.dto.ContinentRespDTO;
 import com.jandi.plan_backend.user.dto.CountryRespDTO;
-import com.jandi.plan_backend.user.entity.Continent;
-import com.jandi.plan_backend.user.entity.Country;
-import com.jandi.plan_backend.user.entity.City;
-import com.jandi.plan_backend.user.service.PreferTripService;
+import com.jandi.plan_backend.user.service.ManageTripService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,10 +17,10 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/api/manage/trip")
 public class ManageTripController {
 
-    private final PreferTripService preferTripService;
-
-    public ManageTripController(PreferTripService preferTripService) {
-        this.preferTripService = preferTripService;}
+    private final ManageTripService manageTripService;
+    public ManageTripController(ManageTripService manageTripService) {
+        this.manageTripService = manageTripService;
+    }
 
     /** 업로드 */
     // 여행 대륙 업로드
@@ -38,7 +35,7 @@ public class ManageTripController {
         }
 
         String userEmail = userDetails.getUsername();
-        ContinentRespDTO newCountry = preferTripService.createNewContinent(userEmail, continentName, file);
+        ContinentRespDTO newCountry = manageTripService.createNewContinent(userEmail, continentName, file);
 
         return ResponseEntity.ok(newCountry);
     }
@@ -55,7 +52,7 @@ public class ManageTripController {
         }
 
         String userEmail = userDetails.getUsername();
-        CountryRespDTO newCountry = preferTripService.createNewCountry(userEmail, continentName, countryName);
+        CountryRespDTO newCountry = manageTripService.createNewCountry(userEmail, continentName, countryName);
 
         return ResponseEntity.ok(newCountry);
     }
@@ -76,7 +73,7 @@ public class ManageTripController {
         }
 
         String userEmail = userDetails.getUsername();
-        CityRespDTO newCity = preferTripService.createNewCity(
+        CityRespDTO newCity = manageTripService.createNewCity(
                 userEmail, countryName, cityName, description, file, latitude, longitude);
 
         return ResponseEntity.ok(newCity);
@@ -97,7 +94,7 @@ public class ManageTripController {
         }
         String userEmail = userDetails.getUsername();
 
-        CityRespDTO newCity = preferTripService.updateCity(
+        CityRespDTO newCity = manageTripService.updateCity(
                 userEmail, cityId, cityName, description, file, latitude, longitude);
 
         return ResponseEntity.ok(newCity);
@@ -113,7 +110,7 @@ public class ManageTripController {
         }
         String userEmail = userDetails.getUsername();
 
-        boolean isDeleted = preferTripService.deleteCity(userEmail, cityId);
+        boolean isDeleted = manageTripService.deleteCity(userEmail, cityId);
 
         return (isDeleted) ?
                 ResponseEntity.ok("도시가 삭제되었습니다.") :

@@ -2,7 +2,7 @@ package com.jandi.plan_backend.user.controller;
 
 import com.jandi.plan_backend.commu.dto.UserListDTO;
 import com.jandi.plan_backend.security.JwtTokenProvider;
-import com.jandi.plan_backend.user.service.UserService;
+import com.jandi.plan_backend.user.service.ManageUserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -14,11 +14,11 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/manage/user")
 public class ManageUserController {
-    private final UserService userService;
+    private final ManageUserService manageUserService;
     private final JwtTokenProvider jwtTokenProvider;
 
-    public ManageUserController(UserService userService, JwtTokenProvider jwtTokenProvider) {
-        this.userService = userService;
+    public ManageUserController(ManageUserService manageUserService, JwtTokenProvider jwtTokenProvider) {
+        this.manageUserService = manageUserService;
         this.jwtTokenProvider = jwtTokenProvider;
     }
 
@@ -33,7 +33,7 @@ public class ManageUserController {
         String jwtToken = token.replace("Bearer ", "");
         String userEmail = jwtTokenProvider.getEmail(jwtToken);
 
-        Page<UserListDTO> userPage = userService.getAllUsers(userEmail, page, size);
+        Page<UserListDTO> userPage = manageUserService.getAllUsers(userEmail, page, size);
 
         return Map.of(
                 "pageInfo", Map.of(
@@ -57,7 +57,7 @@ public class ManageUserController {
         String jwtToken = token.replace("Bearer ", "");
         String userEmail = jwtTokenProvider.getEmail(jwtToken);
 
-        Page<UserListDTO> userPage = userService.getRestrictedUsers(userEmail, page, size);
+        Page<UserListDTO> userPage = manageUserService.getRestrictedUsers(userEmail, page, size);
 
         return Map.of(
                 "pageInfo", Map.of(
@@ -81,7 +81,7 @@ public class ManageUserController {
         String jwtToken = token.replace("Bearer ", "");
         String userEmail = jwtTokenProvider.getEmail(jwtToken);
 
-        Boolean isReported = userService.permitUser(userEmail, userId);
+        Boolean isReported = manageUserService.permitUser(userEmail, userId);
         return ResponseEntity.ok((isReported) ?
                 "제한되었습니다" : "제한 해제되었습니다");
     }
@@ -97,7 +97,7 @@ public class ManageUserController {
         String jwtToken = token.replace("Bearer ", "");
         String userEmail = jwtTokenProvider.getEmail(jwtToken);
 
-        Boolean isWithdraw = userService.withdrawUser(userEmail, userId);
+        Boolean isWithdraw = manageUserService.withdrawUser(userEmail, userId);
         return ResponseEntity.ok((isWithdraw) ?
                 "탈퇴되었습니다" : "탈퇴에 문제가 발생했습니다");
     }

@@ -20,6 +20,7 @@ import com.jandi.plan_backend.util.service.InMemoryTempPostService;
 import com.jandi.plan_backend.util.service.PaginationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -250,4 +251,42 @@ public class PostService {
         }
     }
 
+    public Page<CommunityListDTO> search(String category, String keyword, int page, int size) {
+        //category 예외 처리
+        if(category == null || category.isEmpty()) {
+            throw new BadRequestExceptionMessage("카테고리를 입력하세요");
+        }
+
+        //keyword 예외 처리
+        if(keyword == null || keyword.isEmpty()){
+            throw new BadRequestExceptionMessage("검색어를 입력하세요.");
+        }else if(keyword.trim().length() < 4){
+            throw new BadRequestExceptionMessage("검색어는 4글자 이상이어야 합니다");
+        }
+
+        // 검색
+        List<Community> searchList = switch (category) {
+            case "TITLE" -> // 제목 검색
+                communityRepository.searchAllByTitleContaining(keyword);
+            case "CONTENT" -> // 내용 검색
+                communityRepository.searchAllByContentsContaining(keyword);
+            case "BOTH" -> // 제목 + 내용 검색
+                communityRepository.searchByTitleAndContents(keyword);
+            default ->
+                throw new IllegalStateException("카테고리 지정이 잘못되었습니다: " + category);
+        };
+        searchList.sort(Comparator.comparing(Community::getCreatedAt).reversed()); // 최근 순으로 정렬
+        long totalCount = searchList.size();
+
+        return PaginationService.getPagedData(
+                page, size, totalCount,
+                (pageable) -> {
+                    int start = (int) pageable.getOffset();
+                    int end = Math.min(start + pageable.getPageSize(), searchList.size());
+                    List<Community> pagedList = searchList.subList(start, end);
+                    return new PageImpl<>(pagedList, pageable, totalCount);
+                },
+                community -> new CommunityListDTO(community, imageService)
+        );
+    }
 }
