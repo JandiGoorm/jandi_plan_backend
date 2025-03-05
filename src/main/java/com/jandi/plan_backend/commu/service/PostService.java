@@ -275,7 +275,7 @@ public class PostService {
             default ->
                 throw new IllegalStateException("카테고리 지정이 잘못되었습니다: " + category);
         };
-        searchList.sort(Comparator.comparing(Community::getCreatedAt).reversed()); // 최근 순으로 정렬
+        searchList.sort(Comparator.comparing(Community::getPostId).reversed()); // postId 내림차순으로 정렬
         long totalCount = searchList.size();
 
         return PaginationService.getPagedData(
