@@ -36,19 +36,22 @@ public class PreferTripService {
     private final ValidationUtil validationUtil;
     private final ImageService imageService;
     private final UserCityPreferenceRepository userCityPreferenceRepository;
-    private final ImageRepository imageRepository;
     private final String urlPrefix = "https://storage.googleapis.com/plan-storage/";
-    private final TripRepository tripRepository;
 
-    public PreferTripService(ContinentRepository continentRepository, CountryRepository countryRepository, CityRepository cityRepository, ValidationUtil validationUtil, ImageService imageService, UserCityPreferenceRepository userCityPreferenceRepository, ImageRepository imageRepository, TripRepository tripRepository) {
+    public PreferTripService(
+            ContinentRepository continentRepository,
+            CountryRepository countryRepository,
+            CityRepository cityRepository,
+            ValidationUtil validationUtil,
+            ImageService imageService,
+            UserCityPreferenceRepository userCityPreferenceRepository
+    ) {
         this.continentRepository = continentRepository;
         this.countryRepository = countryRepository;
         this.cityRepository = cityRepository;
         this.validationUtil = validationUtil;
         this.imageService = imageService;
         this.userCityPreferenceRepository = userCityPreferenceRepository;
-        this.imageRepository = imageRepository;
-        this.tripRepository = tripRepository;
     }
 
     /** 조회 및 필터링 관련 */
@@ -176,154 +179,6 @@ public class PreferTripService {
                     return new CityRespDTO(city, cityImageUrl);
                 })
                 .collect(Collectors.toList());
-    }
-
-    /** 생성 관련 */
-    //대륙 생성: 디버깅용, 실제 서비스 중엔 대륙이 추가될 것 같지 않음!
-    public ContinentRespDTO createNewContinent(String userEmail, String continentName, MultipartFile file) {
-        // 유저 & 권한 검증
-        User user = validationUtil.validateUserExists(userEmail);
-        validationUtil.validateUserIsAdmin(user);
-
-        // 중복 검증
-        if (continentRepository.findByName(continentName).isPresent()) {
-            throw new BadRequestExceptionMessage("이미 존재하는 대륙입니다.");
-        }
-
-        // 엔티티 생성
-        Continent continent = new Continent();
-        continent.setName(continentName);
-        continentRepository.save(continent);
-
-        // 이미지 업로드 (Image 테이블에 저장)
-        // targetType="continent", targetId=continentId
-        imageService.uploadImage(file, userEmail, continent.getContinentId(), "continent");
-
-        return new ContinentRespDTO(continent);
-    }
-
-    //국가 생성
-    public CountryRespDTO createNewCountry(
-            String userEmail, String continentName, String countryName) {
-        //유저 검증
-        User user = validationUtil.validateUserExists(userEmail);
-        validationUtil.validateUserIsAdmin(user);
-
-        //대륙 검증
-        Continent continent = validationUtil.validateContinentExists(continentName);
-
-        //국가 검증: 이미 존재한다면 추가 생성하지 않음
-        if (countryRepository.findByName(countryName).isPresent()) {
-            throw new BadRequestExceptionMessage("이미 존재하는 국가입니다.");
-        }
-
-        //국가 생성
-        Country newCountry = new Country();
-        newCountry.setName(countryName);
-        newCountry.setContinent(continent);
-        countryRepository.save(newCountry);
-
-        return new CountryRespDTO(newCountry);
-    }
-
-    // 도시 생성
-    public CityRespDTO createNewCity(String userEmail, String countryName,
-                              String cityName, String description, MultipartFile file,
-                              Double latitude, Double longitude) {
-        // 유저 & 권한 검증
-        User user = validationUtil.validateUserExists(userEmail);
-        validationUtil.validateUserIsAdmin(user);
-
-        // 국가 검증
-        Country country = validationUtil.validateCountryExists(countryName);
-
-        // 도시 중복 검증
-        if (cityRepository.findByName(cityName).isPresent()) {
-            throw new BadRequestExceptionMessage("이미 존재하는 도시입니다.");
-        }
-
-        // 엔티티 생성
-        City newCity = new City();
-        newCity.setName(cityName);
-        newCity.setCountry(country);
-        newCity.setContinent(country.getContinent());
-        newCity.setDescription(description);
-        newCity.setLatitude(latitude);
-        newCity.setLongitude(longitude);
-        cityRepository.save(newCity);
-
-        // 이미지 업로드 (Image 테이블에 저장)
-        // targetType="city", targetId=cityId
-        ImageRespDto imageUrl = imageService.uploadImage(file, userEmail, newCity.getCityId(), "city");
-
-        return new CityRespDTO(newCity, imageUrl.getImageUrl());
-    }
-
-    /** 수정 관련 */
-    // 도시 수정
-    public CityRespDTO updateCity(String userEmail, Integer cityId, String cityName,
-                                  String description, MultipartFile file, Double latitude, Double longitude) {
-        // 유저 검증
-        User user = validationUtil.validateUserExists(userEmail);
-        validationUtil.validateUserIsAdmin(user);
-
-        // 도시 검증
-        City city = validationUtil.validateCityExists(cityId);
-
-        // 이미지 제외한 정보 저장
-        if(cityName != null && !cityName.isEmpty()) {city.setName(cityName);}
-        if(description != null && !description.isEmpty()) {city.setDescription(description);}
-        if(latitude != null && !latitude.isNaN()) {city.setLatitude(latitude);}
-        if(longitude != null && !longitude.isNaN()) {city.setLongitude(longitude);}
-        cityRepository.save(city);
-
-        // 대체될 이미지가 있다면 기존 이미지 삭제 후 신규 이미지로 치환
-        String imageUrl = null;
-        if(file != null && !file.isEmpty()) {
-            // 기존 이미지 삭제
-            imageRepository.findByTargetTypeAndTargetId("city", cityId)
-                    .ifPresent(img -> imageService.deleteImage(img.getImageId()));
-
-            // 새 이미지 업로드
-            ImageRespDto imageDto = imageService.uploadImage(file, user.getEmail(), cityId, "city");
-            imageUrl = imageDto.getImageUrl();
-
-            if(imageUrl == null) {
-                throw new BadRequestExceptionMessage("신규 이미지 저장에 실패했습니다.");
-            }
-        }
-        return new CityRespDTO(city, imageUrl);
-    }
-
-    /**
-     * 삭제 관련
-     *
-     * @return 존재 여부를 반환함으로써 잘 지워졌는지 확인
-     */
-    // 도시 삭제
-    public boolean deleteCity(String userEmail, Integer cityId) {
-        // 유저 검증
-        User user = validationUtil.validateUserExists(userEmail);
-        validationUtil.validateUserIsAdmin(user);
-
-        // 도시 검증
-        City city = validationUtil.validateCityExists(cityId);
-
-        // 삭제할 수 없는 경우 삭제 금지
-        if(userCityPreferenceRepository.existsByCity(city)){ // 1. 선호 도시로 등록된 경우
-            throw new BadRequestExceptionMessage(city.getName() + "을/를 선호 도시로 등록한 유저가 있어 삭제가 불가능합니다.");
-        }
-        else if(tripRepository.existsByCity(city)){ // 2. 여행 계획의 목적지로 등록된 경우
-            throw new BadRequestExceptionMessage(city.getName() + "을/를 목적지로 지정한 여행 계획이 있어 삭제가 불가능합니다.");
-        }
-
-        // 이미지 삭제
-        imageRepository.findByTargetTypeAndTargetId("city", cityId)
-                        .ifPresent(img -> imageService.deleteImage(img.getImageId()));
-
-        // 도시 정보 삭제 및 삭제 결과 반환
-        cityRepository.delete(city);
-        return cityRepository.findById(cityId).isEmpty();
     }
 
     /** 선호 도시 관련 CRUD */
