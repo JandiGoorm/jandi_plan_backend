@@ -12,11 +12,8 @@ import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.user.repository.UserRepository;
 import com.jandi.plan_backend.security.JwtTokenProvider;
 import com.jandi.plan_backend.util.ValidationUtil;
-import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
-import com.jandi.plan_backend.util.service.PaginationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,7 +37,6 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final ImageService imageService;
-    private final ValidationUtil validationUtil;
 
     @Value("${app.verify.url}")
     private String verifyUrl;
@@ -55,7 +51,6 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
         this.imageService = imageService;
-        this.validationUtil = validationUtil;
     }
 
     public User registerUser(UserRegisterDTO dto) {

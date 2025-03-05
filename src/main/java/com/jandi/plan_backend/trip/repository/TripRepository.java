@@ -11,7 +11,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface TripRepository extends JpaRepository<Trip, Long> {
-
     // 유저가 작성한 여행 계획의 수 반환
     long countByUser(User user);
 
@@ -28,9 +27,4 @@ public interface TripRepository extends JpaRepository<Trip, Long> {
     List<Trip> findTop10ByPrivatePlanFalseOrderByLikeCountDesc();
 
     boolean existsByCity(City city);
-
-    // 지난 7일간 생성된 여행 계획의 수 반환
-    long countByCreatedAtBetween(LocalDateTime last7Days, LocalDateTime today);
-
-    List<Trip> findByCreatedAtBetween(LocalDateTime last7Days, LocalDateTime today);
 }

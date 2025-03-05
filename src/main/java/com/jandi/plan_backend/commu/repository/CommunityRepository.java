@@ -13,8 +13,6 @@ import java.util.Optional;
 @Repository
 public interface CommunityRepository extends JpaRepository<Community, Integer> {
     Optional<Community> findByPostId(Integer postId);
-    // 지난 7일간 생성된 게시글의 수 반환
-    long countByCreatedAtBetween(LocalDateTime last7Days, LocalDateTime today);
 
     /** 검사 */
     // 제목

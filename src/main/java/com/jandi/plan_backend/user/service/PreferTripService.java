@@ -1,10 +1,7 @@
 package com.jandi.plan_backend.user.service;
 
 import com.google.api.client.util.Lists;
-import com.jandi.plan_backend.image.dto.ImageRespDto;
-import com.jandi.plan_backend.image.repository.ImageRepository;
 import com.jandi.plan_backend.image.service.ImageService;
-import com.jandi.plan_backend.trip.repository.TripRepository;
 import com.jandi.plan_backend.user.dto.CityRespDTO;
 import com.jandi.plan_backend.user.dto.ContinentRespDTO;
 import com.jandi.plan_backend.user.dto.CountryRespDTO;
@@ -18,7 +15,6 @@ import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;

@@ -2,13 +2,11 @@ package com.jandi.plan_backend.user.controller;
 
 import com.jandi.plan_backend.commu.repository.CommunityRepository;
 import com.jandi.plan_backend.security.JwtTokenProvider;
-import com.jandi.plan_backend.trip.dto.TripRespDTO;
 import com.jandi.plan_backend.trip.repository.TripRepository;
 import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.user.repository.UserRepository;
 import com.jandi.plan_backend.util.ValidationUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,10 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
-import java.util.TimeZone;
 
 @Slf4j
 @RestController

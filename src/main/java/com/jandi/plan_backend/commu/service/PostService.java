@@ -31,8 +31,6 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static java.util.Collections.sort;
-
 @Slf4j
 @Service
 public class PostService {
