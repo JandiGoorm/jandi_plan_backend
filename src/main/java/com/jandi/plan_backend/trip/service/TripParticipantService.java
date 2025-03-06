@@ -9,6 +9,8 @@ import com.jandi.plan_backend.user.repository.UserRepository;
 import com.jandi.plan_backend.util.ValidationUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -60,6 +62,7 @@ public class TripParticipantService {
      * @param tripId              여행 계획 ID
      * @param participantUserName 삭제할 동반자 사용자 닉네임
      */
+    @Transactional
     public void removeParticipant(Integer tripId, String participantUserName) {
         tripParticipantRepository.deleteByTrip_TripIdAndParticipant_UserName(tripId, participantUserName);
     }
