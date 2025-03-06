@@ -288,16 +288,22 @@ public class TripService {
         User user = validationUtil.validateUserExists(userEmail);
         validationUtil.validateUserRestricted(user);
         Trip trip = validationUtil.validateTripExists(tripId);
-        if (!Objects.equals(trip.getUser().getUserId(), user.getUserId())) {
-            throw new BadRequestExceptionMessage("본인이 작성한 여행 계획만 수정할 수 있습니다.");
+
+        // 작성자 또는 동반자인지 확인하는 로직 추가
+        boolean isOwner = trip.getUser().getUserId().equals(user.getUserId());
+        boolean isParticipant = trip.getParticipants() != null && trip.getParticipants().stream()
+                .anyMatch(tp -> tp.getParticipant().getUserId().equals(user.getUserId()));
+        if (!isOwner && !isParticipant) {
+            throw new BadRequestExceptionMessage("여행 계획 수정 권한이 없습니다.");
         }
+
         boolean privatePlan;
         if (isPrivate.equalsIgnoreCase("yes")) {
             privatePlan = true;
         } else if (isPrivate.equalsIgnoreCase("no")) {
             privatePlan = false;
         } else {
-            throw new BadRequestExceptionMessage("비공개 여부는 yes / no 로만 요청해주세요.");
+            throw new BadRequestExceptionMessage("비공개 여부는 yes/no로 요청해주세요.");
         }
         trip.setTitle(title);
         trip.setPrivatePlan(privatePlan);
