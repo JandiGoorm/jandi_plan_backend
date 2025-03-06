@@ -10,12 +10,12 @@ public class NoticeRespDTO {
     private final Integer noticeId;
     private final LocalDateTime createdAt;
     private final String title;
-    private final String contents;
+    private final String content;
 
     public NoticeRespDTO(Notice notice) {
         this.noticeId = notice.getNoticeId();
         this.createdAt = notice.getCreatedAt();
         this.title = notice.getTitle();
-        this.contents = notice.getContents();
+        this.content = notice.getContents();
     }
 }

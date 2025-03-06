@@ -1,9 +1,9 @@
 package com.jandi.plan_backend.resource.controller;
 
+import com.jandi.plan_backend.resource.dto.NoticeFinalizeReqDTO;
+import com.jandi.plan_backend.resource.dto.NoticeListDTO;
 import com.jandi.plan_backend.resource.dto.NoticeReqDTO;
 import com.jandi.plan_backend.resource.dto.NoticeRespDTO;
-import com.jandi.plan_backend.resource.dto.NoticeFinalizeReqDTO;
-import com.jandi.plan_backend.resource.entity.Notice;
 import com.jandi.plan_backend.resource.service.NoticeService;
 import com.jandi.plan_backend.security.JwtTokenProvider;
 import org.springframework.http.ResponseEntity;
@@ -26,9 +26,9 @@ public class NoticeController {
     /** 공지글 전체 목록 조회 API */
     @GetMapping("/lists")
     public Map<String, Object> getAllNotices() {
-        List<Notice> noticeList = noticeService.getAllNotices();
+        List<NoticeListDTO> noticeList = noticeService.getAllNotices();
         return Map.of(
-                "items", noticeList   // 현재 페이지의 게시물 데이터
+                "items", noticeList   // 현재 페이지의 게시물 데이터 (DTO로 변환되어 반환됨)
         );
     }
 
@@ -53,7 +53,7 @@ public class NoticeController {
             @PathVariable Integer noticeId, // 링크에서 noticeId 받기
             @RequestHeader("Authorization") String token, // 헤더의 Authorization에서 JWT 토큰 받기
             @RequestBody NoticeReqDTO noticeDTO // JSON 형식으로 공지글 작성 정보 받기
-    ){
+    ) {
         String jwtToken = token.replace("Bearer ", "");
         String userEmail = jwtTokenProvider.getEmail(jwtToken);
         NoticeRespDTO savedNotice = noticeService.updateNotice(noticeDTO, noticeId, userEmail);
@@ -65,7 +65,7 @@ public class NoticeController {
     public ResponseEntity<?> deleteNotice(
             @PathVariable Integer noticeId, // 삭제할 공지사항 ID
             @RequestHeader("Authorization") String token // 헤더의 Authorization에서 JWT 토큰 받기
-    ){
+    ) {
         String jwtToken = token.replace("Bearer ", "");
         String userEmail = jwtTokenProvider.getEmail(jwtToken);
         String returnMsg = (noticeService.deleteNotice(userEmail, noticeId)) ?
