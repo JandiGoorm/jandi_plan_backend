@@ -1,16 +1,15 @@
 package com.jandi.plan_backend.user.controller;
 
+import com.jandi.plan_backend.security.JwtTokenProvider;
 import com.jandi.plan_backend.user.dto.CityRespDTO;
 import com.jandi.plan_backend.user.dto.ContinentRespDTO;
 import com.jandi.plan_backend.user.dto.CountryRespDTO;
+import com.jandi.plan_backend.user.dto.PreferCityReqDTO;
 import com.jandi.plan_backend.user.service.PreferTripService;
 import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -19,9 +18,11 @@ import java.util.List;
 @RequestMapping("/api/trip")
 public class PreferTripController {
     private final PreferTripService preferTripService;
+    private final JwtTokenProvider jwtTokenProvider;
 
-    public PreferTripController(PreferTripService preferTripService) {
+    public PreferTripController(PreferTripService preferTripService, JwtTokenProvider jwtTokenProvider) {
         this.preferTripService = preferTripService;
+        this.jwtTokenProvider = jwtTokenProvider;
     }
 
     /** 조회 */
@@ -62,5 +63,43 @@ public class PreferTripController {
     ){
         List<CityRespDTO> rankedCities = preferTripService.getRankedCities(sort, size);
         return ResponseEntity.ok(rankedCities);
+    }
+
+    @GetMapping("/cities/prefer")
+    public ResponseEntity<?> getPreferCities(
+            @RequestHeader("Authorization") String token
+    ) {
+        // Jwt 토큰으로부터 유저 이메일 추출
+        String jwtToken = token.replace("Bearer ", "");
+        String userEmail = jwtTokenProvider.getEmail(jwtToken);
+
+        List<CityRespDTO> preferCities = preferTripService.getPreferCities(userEmail);
+        return ResponseEntity.ok(preferCities);
+    }
+
+    @PostMapping("/cities/prefer")
+    public ResponseEntity<?> addPreferCities(
+            @RequestBody PreferCityReqDTO reqDTO,
+            @RequestHeader("Authorization") String token
+    ) {
+        // Jwt 토큰으로부터 유저 이메일 추출
+        String jwtToken = token.replace("Bearer ", "");
+        String userEmail = jwtTokenProvider.getEmail(jwtToken);
+
+        int successCount = preferTripService.addPreferCities(reqDTO.getCities(), userEmail);
+        return ResponseEntity.ok(successCount + "개의 도시가 선호 도시로 등록되었습니다");
+    }
+
+    @DeleteMapping("/cities/prefer")
+    public ResponseEntity<?> deletePreferCities(
+            @RequestBody PreferCityReqDTO reqDTO,
+            @RequestHeader("Authorization") String token
+    ) {
+        // Jwt 토큰으로부터 유저 이메일 추출
+        String jwtToken = token.replace("Bearer ", "");
+        String userEmail = jwtTokenProvider.getEmail(jwtToken);
+
+        int successCount = preferTripService.deletePreferCities(reqDTO.getCities(), userEmail);
+        return ResponseEntity.ok(successCount + "개의 도시가 선호 도시에서 삭제되었습니다");
     }
 }

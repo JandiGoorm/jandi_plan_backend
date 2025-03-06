@@ -1,13 +1,13 @@
 package com.jandi.plan_backend.commu.controller;
 
-import com.jandi.plan_backend.commu.dto.CommentReqDTO;
-import com.jandi.plan_backend.commu.dto.CommentRespDTO;
-import com.jandi.plan_backend.commu.dto.ParentCommentDTO;
-import com.jandi.plan_backend.commu.dto.RepliesDTO;
+import com.jandi.plan_backend.commu.dto.*;
 import com.jandi.plan_backend.commu.service.CommentService;
 import com.jandi.plan_backend.security.JwtTokenProvider;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -28,9 +28,12 @@ public class CommentController {
     public Map<String, Object> getComments(
             @PathVariable Integer postId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "10") int size,
+            @AuthenticationPrincipal UserDetails userDetails
+
     ){
-        Page<ParentCommentDTO> parentCommentsPage = commentService.getAllComments(postId, page, size);
+        String userEmail = (userDetails != null) ? userDetails.getUsername() : null;
+        Page<ParentCommentDTO> parentCommentsPage = commentService.getAllComments(postId, page, size, userEmail);
 
         return Map.of(
                 "pageInfo", Map.of(
@@ -48,9 +51,12 @@ public class CommentController {
     public Map<String, Object> getReplies(
             @PathVariable Integer commentId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "10") int size,
+            @AuthenticationPrincipal UserDetails userDetails
+
     ){
-        Page<RepliesDTO> repliesPage = commentService.getAllReplies(commentId, page, size);
+        String userEmail = (userDetails != null) ? userDetails.getUsername() : null;
+        Page<RepliesDTO> repliesPage = commentService.getAllReplies(commentId, page, size, userEmail);
 
         return Map.of(
                 "pageInfo", Map.of(
@@ -70,10 +76,12 @@ public class CommentController {
             @RequestHeader("Authorization") String token, // 헤더의 Authorization에서 JWT 토큰 받기
             @RequestBody CommentReqDTO commentDTO // JSON 형식으로 게시글 작성 정보 받기
     ){
-
         // Jwt 토큰으로부터 유저 이메일 추출
         String jwtToken = token.replace("Bearer ", "");
         String userEmail = jwtTokenProvider.getEmail(jwtToken);
+        if (userEmail == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
 
         // 댓글 저장 및 반환
         CommentRespDTO savedComment = commentService.writeComment(commentDTO, postId, userEmail);
@@ -87,10 +95,12 @@ public class CommentController {
             @RequestHeader("Authorization") String token, // 헤더의 Authorization에서 JWT 토큰 받기
             @RequestBody CommentReqDTO commentDTO // JSON 형식으로 게시글 작성 정보 받기
     ){
-
         // Jwt 토큰으로부터 유저 이메일 추출
         String jwtToken = token.replace("Bearer ", "");
         String userEmail = jwtTokenProvider.getEmail(jwtToken);
+        if (userEmail == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
 
         // 댓글 저장 및 반환
         CommentRespDTO savedComment = commentService.writeReplies(commentDTO, commentId, userEmail);
@@ -107,6 +117,9 @@ public class CommentController {
         // Jwt 토큰으로부터 유저 이메일 추출
         String jwtToken = token.replace("Bearer ", "");
         String userEmail = jwtTokenProvider.getEmail(jwtToken);
+        if (userEmail == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
 
         // 게시물 수정 및 반환
         CommentRespDTO updatedPost = commentService.updateComment(commentDTO, commentId, userEmail);
@@ -122,6 +135,9 @@ public class CommentController {
         // Jwt 토큰으로부터 유저 이메일 추출
         String jwtToken = token.replace("Bearer ", "");
         String userEmail = jwtTokenProvider.getEmail(jwtToken);
+        if (userEmail == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
 
         // 답글 삭제 및 반환
         int deletedRepliesCount = (commentService.deleteComments(userEmail, commentId));
@@ -158,4 +174,20 @@ public class CommentController {
         commentService.deleteLikeComment(userEmail, commentId);
         return ResponseEntity.ok("좋아요 취소되었습니다.");
     }
+
+    /** 댓글 신고 API */
+    @PostMapping("/comments/reports/{commentId}")
+    public ResponseEntity<?> reportComment(
+            @PathVariable Integer commentId,
+            @RequestBody ReportReqDTO reportDTO,
+            @RequestHeader("Authorization") String token // 헤더의 Authorization에서 JWT 토큰 받기
+    ){
+        // Jwt 토큰으로부터 유저 이메일 추출
+        String jwtToken = token.replace("Bearer ", "");
+        String userEmail = jwtTokenProvider.getEmail(jwtToken);
+
+        CommentReportRespDTO reported = commentService.reportComment(userEmail, commentId, reportDTO);
+        return ResponseEntity.ok(reported);
+    }
+
 }

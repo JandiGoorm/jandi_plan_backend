@@ -3,10 +3,17 @@ package com.jandi.plan_backend.trip.dto;
 import com.jandi.plan_backend.trip.entity.Trip;
 import com.jandi.plan_backend.user.entity.User;
 import lombok.Getter;
+
 import java.time.LocalDate;
 
+/**
+ * 여행 계획 조회 시 반환할 DTO
+ * - tripImageUrl: 사용자가 직접 업로드한 여행계획 이미지 (있으면 표시)
+ * - cityImageUrl: 도시 이미지
+ */
 @Getter
 public class TripRespDTO {
+
     private final UserTripDTO user;
     private final Integer tripId;
     private final String title;
@@ -18,26 +25,33 @@ public class TripRespDTO {
     private final String cityName;
     private final String countryName;
     private final Boolean privatePlan;
-    private final String cityImageUrl;
+    private final Double latitude;
+    private final Double longitude;
 
-    public TripRespDTO(UserTripDTO user, Integer tripId, String title, LocalDate startDate, LocalDate endDate,
-                       Integer likeCount, Integer budget, Integer cityId, String cityName, String countryName,
-                       Boolean privatePlan, String cityImageUrl) {
-        this.user = user;
-        this.tripId = tripId;
-        this.title = title;
-        this.startDate = startDate;
-        this.endDate = endDate;
-        this.likeCount = likeCount;
-        this.budget = budget;
-        this.cityId = cityId;
-        this.cityName = cityName;
-        this.countryName = countryName;
-        this.privatePlan = privatePlan;
-        this.cityImageUrl = cityImageUrl;
+    // 도시 이미지
+    private final String cityImageUrl;
+    // 여행 계획 전용 이미지 (사용자가 업로드)
+    private final String tripImageUrl;
+
+    /**
+     * 4개 인자 버전 (기존 코드와 호환)
+     * tripImageUrl = null
+     */
+    public TripRespDTO(User user,
+                       String userProfileUrl,
+                       Trip trip,
+                       String cityImageUrl) {
+        this(user, userProfileUrl, trip, cityImageUrl, null);
     }
 
-    public TripRespDTO(User user, String userProfileUrl, Trip trip, String cityImageUrl) {
+    /**
+     * 5개 인자 버전 (새로운 로직: tripImageUrl 추가)
+     */
+    public TripRespDTO(User user,
+                       String userProfileUrl,
+                       Trip trip,
+                       String cityImageUrl,
+                       String tripImageUrl) {
         this.user = new UserTripDTO(user.getUserId(), user.getUserName(), userProfileUrl);
         this.tripId = trip.getTripId();
         this.title = trip.getTitle();
@@ -49,6 +63,10 @@ public class TripRespDTO {
         this.cityName = trip.getCity().getName();
         this.countryName = trip.getCity().getCountry().getName();
         this.privatePlan = trip.getPrivatePlan();
+        this.latitude = trip.getCity().getLatitude();
+        this.longitude = trip.getCity().getLongitude();
+
         this.cityImageUrl = cityImageUrl;
+        this.tripImageUrl = tripImageUrl;
     }
 }

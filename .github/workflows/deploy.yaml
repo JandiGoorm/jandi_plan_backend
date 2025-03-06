@@ -20,7 +20,7 @@ jobs:
           distribution: 'temurin'
           java-version: 17
 
-      # 3. Gradle 빌드 (빌드 시 DB, MAIL, GCP_SA_KEY_BASE64 환경변수 사용)
+      # 3. Gradle 빌드
       - name: Build with Gradle
         env:
           DB_URL: ${{ secrets.DB_URL }}
@@ -29,11 +29,12 @@ jobs:
           MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
           MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
           GCP_SA_KEY_BASE64: ${{ secrets.GCP_SA_KEY_BASE64 }}
+          JWT_KEY: ${{ secrets.JWT_KEY }}
         run: |
-          chmod +x gradlew  # gradlew 파일에 실행 권한 부여
+          chmod +x gradlew
           ./gradlew clean build --stacktrace
 
-      # 4. GCP 인증 - 서비스 계정 키(JSON) 이용
+      # 4. GCP 인증
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v1
         with:
@@ -43,11 +44,11 @@ jobs:
       - name: Configure gcloud
         run: gcloud config set project planbackend-450513
 
-      # 6. Docker 인증 - Artifact Registry 접근
+      # 6. Docker 인증
       - name: Configure Docker auth for Artifact Registry
         run: gcloud auth configure-docker asia-northeast3-docker.pkg.dev
 
-      # 7. Docker 이미지 빌드 (커밋 SHA를 태그로 사용)
+      # 7. Docker 이미지 빌드
       - name: Build Docker image
         run: |
           docker build -t asia-northeast3-docker.pkg.dev/planbackend-450513/plan-backend-ar/my-spring-image:$GITHUB_SHA .
@@ -57,7 +58,7 @@ jobs:
         run: |
           docker push asia-northeast3-docker.pkg.dev/planbackend-450513/plan-backend-ar/my-spring-image:$GITHUB_SHA
 
-      # 9. Cloud Run에 배포 (환경 변수에 GCP_SA_KEY_BASE64 포함)
+      # 9. Cloud Run에 배포
       - name: Deploy to Cloud Run
         run: |
           gcloud run deploy ${{ secrets.CLOUD_RUN_SERVICE }} \
@@ -66,4 +67,4 @@ jobs:
             --region asia-northeast3 \
             --service-account planbackend@planbackend-450513.iam.gserviceaccount.com \
             --allow-unauthenticated \
-            --set-env-vars 'DB_URL=${{ secrets.DB_URL }},DB_USERNAME=${{ secrets.DB_USERNAME }},DB_PASSWORD=${{ secrets.DB_PASSWORD }},MAIL_USERNAME=${{ secrets.MAIL_USERNAME }},MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }},GCP_SA_KEY_BASE64=${{ secrets.GCP_SA_KEY_BASE64 }}'
+            --set-env-vars 'DB_URL=${{ secrets.DB_URL }},DB_USERNAME=${{ secrets.DB_USERNAME }},DB_PASSWORD=${{ secrets.DB_PASSWORD }},MAIL_USERNAME=${{ secrets.MAIL_USERNAME }},MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }},GCP_SA_KEY_BASE64=${{ secrets.GCP_SA_KEY_BASE64 }},JWT_KEY=${{ secrets.JWT_KEY }}'

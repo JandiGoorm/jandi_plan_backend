@@ -15,13 +15,15 @@ public class ParentCommentDTO {
     private final String contents;
     private final Integer likeCount;
     private final Integer repliesCount;
+    private final boolean liked;
 
-    public ParentCommentDTO(Comment comment, User user, ImageService imageService) {
+    public ParentCommentDTO(Comment comment, User user, ImageService imageService, boolean liked) {
         this.commentId = comment.getCommentId();
         this.user = new UserCommunityDTO(user, imageService) ;
         this.createdAt = comment.getCreatedAt();
         this.contents = comment.getContents();
         this.likeCount = comment.getLikeCount();
         this.repliesCount = comment.getRepliesCount();
+        this.liked = liked;
     }
 }

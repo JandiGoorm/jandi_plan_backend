@@ -20,8 +20,9 @@ public class CommunityItemDTO {
     private final Integer likeCount;
     private final Integer commentCount;
     private final Integer viewCount;
+    private final Boolean liked;
 
-    public CommunityItemDTO(Community community, ImageService imageService) {
+    public CommunityItemDTO(Community community, ImageService imageService, boolean liked) {
         this.postId = community.getPostId();
         this.viewCount = community.getViewCount();
         this.user = new UserCommunityDTO(community.getUser(), imageService);
@@ -30,5 +31,6 @@ public class CommunityItemDTO {
         this.content = community.getContents();
         this.likeCount = community.getLikeCount();
         this.commentCount = community.getCommentCount();
+        this.liked = liked;
     }
 }

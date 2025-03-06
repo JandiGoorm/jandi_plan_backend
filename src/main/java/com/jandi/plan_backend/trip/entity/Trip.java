@@ -1,9 +1,11 @@
 package com.jandi.plan_backend.trip.entity;
 
 import com.jandi.plan_backend.user.entity.City;
+import com.jandi.plan_backend.user.entity.User;
+import com.jandi.plan_backend.itinerary.entity.Itinerary;
+import com.jandi.plan_backend.itinerary.entity.Reservation;
 import jakarta.persistence.*;
 import lombok.Data;
-import com.jandi.plan_backend.user.entity.User;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -102,4 +104,18 @@ public class Trip {
      */
     @OneToMany(mappedBy = "trip", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TripParticipant> participants;
+
+    /**
+     * Itinerary 엔티티와의 1:N 관계.
+     * Trip 삭제 시 연관 일정도 자동으로 삭제됩니다.
+     */
+    @OneToMany(mappedBy = "trip", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Itinerary> itineraries;
+
+    /**
+     * Reservation 엔티티와의 1:N 관계.
+     * Trip 삭제 시 연관 예약도 자동으로 삭제됩니다.
+     */
+    @OneToMany(mappedBy = "trip", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Reservation> reservations;
 }

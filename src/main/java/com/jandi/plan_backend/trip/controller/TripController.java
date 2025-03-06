@@ -104,19 +104,20 @@ public class TripController {
     @GetMapping("/{tripId}")
     public ResponseEntity<?> getSpecTrips(
             @PathVariable Integer tripId,
-            @RequestHeader(value = "Authorization", required = false) String token // 헤더의 Authorization에서 JWT 토큰 받기
+            @RequestHeader(value = "Authorization", required = false) String token // ← required = false
     ){
-        if(token == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("로그인이 필요합니다.");
+        // userEmail 기본값은 null
+        String userEmail = null;
+
+        // token이 존재하고 비어있지 않다면, userEmail 추출
+        if (token != null && !token.isBlank()) {
+            String jwtToken = token.replace("Bearer ", "");
+            userEmail = jwtTokenProvider.getEmail(jwtToken);
         }
 
-        // Jwt 토큰으로부터 유저 이메일 추출
-        String jwtToken = token.replace("Bearer ", "");
-        String userEmail = jwtTokenProvider.getEmail(jwtToken);
-
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(tripService.getSpecTrips(userEmail, tripId));
+        // Service 로직 호출
+        MyTripRespDTO tripResp = tripService.getSpecTrips(userEmail, tripId);
+        return ResponseEntity.ok(tripResp);
     }
 
     /** 여행 계획 생성 */

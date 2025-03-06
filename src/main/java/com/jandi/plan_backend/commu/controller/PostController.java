@@ -1,15 +1,13 @@
 package com.jandi.plan_backend.commu.controller;
 
-import com.jandi.plan_backend.commu.dto.CommunityListDTO;
-import com.jandi.plan_backend.commu.dto.CommunityReqDTO;
-import com.jandi.plan_backend.commu.dto.CommunityRespDTO;
-import com.jandi.plan_backend.commu.dto.PostFinalizeReqDTO;
-import com.jandi.plan_backend.commu.dto.ReportReqDTO;
-import com.jandi.plan_backend.commu.dto.ReportRespDTO;
+import com.jandi.plan_backend.commu.dto.*;
 import com.jandi.plan_backend.commu.service.PostService;
 import com.jandi.plan_backend.security.JwtTokenProvider;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -49,9 +47,12 @@ public class PostController {
     /** 특정 게시물 조회 API */
     @GetMapping("/posts/{postId}")
     public Map<String, Object> getPosts(
-            @PathVariable Integer postId
+            @PathVariable Integer postId,
+            @AuthenticationPrincipal UserDetails userDetails
     ) {
-        return Map.of("items", communityService.getSpecPost(postId));
+        String userEmail = (userDetails != null) ? userDetails.getUsername() : null;
+
+        return Map.of("items", communityService.getSpecPost(postId, userEmail));
     }
 
     /** 게시물 수정 API */
@@ -63,6 +64,10 @@ public class PostController {
     ) {
         String jwtToken = token.replace("Bearer ", "");
         String userEmail = jwtTokenProvider.getEmail(jwtToken);
+        if (userEmail == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
+
         CommunityRespDTO updatedPost = communityService.updatePost(postDTO, postId, userEmail);
         return ResponseEntity.ok(updatedPost);
     }
@@ -75,6 +80,10 @@ public class PostController {
     ) {
         String jwtToken = token.replace("Bearer ", "");
         String userEmail = jwtTokenProvider.getEmail(jwtToken);
+        if (userEmail == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
+
         // PostService 내 deletePost 메서드에서
         // 1. 하위 댓글 삭제
         // 2. imageRepository.findAllByTargetTypeAndTargetId("community", postId)를 통해 모든 연결된 이미지를 조회하고,
@@ -118,7 +127,8 @@ public class PostController {
     ) {
         String jwtToken = token.replace("Bearer ", "");
         String userEmail = jwtTokenProvider.getEmail(jwtToken);
-        ReportRespDTO reported = postService.reportPost(userEmail, postId, reportDTO);
+
+        PostReportRespDTO reported = postService.reportPost(userEmail, postId, reportDTO);
         return ResponseEntity.ok(reported);
     }
 
@@ -132,6 +142,10 @@ public class PostController {
     ) {
         String jwtToken = token.replace("Bearer ", "");
         String userEmail = jwtTokenProvider.getEmail(jwtToken);
+        if (userEmail == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
+
         CommunityRespDTO respDTO = postService.finalizePost(userEmail, finalizeReqDTO);
         return ResponseEntity.ok(respDTO);
     }
