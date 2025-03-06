@@ -1,5 +1,6 @@
 package com.jandi.plan_backend.trip.service;
 
+import com.jandi.plan_backend.trip.dto.TripParticipantRespDTO;
 import com.jandi.plan_backend.trip.entity.Trip;
 import com.jandi.plan_backend.trip.entity.TripParticipant;
 import com.jandi.plan_backend.trip.repository.TripParticipantRepository;
@@ -10,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -17,19 +19,17 @@ public class TripParticipantService {
 
     private final TripParticipantRepository tripParticipantRepository;
     private final UserRepository userRepository;
-    private final ValidationUtil validationUtil; // validateTripExists() 메서드가 구현되어 있다고 가정
+    private final ValidationUtil validationUtil; // validateTripExists(), validateUserExists() 등 구현 필요
 
     /**
      * 여행 계획(Trip)에 동반자를 추가합니다.
-     * @param tripId             여행 계획 ID
+     * @param tripId              여행 계획 ID
      * @param participantUserName 동반자로 추가할 사용자의 닉네임
-     * @param role               역할 (예: "동반자", "리더" 등)
-     * @return 추가된 TripParticipant 엔티티
+     * @param role                역할 (예: "동반자", "리더" 등)
+     * @return 추가된 TripParticipant 정보를 담은 DTO
      */
-    public TripParticipant addParticipant(Integer tripId, String participantUserName, String role) {
-        // 여행 계획 존재 여부 검증 (ValidationUtil에 구현되어 있다고 가정)
+    public TripParticipantRespDTO addParticipant(Integer tripId, String participantUserName, String role) {
         Trip trip = validationUtil.validateTripExists(tripId);
-        // userRepository에서 userName으로 사용자 조회
         User participant = userRepository.findByUserName(participantUserName)
                 .orElseThrow(() -> new RuntimeException("User not found with userName: " + participantUserName));
 
@@ -38,24 +38,42 @@ public class TripParticipantService {
         tripParticipant.setParticipant(participant);
         tripParticipant.setRole(role);
         tripParticipant.setCreatedAt(LocalDateTime.now());
-        return tripParticipantRepository.save(tripParticipant);
+        TripParticipant saved = tripParticipantRepository.save(tripParticipant);
+
+        return convertToDTO(saved);
     }
 
     /**
      * 특정 여행 계획의 동반자 목록을 조회합니다.
      * @param tripId 여행 계획 ID
-     * @return 동반자 목록
+     * @return 동반자 DTO 목록
      */
-    public List<TripParticipant> getParticipants(Integer tripId) {
-        return tripParticipantRepository.findByTrip_TripId(tripId);
+    public List<TripParticipantRespDTO> getParticipants(Integer tripId) {
+        List<TripParticipant> participants = tripParticipantRepository.findByTrip_TripId(tripId);
+        return participants.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
     }
 
     /**
      * 특정 여행 계획에서 동반자를 삭제합니다.
-     * @param tripId            여행 계획 ID
+     * @param tripId              여행 계획 ID
      * @param participantUserName 삭제할 동반자 사용자 닉네임
      */
     public void removeParticipant(Integer tripId, String participantUserName) {
         tripParticipantRepository.deleteByTrip_TripIdAndParticipant_UserName(tripId, participantUserName);
+    }
+
+    /**
+     * TripParticipant 엔티티를 TripParticipantRespDTO로 변환합니다.
+     */
+    private TripParticipantRespDTO convertToDTO(TripParticipant tripParticipant) {
+        return new TripParticipantRespDTO(
+                tripParticipant.getTrip().getTripId(),
+                tripParticipant.getParticipant().getUserId(),
+                tripParticipant.getParticipant().getUserName(),
+                tripParticipant.getRole(),
+                tripParticipant.getCreatedAt()
+        );
     }
 }

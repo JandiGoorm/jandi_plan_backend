@@ -1,6 +1,6 @@
 package com.jandi.plan_backend.trip.controller;
 
-import com.jandi.plan_backend.trip.entity.TripParticipant;
+import com.jandi.plan_backend.trip.dto.TripParticipantRespDTO;
 import com.jandi.plan_backend.trip.service.TripParticipantService;
 import com.jandi.plan_backend.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
@@ -15,26 +15,26 @@ import java.util.List;
 public class TripParticipantController {
 
     private final TripParticipantService tripParticipantService;
-    private final JwtTokenProvider jwtTokenProvider; // 필요시 JWT 토큰을 이용한 추가 검증 가능
+    private final JwtTokenProvider jwtTokenProvider; // JWT 관련 추가 검증 시 사용
 
     /**
      * 여행 계획의 동반자 추가 API
      * POST /api/trip/{tripId}/participants
      *
-     * @param tripId             여행 계획 ID
+     * @param tripId              여행 계획 ID
      * @param participantUserName 동반자로 추가할 사용자의 닉네임
-     * @param role               역할 (옵션, 기본값 "동반자")
-     * @return 추가된 동반자 정보
+     * @param role                역할 (옵션, 기본값 "동반자")
+     * @return 추가된 동반자 정보를 담은 DTO
      */
     @PostMapping("/{tripId}/participants")
-    public ResponseEntity<?> addParticipant(
+    public ResponseEntity<TripParticipantRespDTO> addParticipant(
             @PathVariable Integer tripId,
-            @RequestHeader("Authorization") String token,  // 필요 시 JWT 검증 로직 추가
+            @RequestHeader("Authorization") String token,  // JWT 검증 로직 추가 가능
             @RequestParam String participantUserName,
             @RequestParam(required = false, defaultValue = "동반자") String role
     ) {
-        TripParticipant participant = tripParticipantService.addParticipant(tripId, participantUserName, role);
-        return ResponseEntity.ok(participant);
+        TripParticipantRespDTO dto = tripParticipantService.addParticipant(tripId, participantUserName, role);
+        return ResponseEntity.ok(dto);
     }
 
     /**
@@ -42,19 +42,19 @@ public class TripParticipantController {
      * GET /api/trip/{tripId}/participants
      *
      * @param tripId 여행 계획 ID
-     * @return 동반자 목록
+     * @return 동반자 DTO 목록
      */
     @GetMapping("/{tripId}/participants")
-    public ResponseEntity<?> getParticipants(@PathVariable Integer tripId) {
-        List<TripParticipant> participants = tripParticipantService.getParticipants(tripId);
-        return ResponseEntity.ok(participants);
+    public ResponseEntity<List<TripParticipantRespDTO>> getParticipants(@PathVariable Integer tripId) {
+        List<TripParticipantRespDTO> dtos = tripParticipantService.getParticipants(tripId);
+        return ResponseEntity.ok(dtos);
     }
 
     /**
      * 여행 계획의 동반자 삭제 API
      * DELETE /api/trip/{tripId}/participants/{participantUserName}
      *
-     * @param tripId             여행 계획 ID
+     * @param tripId              여행 계획 ID
      * @param participantUserName 삭제할 동반자 사용자 닉네임
      * @return 삭제 결과 메시지
      */
