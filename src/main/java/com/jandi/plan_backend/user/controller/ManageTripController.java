@@ -79,6 +79,25 @@ public class ManageTripController {
         return ResponseEntity.ok(newCity);
     }
 
+    /** 수정 관련 */
+    // 여행 국가 수정
+    @PatchMapping("/countries/{countryId}")
+    public ResponseEntity<?> updateCountry(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam(value = "country", required = false) String countryName,
+            @PathVariable Integer countryId
+    ) {
+        if(userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
+        }
+
+        String userEmail = userDetails.getUsername();
+        CountryRespDTO newCountry = manageTripService.updateCountry(userEmail, countryId, countryName);
+
+        return ResponseEntity.ok(newCountry);
+    }
+
+    // 여행 도시 수정
     @PatchMapping("/cities/{cityId}")
     public ResponseEntity<?> updateCity(
             @AuthenticationPrincipal UserDetails userDetails,
@@ -94,12 +113,34 @@ public class ManageTripController {
         }
         String userEmail = userDetails.getUsername();
 
-        CityRespDTO newCity = manageTripService.updateCity(
+        CityRespDTO updatedCity = manageTripService.updateCity(
                 userEmail, cityId, cityName, description, file, latitude, longitude);
 
-        return ResponseEntity.ok(newCity);
+        return ResponseEntity.ok(updatedCity);
     }
 
+    /** 삭제 관련 */
+    // 여행 국가 삭제
+    @DeleteMapping("/countries/{countryId}")
+    public ResponseEntity<?> deleteCountry(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Integer countryId
+    ){
+        if(userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
+        }
+        String userEmail = userDetails.getUsername();
+
+        Integer deletedCities = manageTripService.deleteCountry(userEmail, countryId);
+        String respMsg = (deletedCities >= 0) ?
+                "국가 하위에 있던 " + deletedCities + "개의 도시와 해당 국가를 삭제했습니다" :
+                "알 수 없는 오류가 발생했습니다. 다시 시도해주세요";
+        return (deletedCities >= 0) ?
+                ResponseEntity.ok(respMsg) :
+                ResponseEntity.badRequest().body(respMsg);
+    }
+
+    // 여행 도시 삭제
     @DeleteMapping("/cities/{cityId}")
     public ResponseEntity<?> deleteCity(
             @AuthenticationPrincipal UserDetails userDetails,
