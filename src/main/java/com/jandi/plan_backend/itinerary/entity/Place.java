@@ -5,7 +5,9 @@ import lombok.Data;
 import com.jandi.plan_backend.trip.entity.Trip;
 
 @Entity
-@Table(name = "place")
+@Table(name = "place", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"name", "address"})
+})
 @Data
 public class Place {
     @Id

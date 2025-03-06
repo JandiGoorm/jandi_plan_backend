@@ -10,5 +10,5 @@ import lombok.Data;
 public class NoticeFinalizeReqDTO {
     private int tempNoticeId;  // 음수 int, 임시 Notice ID
     private String title;
-    private String contents;
+    private String content;
 }

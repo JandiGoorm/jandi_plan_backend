@@ -3,19 +3,21 @@ package com.jandi.plan_backend.resource.service;
 import com.jandi.plan_backend.image.entity.Image;
 import com.jandi.plan_backend.image.repository.ImageRepository;
 import com.jandi.plan_backend.image.service.ImageService;
+import com.jandi.plan_backend.image.service.InMemoryTempPostService;
 import com.jandi.plan_backend.resource.dto.NoticeFinalizeReqDTO;
+import com.jandi.plan_backend.resource.dto.NoticeListDTO;
 import com.jandi.plan_backend.resource.dto.NoticeReqDTO;
 import com.jandi.plan_backend.resource.dto.NoticeRespDTO;
 import com.jandi.plan_backend.resource.entity.Notice;
 import com.jandi.plan_backend.resource.repository.NoticeRepository;
 import com.jandi.plan_backend.user.entity.User;
-import com.jandi.plan_backend.image.service.InMemoryTempPostService;
 import com.jandi.plan_backend.util.ValidationUtil;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class NoticeService {
@@ -39,10 +41,13 @@ public class NoticeService {
     }
 
     /**
-     * 공지사항 목록 조회
+     * 공지사항 목록 조회 - 엔티티를 DTO로 변환하여 반환
      */
-    public List<Notice> getAllNotices() {
-        return noticeRepository.findAll();
+    public List<NoticeListDTO> getAllNotices() {
+        List<Notice> notices = noticeRepository.findAll();
+        return notices.stream()
+                .map(NoticeListDTO::new)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -57,7 +62,7 @@ public class NoticeService {
         Notice notice = new Notice();
         notice.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
         notice.setTitle(noticeDTO.getTitle());
-        notice.setContents(noticeDTO.getContents());
+        notice.setContents(noticeDTO.getContent());
 
         // DB 저장 및 반환
         noticeRepository.save(notice);
@@ -75,12 +80,11 @@ public class NoticeService {
         // 공지사항 검증
         Notice notice = validationUtil.validateNoticeExists(noticeId);
 
-        // 값이 존재하는 경우에만 수정
         if (noticeDTO.getTitle() != null) {
             notice.setTitle(noticeDTO.getTitle());
         }
-        if (noticeDTO.getContents() != null) {
-            notice.setContents(noticeDTO.getContents());
+        if (noticeDTO.getContent() != null) {
+            notice.setContents(noticeDTO.getContent());
         }
 
         // 수정 후 저장
@@ -114,7 +118,7 @@ public class NoticeService {
     /**
      * 공지사항 최종 작성 API
      * 임시 Notice ID(음수)를 실제 Notice ID로 전환하며,
-     * 이미지의 targetId를 임시에서 실제 notice ID로 업데이트합니다.
+     * 이미지의 targetId를 임시에서 실제 Notice ID로 업데이트합니다.
      */
     public NoticeRespDTO finalizeNotice(String userEmail, NoticeFinalizeReqDTO finalizeReqDTO) {
         // 관리자 검증
@@ -128,7 +132,7 @@ public class NoticeService {
         // 실제 Notice 생성
         Notice notice = new Notice();
         notice.setTitle(finalizeReqDTO.getTitle());
-        notice.setContents(finalizeReqDTO.getContents());
+        notice.setContents(finalizeReqDTO.getContent());
         notice.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
         noticeRepository.save(notice);
         int realNoticeId = notice.getNoticeId();

@@ -10,12 +10,12 @@ public class NoticeListDTO {
     private final Integer noticeId;
     private final LocalDateTime createdAt;
     private final String title;
-    private final String contents;
+    private final String content;
 
     public NoticeListDTO(Notice notice) {
         this.noticeId = notice.getNoticeId();
         this.createdAt = notice.getCreatedAt();
         this.title = notice.getTitle();
-        this.contents = notice.getContents();
+        this.content = notice.getContents();
     }
 }
