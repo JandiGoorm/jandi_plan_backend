@@ -148,6 +148,12 @@ public class ValidationUtil {
                 .orElseThrow(() -> new BadRequestExceptionMessage("등록되지 않은 대륙입니다."));
     }
 
+    // 오버라이딩
+    public Country validateCountryExists(Long countryId) {
+        return countryRepository.findById(countryId)
+                .orElseThrow(() -> new BadRequestExceptionMessage("등록되지 않은 국가입니다."));
+    }
+
     public Country validateCountryExists(String countryName) {
         // countryRepository.findByName(...) => 만약 Optional<Object> 라면 아래와 같은 로직 필요
         Object countryObj = countryRepository.findByName(countryName)

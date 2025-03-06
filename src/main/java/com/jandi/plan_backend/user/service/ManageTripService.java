@@ -20,6 +20,9 @@ import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Collections;
+import java.util.List;
+
 @Service
 public class ManageTripService {
     private final ImageRepository imageRepository;
@@ -132,6 +135,24 @@ public class ManageTripService {
     }
 
     /** 여행지 수정 관련 */
+    // 국가 수정
+    public CountryRespDTO updateCountry(String userEmail, Integer countryId, String countryName) {
+        // 유저 검증
+        User user = validationUtil.validateUserExists(userEmail);
+        validationUtil.validateUserIsAdmin(user);
+
+        // 국가 검증
+        Country country = validationUtil.validateCountryExists(Long.valueOf(countryId));
+
+        // 입력 검증
+        if(countryName == null || countryName.isEmpty())
+            throw new BadRequestExceptionMessage("변경할 국가 이름을 입력해주세요");
+
+        country.setName(countryName);
+        countryRepository.save(country);
+        return new CountryRespDTO(country);
+    }
+
     // 도시 수정
     public CityRespDTO updateCity(String userEmail, Integer cityId, String cityName,
                                   String description, MultipartFile file, Double latitude, Double longitude) {
@@ -168,6 +189,42 @@ public class ManageTripService {
     }
 
     /** 여행지 삭제 관련 */
+    // 국가 삭제
+    public Integer deleteCountry(String userEmail, Integer countryId) {
+        // 유저 검증
+        User user = validationUtil.validateUserExists(userEmail);
+        validationUtil.validateUserIsAdmin(user);
+
+        // 도시 검증
+        Country country = validationUtil.validateCountryExists(Long.valueOf(countryId));
+
+        // 삭제할 수 없는 경우 삭제 금지
+        List<City> cities = cityRepository.findByCountry_NameIn(Collections.singleton(country.getName()));
+        for (City city : cities) { // 하위 도시 중 하나라도 삭제할 수 없는 경우 아예 삭제하지 않음
+            if(userCityPreferenceRepository.existsByCity(city)){ // 1. 선호 도시로 등록된 경우
+                throw new BadRequestExceptionMessage("해당 국가에 속한 도시인 " + city.getName() + "을/를 선호 도시로 등록한 유저가 있어 삭제가 불가능합니다.");
+            }
+            else if(tripRepository.existsByCity(city)){ // 2. 여행 계획의 목적지로 등록된 경우
+                throw new BadRequestExceptionMessage("해당 국가에 속한 도시인 " + city.getName() + "을/를 목적지로 지정한 여행 계획이 있어 삭제가 불가능합니다.");
+            }
+        }
+
+        // 삭제 가능하다면 하위 도시를 모두 삭제한 후 국가 삭제
+        int deletedCitiesCount = 0;
+        for (City city : cities) { // 하위 도시 삭제
+            // 이미지 삭제
+            imageRepository.findByTargetTypeAndTargetId("city", city.getCityId())
+                    .ifPresent(img -> imageService.deleteImage(img.getImageId()));
+
+            // 도시 정보 삭제
+            cityRepository.delete(city);
+            deletedCitiesCount++;
+        }
+        countryRepository.delete(country); // 국가 삭제
+        return (countryRepository.findById(Long.valueOf(countryId)).isEmpty()) ? deletedCitiesCount : -1;
+    }
+
+    // 도시 삭제
     public boolean deleteCity(String userEmail, Integer cityId) {
         // 유저 검증
         User user = validationUtil.validateUserExists(userEmail);

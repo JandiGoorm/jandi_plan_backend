@@ -271,11 +271,11 @@ public class PostService {
             case "CONTENT" -> // 내용 검색
                 communityRepository.searchAllByContentsContaining(keyword);
             case "BOTH" -> // 제목 + 내용 검색
-                communityRepository.searchByTitleAndContents(keyword);
+                communityRepository.searchByTitleAndContents("\"" + keyword + "\""); //공백 포함하여 계산되도록 따옴표로 래핑
             default ->
                 throw new IllegalStateException("카테고리 지정이 잘못되었습니다: " + category);
         };
-        searchList.sort(Comparator.comparing(Community::getCreatedAt).reversed()); // 최근 순으로 정렬
+        searchList.sort(Comparator.comparing(Community::getPostId).reversed()); // postId 내림차순으로 정렬
         long totalCount = searchList.size();
 
         return PaginationService.getPagedData(

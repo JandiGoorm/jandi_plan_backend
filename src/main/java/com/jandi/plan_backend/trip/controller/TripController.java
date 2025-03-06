@@ -116,7 +116,7 @@ public class TripController {
         }
 
         // Service 로직 호출
-        MyTripRespDTO tripResp = tripService.getSpecTrips(userEmail, tripId);
+        TripItemRespDTO tripResp = tripService.getSpecTrips(userEmail, tripId);
         return ResponseEntity.ok(tripResp);
     }
 
