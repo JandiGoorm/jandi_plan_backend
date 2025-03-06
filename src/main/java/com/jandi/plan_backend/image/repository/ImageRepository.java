@@ -9,8 +9,10 @@ import java.util.Optional;
 
 @Repository
 public interface ImageRepository extends JpaRepository<Image, Integer> {
-    // targetType과 targetId로 검색
+
     Optional<Image> findByTargetTypeAndTargetId(String targetType, Integer targetId);
 
     List<Image> findAllByTargetTypeAndTargetId(String targetType, Integer targetId);
+
+    List<Image> findAllByTargetIdLessThan(int targetId);
 }
