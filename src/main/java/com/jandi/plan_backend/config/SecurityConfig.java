@@ -91,8 +91,9 @@ public class SecurityConfig {
                                 "/api/images/**",
 
                                 // trip 관련
-                                "/api/trip/*",
-                                "api/trip/itinerary/*"
+                                "/api/trip/*", "/api/trip/itinerary/*",
+
+                                "/error"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
