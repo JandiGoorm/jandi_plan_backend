@@ -1,4 +1,4 @@
-package com.jandi.plan_backend.util;
+package com.jandi.plan_backend.image;
 
 public class TempPostIdGenerator {
 

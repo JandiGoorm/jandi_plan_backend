@@ -15,7 +15,7 @@ import com.jandi.plan_backend.image.service.ImageService;
 import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.util.ValidationUtil;
 import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
-import com.jandi.plan_backend.util.service.InMemoryTempPostService;
+import com.jandi.plan_backend.image.service.InMemoryTempPostService;
 import com.jandi.plan_backend.util.service.PaginationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
