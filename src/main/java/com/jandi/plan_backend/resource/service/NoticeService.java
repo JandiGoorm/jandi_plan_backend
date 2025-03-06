@@ -9,8 +9,7 @@ import com.jandi.plan_backend.resource.dto.NoticeRespDTO;
 import com.jandi.plan_backend.resource.entity.Notice;
 import com.jandi.plan_backend.resource.repository.NoticeRepository;
 import com.jandi.plan_backend.user.entity.User;
-import com.jandi.plan_backend.util.TempPostIdGenerator;
-import com.jandi.plan_backend.util.service.InMemoryTempPostService;
+import com.jandi.plan_backend.image.service.InMemoryTempPostService;
 import com.jandi.plan_backend.util.ValidationUtil;
 import org.springframework.stereotype.Service;
 

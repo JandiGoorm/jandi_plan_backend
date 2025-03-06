@@ -1,9 +1,9 @@
-package com.jandi.plan_backend.util.controller;
+package com.jandi.plan_backend.image.controller;
 
 import com.jandi.plan_backend.commu.dto.TempPostRespDTO;
-import com.jandi.plan_backend.util.TempPostIdGenerator;
+import com.jandi.plan_backend.image.TempPostIdGenerator;
 import com.jandi.plan_backend.util.ValidationUtil;
-import com.jandi.plan_backend.util.service.InMemoryTempPostService;
+import com.jandi.plan_backend.image.service.InMemoryTempPostService;
 import com.jandi.plan_backend.security.JwtTokenProvider;
 import com.jandi.plan_backend.user.entity.User;
 import lombok.RequiredArgsConstructor;

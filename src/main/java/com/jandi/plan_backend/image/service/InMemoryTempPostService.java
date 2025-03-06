@@ -1,5 +1,6 @@
-package com.jandi.plan_backend.util.service;
+package com.jandi.plan_backend.image.service;
 
+import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
