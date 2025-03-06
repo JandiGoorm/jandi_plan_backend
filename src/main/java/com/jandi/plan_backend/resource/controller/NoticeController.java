@@ -36,7 +36,7 @@ public class NoticeController {
      * 공지사항 최종 작성 API
      * 임시 Notice ID(음수)를 실제 Notice ID로 전환하며, 이미지의 targetId를 업데이트합니다.
      */
-    @PostMapping("/")
+    @PostMapping("")
     public ResponseEntity<?> finalizeNotice(
             @RequestHeader("Authorization") String token,
             @RequestBody NoticeFinalizeReqDTO finalizeReqDTO
