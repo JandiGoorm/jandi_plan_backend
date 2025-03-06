@@ -3,6 +3,7 @@ package com.jandi.plan_backend.trip.service;
 import com.jandi.plan_backend.image.entity.Image;
 import com.jandi.plan_backend.image.service.ImageService;
 import com.jandi.plan_backend.trip.dto.MyTripRespDTO;
+import com.jandi.plan_backend.trip.dto.TripItemRespDTO;
 import com.jandi.plan_backend.trip.dto.TripLikeRespDTO;
 import com.jandi.plan_backend.trip.dto.TripRespDTO;
 import com.jandi.plan_backend.trip.entity.Trip;
@@ -12,6 +13,7 @@ import com.jandi.plan_backend.trip.repository.TripRepository;
 import com.jandi.plan_backend.user.entity.City;
 import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.user.repository.CityRepository;
+import com.jandi.plan_backend.user.repository.UserRepository;
 import com.jandi.plan_backend.util.ValidationUtil;
 import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
 import com.jandi.plan_backend.util.service.PaginationService;
@@ -36,15 +38,17 @@ public class TripService {
     private final CityRepository cityRepository;
     private final String urlPrefix = "https://storage.googleapis.com/plan-storage/";
     private final Sort sortByCreate = Sort.by(Sort.Direction.DESC, "createdAt"); //생성일 역순
+    private final UserRepository userRepository;
 
     public TripService(TripRepository tripRepository, TripLikeRepository tripLikeRepository,
                        ValidationUtil validationUtil, ImageService imageService,
-                       CityRepository cityRepository) {
+                       CityRepository cityRepository, UserRepository userRepository) {
         this.tripRepository = tripRepository;
         this.tripLikeRepository = tripLikeRepository;
         this.validationUtil = validationUtil;
         this.imageService = imageService;
         this.cityRepository = cityRepository;
+        this.userRepository = userRepository;
     }
 
     /** 내 여행 계획 목록 전체 조회 (본인 명의의 계획만 조회) */
@@ -129,7 +133,8 @@ public class TripService {
      * - 비공개 플랜이면 작성자만
      * - 공개 플랜이면 누구나
      */
-    public MyTripRespDTO getSpecTrips(String userEmail, Integer tripId) {
+    public TripItemRespDTO getSpecTrips(String userEmail, Integer tripId) {
+        // 존재 여부 검증
         Trip trip = validationUtil.validateTripExists(tripId);
 
         // (A) 비공개 접근 권한 체크
@@ -138,7 +143,6 @@ public class TripService {
             if (userEmail == null) {
                 throw new BadRequestExceptionMessage("비공개 여행 계획: 로그인 필요");
             }
-            // 사용자 검증
             User currentUser = validationUtil.validateUserExists(userEmail);
             // 작성자와 다른 유저 → 에러
             if (!trip.getUser().getUserId().equals(currentUser.getUserId())) {
@@ -167,13 +171,17 @@ public class TripService {
                 .map(img -> urlPrefix + img.getImageUrl())
                 .orElse(null);
 
-        // (F) DTO 생성
-        return new MyTripRespDTO(
+        // (F) 여행계획 좋아요 여부: 미로그인 시 무조건 false, 로그인 시 좋아요 여부 반환
+        boolean isLiked = userEmail != null && tripLikeRepository.findByTripAndUser_Email(trip, userEmail).isPresent();
+
+        // (G) DTO 생성
+        return new TripItemRespDTO(
                 trip.getUser(),
                 userProfileUrl,
                 trip,
                 cityImageUrl,
-                tripImageUrl
+                tripImageUrl,
+                isLiked
         );
     }
 

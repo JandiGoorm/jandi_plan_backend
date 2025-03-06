@@ -19,4 +19,6 @@ public interface TripLikeRepository extends JpaRepository<TripLike, TripLikeId> 
 
     //특정 유저가 좋아요한 여행 계획 갯수 반환
     long countByUser(User user);
+
+    Optional<Object> findByTripAndUser_Email(Trip trip, String userEmail);
 }
