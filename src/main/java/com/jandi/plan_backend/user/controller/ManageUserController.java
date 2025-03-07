@@ -47,7 +47,7 @@ public class ManageUserController {
     }
 
     /** 부적절 유저 목록 조회 */
-    @GetMapping("/restricted")
+    @GetMapping("/reported")
     public Map<String, Object> getRestrictedUsers(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
