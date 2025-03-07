@@ -136,10 +136,10 @@ public class TripService {
         city.setSearchCount(city.getSearchCount() + 1);
         cityRepository.save(city);
 
-        // (F) 여행계획 좋아요 여부: 미로그인 시 무조건 false, 로그인 시 좋아요 여부 반환
+        // (C) 여행계획 좋아요 여부: 미로그인 시 무조건 false, 로그인 시 좋아요 여부 반환
         boolean isLiked = userEmail != null && tripLikeRepository.findByTripAndUser_Email(trip, userEmail).isPresent();
 
-        // (G) DTO 생성
+        // (D) DTO 생성
         return new TripItemRespDTO(convertToTripRespDTO(trip), isLiked);
     }
 
@@ -169,13 +169,15 @@ public class TripService {
     public TripLikeRespDTO addLikeTrip(String userEmail, Integer tripId) {
         User user = validationUtil.validateUserExists(userEmail);
         validationUtil.validateUserRestricted(user);
+
         Trip trip = validationUtil.validateTripExists(tripId);
         if (!trip.getUser().getUserId().equals(user.getUserId()) && trip.getPrivatePlan()) {
             throw new BadRequestExceptionMessage("접근 권한이 없습니다.");
         }
         if(trip.getUser().getUserId().equals(user.getUserId())) {
             throw new BadRequestExceptionMessage("본인의 여행계획은 좋아요할 수 없습니다.");
-        } else if(tripLikeRepository.findByTripAndUser(trip, user).isPresent()) {
+        }
+        if(tripLikeRepository.findByTripAndUser(trip, user).isPresent()) {
             throw new BadRequestExceptionMessage("이미 좋아요한 여행계획입니다.");
         }
 
@@ -198,10 +200,12 @@ public class TripService {
     public boolean deleteLikeTrip(String userEmail, Integer tripId) {
         User user = validationUtil.validateUserExists(userEmail);
         Trip trip = validationUtil.validateTripExists(tripId);
+
         Optional<TripLike> tripLike = tripLikeRepository.findByTripAndUser(trip, user);
         if(tripLike.isEmpty()) {
             throw new BadRequestExceptionMessage("이미 좋아요 해제되어 있습니다.");
         }
+
         tripLikeRepository.delete(tripLike.get());
         trip.setLikeCount(trip.getLikeCount() - 1);
         tripRepository.save(trip);
@@ -243,14 +247,13 @@ public class TripService {
             throw new BadRequestExceptionMessage("여행 계획 수정 권한이 없습니다.");
         }
 
-        boolean privatePlan;
-        if (isPrivate.equalsIgnoreCase("yes")) {
-            privatePlan = true;
-        } else if (isPrivate.equalsIgnoreCase("no")) {
-            privatePlan = false;
-        } else {
-            throw new BadRequestExceptionMessage("비공개 여부는 yes/no로 요청해주세요.");
-        }
+        // isPrivate 값에 따라 privatePlan 설정
+        boolean privatePlan = switch (isPrivate) {
+            case "yes" -> true;
+            case "no" -> false;
+            default -> throw new BadRequestExceptionMessage("비공개 여부는 yes/no로 요청해주세요.");
+        };
+
         trip.setTitle(title);
         trip.setPrivatePlan(privatePlan);
         trip.setUpdatedAt(LocalDateTime.now());
