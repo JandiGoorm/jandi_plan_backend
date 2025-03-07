@@ -36,7 +36,7 @@ public class BannerController {
     @PostMapping("/lists")
     public ResponseEntity<?> writeBanner(
             @RequestHeader("Authorization") String token, // 헤더의 Authorization에서 JWT 토큰 받기
-            @RequestParam MultipartFile file, //imageUrl에 넣을 원본 파일
+            @RequestPart MultipartFile file, //imageUrl에 넣을 원본 파일
             @RequestParam String title, //배너 제목
             @RequestParam String linkUrl //배너 클릭 시 연결할 link
     ) {
@@ -54,7 +54,7 @@ public class BannerController {
     public ResponseEntity<?> updateBanner(
             @PathVariable Integer bannerId,
             @RequestHeader("Authorization") String token, // 헤더의 Authorization에서 JWT 토큰 받기
-            @RequestParam MultipartFile file, //imageUrl에 넣을 원본 파일
+            @RequestPart MultipartFile file, //imageUrl에 넣을 원본 파일
             @RequestParam String title, //배너 제목
             @RequestParam String linkUrl //배너 클릭 시 연결할 link
     ){
