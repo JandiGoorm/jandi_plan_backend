@@ -26,9 +26,12 @@ public class TripController {
     @GetMapping("/allTrips")
     public Map<String, Object> getAllTrips(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "10") int size,
+            @RequestHeader(value = "Authorization", required = false) String token
     ){
-        Page<TripRespDTO> tripsPage = tripService.getAllTrips(page, size);
+        String userEmail = (token == null) ?
+                null : jwtTokenProvider.getEmail(token.replace("Bearer ", ""));
+        Page<TripRespDTO> tripsPage = tripService.getAllTrips(userEmail, page, size);
 
         return Map.of(
                 "pageInfo", Map.of(

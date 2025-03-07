@@ -1,6 +1,5 @@
 package com.jandi.plan_backend.trip.service;
 
-import com.jandi.plan_backend.image.entity.Image;
 import com.jandi.plan_backend.image.service.ImageService;
 import com.jandi.plan_backend.trip.dto.MyTripRespDTO;
 import com.jandi.plan_backend.trip.dto.TripItemRespDTO;
@@ -13,7 +12,6 @@ import com.jandi.plan_backend.trip.repository.TripRepository;
 import com.jandi.plan_backend.user.entity.City;
 import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.user.repository.CityRepository;
-import com.jandi.plan_backend.user.repository.UserRepository;
 import com.jandi.plan_backend.util.ValidationUtil;
 import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
 import com.jandi.plan_backend.util.service.PaginationService;
@@ -38,17 +36,18 @@ public class TripService {
     private final CityRepository cityRepository;
     private final String urlPrefix = "https://storage.googleapis.com/plan-storage/";
     private final Sort sortByCreate = Sort.by(Sort.Direction.DESC, "createdAt"); //생성일 역순
-    private final UserRepository userRepository;
 
-    public TripService(TripRepository tripRepository, TripLikeRepository tripLikeRepository,
-                       ValidationUtil validationUtil, ImageService imageService,
-                       CityRepository cityRepository, UserRepository userRepository) {
+    public TripService(TripRepository tripRepository,
+                       TripLikeRepository tripLikeRepository,
+                       ValidationUtil validationUtil,
+                       ImageService imageService,
+                       CityRepository cityRepository
+    ) {
         this.tripRepository = tripRepository;
         this.tripLikeRepository = tripLikeRepository;
         this.validationUtil = validationUtil;
         this.imageService = imageService;
         this.cityRepository = cityRepository;
-        this.userRepository = userRepository;
     }
 
     /** 내 여행 계획 목록 전체 조회 (본인 명의의 계획만 조회) */
@@ -59,8 +58,7 @@ public class TripService {
         return PaginationService.getPagedData(page, size, totalCount,
                 pageable -> tripRepository.findByUser(user, // 본인 계획만 선택
                         PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sortByCreate)), //최근 생성된 순
-                tripObj -> {
-                    Trip trip = (Trip) tripObj;
+                trip -> {
                     String userProfileUrl = imageService.getImageByTarget("userProfile", user.getUserId())
                             .map(img -> urlPrefix + img.getImageUrl())
                             .orElse(null);
@@ -92,40 +90,49 @@ public class TripService {
                 });
     }
 
-    /** 전체 여행 계획 조회 (공개 플랜만) 예시 */
-    public Page<TripRespDTO> getAllTrips(int page, int size) {
-        long totalCount = tripRepository.countByPrivatePlan(false);
+    /** 전체 여행 계획 조회 */
+    public Page<TripRespDTO> getAllTrips(String userEmail, int page, int size) {
+        Sort sort = Sort.by(Sort.Direction.DESC, "tripId");
 
-        return PaginationService.getPagedData(page, size, totalCount,
-                pageable -> tripRepository.findByPrivatePlan(false,
-                        PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sortByCreate)),
-                tripObj -> {
-                    Trip trip = (Trip) tripObj;
-                    // 1) 작성자 프로필
-                    String userProfileUrl = imageService.getImageByTarget("userProfile", trip.getUser().getUserId())
-                            .map(img -> urlPrefix + img.getImageUrl())
-                            .orElse(null);
+        if(userEmail == null) {
+            // 미로그인: 공개 플랜만 조회
+            long totalCount = tripRepository.countByPrivatePlan(false);
+            return PaginationService.getPagedData(page, size, totalCount,
+                    pageable -> tripRepository.findByPrivatePlan(false, PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort)),
+                    this::convertToTripRespDTO);
+        }
+        else{
+            User user = validationUtil.validateUserExists(userEmail);
+            if(validationUtil.validateUserIsAdmin(user.getUserId())) {
+                //관리자: 전체 플랜 조회
+                long totalCount = tripRepository.count();
+                return PaginationService.getPagedData(page, size, totalCount,
+                        pageable -> tripRepository.findAll(PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort)),
+                        this::convertToTripRespDTO);
+            }
+            else{
+                //일반인: 타인의 공개 플랜 + 본인의 전체 플랜 조회
+                long totalCount = tripRepository.countByPrivatePlan(false) + tripRepository.countByUser(user);
+                return PaginationService.getPagedData(page, size, totalCount,
+                        pageable -> tripRepository.findByPrivatePlanOrUser(false, user, PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort)),
+                        this::convertToTripRespDTO);
+            }
+        }
+    }
 
-                    // 2) 도시 이미지
-                    String cityImageUrl = imageService.getImageByTarget("city", trip.getCity().getCityId())
-                            .map(img -> urlPrefix + img.getImageUrl())
-                            .orElse(null);
+    // 코드 중복을 없애기 위해 dto 변환 부분을 별도 분리함
+    private TripRespDTO convertToTripRespDTO(Trip trip) {
+        String userProfileUrl = imageService.getImageByTarget("userProfile", trip.getUser().getUserId())
+                .map(img -> urlPrefix + img.getImageUrl())
+                .orElse(null);
+        String cityImageUrl = imageService.getImageByTarget("city", trip.getCity().getCityId())
+                .map(img -> urlPrefix + img.getImageUrl())
+                .orElse(null);
+        String tripImageUrl = imageService.getImageByTarget("trip", trip.getTripId())
+                .map(img -> urlPrefix + img.getImageUrl())
+                .orElse(null);
 
-                    // 3) 여행계획 이미지 (사용자가 업로드한 경우)
-                    // 없으면 null
-                    String tripImageUrl = imageService.getImageByTarget("trip", trip.getTripId())
-                            .map(img -> urlPrefix + img.getImageUrl())
-                            .orElse(null);
-
-                    // 4) DTO 생성 (5개 인자)
-                    return new TripRespDTO(
-                            trip.getUser(),
-                            userProfileUrl,
-                            trip,
-                            cityImageUrl,
-                            tripImageUrl
-                    );
-                });
+        return new TripRespDTO(trip.getUser(), userProfileUrl, trip, cityImageUrl, tripImageUrl);
     }
 
     /**
