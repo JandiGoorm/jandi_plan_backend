@@ -59,13 +59,8 @@ public class TripService {
                 pageable -> tripRepository.findByUser(user, // 본인 계획만 선택
                         PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sortByCreate)), //최근 생성된 순
                 trip -> {
-                    String userProfileUrl = imageService.getImageByTarget("userProfile", user.getUserId())
-                            .map(img -> urlPrefix + img.getImageUrl())
-                            .orElse(null);
-                    String cityImageUrl = imageService.getImageByTarget("city", trip.getCity().getCityId())
-                            .map(img -> urlPrefix + img.getImageUrl())
-                            .orElse(null);
-                    return new MyTripRespDTO(trip.getUser(), userProfileUrl, trip, cityImageUrl);
+                    TripRespDTO tripRespDTO = convertToTripRespDTO(trip);
+                    return new MyTripRespDTO(tripRespDTO, trip.getPrivatePlan());
                 });
     }
 
@@ -79,14 +74,7 @@ public class TripService {
                         PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sortByCreate)), //최근 생성된 순
                 tripLikeObj -> {
                     TripLike tripLike = (TripLike) tripLikeObj;
-                    Trip trip = tripLike.getTrip();
-                    String userProfileUrl = imageService.getImageByTarget("userProfile", trip.getUser().getUserId())
-                            .map(img -> urlPrefix + img.getImageUrl())
-                            .orElse(null);
-                    String cityImageUrl = imageService.getImageByTarget("city", trip.getCity().getCityId())
-                            .map(img -> urlPrefix + img.getImageUrl())
-                            .orElse(null);
-                    return new TripRespDTO(trip.getUser(), userProfileUrl, trip, cityImageUrl);
+                    return convertToTripRespDTO(tripLike.getTrip());
                 });
     }
 
@@ -120,21 +108,6 @@ public class TripService {
         }
     }
 
-    // 코드 중복을 없애기 위해 dto 변환 부분을 별도 분리함
-    private TripRespDTO convertToTripRespDTO(Trip trip) {
-        String userProfileUrl = imageService.getImageByTarget("userProfile", trip.getUser().getUserId())
-                .map(img -> urlPrefix + img.getImageUrl())
-                .orElse(null);
-        String cityImageUrl = imageService.getImageByTarget("city", trip.getCity().getCityId())
-                .map(img -> urlPrefix + img.getImageUrl())
-                .orElse(null);
-        String tripImageUrl = imageService.getImageByTarget("trip", trip.getTripId())
-                .map(img -> urlPrefix + img.getImageUrl())
-                .orElse(null);
-
-        return new TripRespDTO(trip.getUser(), userProfileUrl, trip, cityImageUrl, tripImageUrl);
-    }
-
     /**
      * 개별 여행 계획 조회
      * - 비공개 플랜이면 작성자만
@@ -163,33 +136,11 @@ public class TripService {
         city.setSearchCount(city.getSearchCount() + 1);
         cityRepository.save(city);
 
-        // (C) 작성자 프로필
-        String userProfileUrl = imageService.getImageByTarget("userProfile", trip.getUser().getUserId())
-                .map(img -> urlPrefix + img.getImageUrl())
-                .orElse(null);
-
-        // (D) 도시 이미지
-        String cityImageUrl = imageService.getImageByTarget("city", city.getCityId())
-                .map(img -> urlPrefix + img.getImageUrl())
-                .orElse(null);
-
-        // (E) 여행계획 이미지 (사용자가 업로드했을 경우)
-        String tripImageUrl = imageService.getImageByTarget("trip", trip.getTripId())
-                .map(img -> urlPrefix + img.getImageUrl())
-                .orElse(null);
-
         // (F) 여행계획 좋아요 여부: 미로그인 시 무조건 false, 로그인 시 좋아요 여부 반환
         boolean isLiked = userEmail != null && tripLikeRepository.findByTripAndUser_Email(trip, userEmail).isPresent();
 
         // (G) DTO 생성
-        return new TripItemRespDTO(
-                trip.getUser(),
-                userProfileUrl,
-                trip,
-                cityImageUrl,
-                tripImageUrl,
-                isLiked
-        );
+        return new TripItemRespDTO(convertToTripRespDTO(trip), isLiked);
     }
 
     /** 여행 계획 생성 (이미지 입력 제거됨) */
@@ -211,13 +162,7 @@ public class TripService {
         Trip trip = new Trip(user, title, isPrivate, parsedStartDate, parsedEndDate, budget, city);
         tripRepository.save(trip);
 
-        String userProfileUrl = imageService.getImageByTarget("userProfile", user.getUserId())
-                .map(img -> urlPrefix + img.getImageUrl())
-                .orElse(null);
-        String cityImageUrl = imageService.getImageByTarget("city", trip.getCity().getCityId())
-                .map(img -> urlPrefix + img.getImageUrl())
-                .orElse(null);
-        return new TripRespDTO(user, userProfileUrl, trip, cityImageUrl);
+        return convertToTripRespDTO(trip);
     }
 
     /** 좋아요 리스트에 추가 */
@@ -243,14 +188,8 @@ public class TripService {
         trip.setLikeCount(trip.getLikeCount() + 1);
         tripRepository.save(trip);
 
-        String userProfileUrl = imageService.getImageByTarget("userProfile", trip.getUser().getUserId())
-                .map(img -> urlPrefix + img.getImageUrl())
-                .orElse(null);
-        String cityImageUrl = imageService.getImageByTarget("city", trip.getCity().getCityId())
-                .map(img -> urlPrefix + img.getImageUrl())
-                .orElse(null);
         return new TripLikeRespDTO(
-                new MyTripRespDTO(trip.getUser(), userProfileUrl, trip, cityImageUrl),
+                new MyTripRespDTO(convertToTripRespDTO(trip), trip.getPrivatePlan()),
                 tripLike.getCreatedAt()
         );
     }
@@ -273,15 +212,7 @@ public class TripService {
     public List<TripRespDTO> getTop10Trips() {
         List<Trip> topTrips = tripRepository.findTop10ByPrivatePlanFalseOrderByLikeCountDesc();
         return topTrips.stream()
-                .map(trip -> {
-                    String userProfileUrl = imageService.getImageByTarget("userProfile", trip.getUser().getUserId())
-                            .map(img -> urlPrefix + img.getImageUrl())
-                            .orElse(null);
-                    String cityImageUrl = imageService.getImageByTarget("city", trip.getCity().getCityId())
-                            .map(img -> urlPrefix + img.getImageUrl())
-                            .orElse(null);
-                    return new TripRespDTO(trip.getUser(), userProfileUrl, trip, cityImageUrl);
-                })
+                .map(this::convertToTripRespDTO)
                 .collect(Collectors.toList());
     }
 
@@ -325,13 +256,7 @@ public class TripService {
         trip.setUpdatedAt(LocalDateTime.now());
         tripRepository.save(trip);
 
-        String userProfileUrl = imageService.getImageByTarget("userProfile", user.getUserId())
-                .map(img -> urlPrefix + img.getImageUrl())
-                .orElse(null);
-        String cityImageUrl = imageService.getImageByTarget("city", trip.getCity().getCityId())
-                .map(img -> urlPrefix + img.getImageUrl())
-                .orElse(null);
-        return new TripRespDTO(trip.getUser(), userProfileUrl, trip, cityImageUrl);
+        return convertToTripRespDTO(trip);
     }
 
     /**
@@ -341,5 +266,25 @@ public class TripService {
         Trip trip = validationUtil.validateTripExists(tripId);
         User user = validationUtil.validateUserExists(userEmail);
         return trip.getUser().getUserId().equals(user.getUserId());
+    }
+
+    // 코드 중복을 없애기 위해 dto 변환 부분을 별도 분리함
+    private TripRespDTO convertToTripRespDTO(Trip trip) {
+        // 플랜 작성자의 프로필 이미지
+        String userProfileUrl = imageService.getImageByTarget("userProfile", trip.getUser().getUserId())
+                .map(img -> urlPrefix + img.getImageUrl())
+                .orElse(null);
+
+        // 플랜의 목적지 도시 대표 이미지
+        String cityImageUrl = imageService.getImageByTarget("city", trip.getCity().getCityId())
+                .map(img -> urlPrefix + img.getImageUrl())
+                .orElse(null);
+
+        // 플랜의 사용자 지정 대표 이미지
+        String tripImageUrl = imageService.getImageByTarget("trip", trip.getTripId())
+                .map(img -> urlPrefix + img.getImageUrl())
+                .orElse(null);
+
+        return new TripRespDTO(trip.getUser(), userProfileUrl, trip, cityImageUrl, tripImageUrl);
     }
 }

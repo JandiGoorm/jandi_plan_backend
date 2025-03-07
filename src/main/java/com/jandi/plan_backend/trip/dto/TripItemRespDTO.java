@@ -37,4 +37,10 @@ public class TripItemRespDTO extends TripRespDTO {
         this.privatePlan = trip.getPrivatePlan();
         this.liked = liked;
     }
+
+    public TripItemRespDTO(TripRespDTO tripRespDTO, Boolean liked) {
+        super(tripRespDTO);
+        this.privatePlan = tripRespDTO.getPrivatePlan();
+        this.liked = liked;
+    }
 }

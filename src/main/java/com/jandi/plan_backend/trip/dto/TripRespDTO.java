@@ -69,4 +69,24 @@ public class TripRespDTO {
         this.cityImageUrl = cityImageUrl;
         this.tripImageUrl = tripImageUrl;
     }
+
+    public TripRespDTO(TripRespDTO tripRespDTO) {
+        this.user = tripRespDTO.getUser();
+        this.tripId = tripRespDTO.getTripId();
+        this.title = tripRespDTO.getTitle();
+        this.startDate = tripRespDTO.getStartDate();
+        this.endDate = tripRespDTO.getEndDate();
+        this.likeCount = tripRespDTO.getLikeCount();
+        this.budget = tripRespDTO.getBudget();
+        this.cityId = tripRespDTO.getCityId();
+        this.cityName = tripRespDTO.getCityName();
+        this.countryName = tripRespDTO.getCountryName();
+        this.privatePlan = tripRespDTO.getPrivatePlan();
+
+        this.latitude = tripRespDTO.getLatitude();
+        this.longitude = tripRespDTO.getLongitude();
+        this.cityImageUrl = tripRespDTO.getCityImageUrl();
+
+        this.tripImageUrl = tripRespDTO.getTripImageUrl();
+    }
 }

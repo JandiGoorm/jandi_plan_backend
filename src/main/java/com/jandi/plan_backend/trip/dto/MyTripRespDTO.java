@@ -30,4 +30,9 @@ public class MyTripRespDTO extends TripRespDTO {
         super(user, userProfileUrl, trip, cityImageUrl, tripImageUrl);
         this.privatePlan = trip.getPrivatePlan();
     }
+
+    public MyTripRespDTO(TripRespDTO tripRespDTO, boolean privatePlan) {
+        super(tripRespDTO);
+        this.privatePlan = privatePlan;
+    }
 }
