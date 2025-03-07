@@ -12,8 +12,8 @@ import lombok.Getter;
 public class CommunityReportedListDTO extends CommunityListDTO {
     private final Integer reportCount;
 
-    public CommunityReportedListDTO(Community community, ImageService imageService, Integer reportCount) {
-        super(community, imageService);
+    public CommunityReportedListDTO(Community community, Integer reportCount) {
+        super(community);
         this.reportCount = reportCount;
     }
 }

@@ -122,7 +122,7 @@ public class CommentService {
         post.setCommentCount(post.getCommentCount() + 1); // 게시글의 댓글 수 증가
         communityRepository.save(post);
 
-        return new CommentRespDTO(comment);
+        return new CommentRespDTO(comment, imageService);
     }
 
     /** 댓글 수정 */
@@ -140,7 +140,7 @@ public class CommentService {
 
         // DB 저장 및 반환
         commentRepository.save(comment);
-        return new CommentRespDTO(comment);
+        return new CommentRespDTO(comment, imageService);
     }
 
     /**

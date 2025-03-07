@@ -20,10 +20,22 @@ public class CommunityListDTO {
     private final Integer commentCount;
     private final Integer viewCount;
 
+    // 프로필 사진 필요한 버전
     public CommunityListDTO(Community community, ImageService imageService) {
         this.postId = community.getPostId();
         this.viewCount = community.getViewCount();
         this.user = new UserCommunityDTO(community.getUser(), imageService);
+        this.createdAt = community.getCreatedAt();
+        this.title = community.getTitle();
+        this.likeCount = community.getLikeCount();
+        this.commentCount = community.getCommentCount();
+    }
+
+    // 프로필 사진 필요없는 버전
+    public CommunityListDTO(Community community) {
+        this.postId = community.getPostId();
+        this.viewCount = community.getViewCount();
+        this.user = new UserCommunityDTO(community.getUser());
         this.createdAt = community.getCreatedAt();
         this.title = community.getTitle();
         this.likeCount = community.getLikeCount();

@@ -1,5 +1,7 @@
 package com.jandi.plan_backend.commu.controller;
 
+import com.jandi.plan_backend.commu.dto.CommentReportRespDTO;
+import com.jandi.plan_backend.commu.dto.CommentReportedListDTO;
 import com.jandi.plan_backend.commu.dto.CommunityListDTO;
 import com.jandi.plan_backend.commu.dto.CommunityReportedListDTO;
 import com.jandi.plan_backend.commu.service.ManageCommunityService;
@@ -45,6 +47,33 @@ public class ManageCommunityController {
                         "totalSize", reportedPosts.getTotalElements()
                 ),
                 "items", reportedPosts.getContent()
+        );
+
+        return ResponseEntity.ok(response);  // Map을 ResponseEntity로 감싸서 반환
+    }
+
+    // 신고 댓글 조회
+    @GetMapping("/reported/comments")
+    public ResponseEntity<Map<String, Object>> getReportedComments(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        if(userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "로그인이 필요합니다."));
+        }
+        String userEmail = userDetails.getUsername();
+
+        Page<CommentReportedListDTO> reportedComments = manageCommunityService.getReportedComments(userEmail, page, size);
+
+        Map<String, Object> response = Map.of(
+                "pageInfo", Map.of(
+                        "currentPage", reportedComments.getNumber(),
+                        "currentSize", reportedComments.getContent().size(),
+                        "totalPages", reportedComments.getTotalPages(),
+                        "totalSize", reportedComments.getTotalElements()
+                ),
+                "items", reportedComments.getContent()
         );
 
         return ResponseEntity.ok(response);  // Map을 ResponseEntity로 감싸서 반환
