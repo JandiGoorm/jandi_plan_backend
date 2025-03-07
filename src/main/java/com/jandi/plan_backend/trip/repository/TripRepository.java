@@ -27,4 +27,7 @@ public interface TripRepository extends JpaRepository<Trip, Long> {
     List<Trip> findTop10ByPrivatePlanFalseOrderByLikeCountDesc();
 
     boolean existsByCity(City city);
+
+    // 타인의 공개 플랜 + 본인의 모든 플랜 조회
+    Page<Trip> findByPrivatePlanOrUser(boolean b, User user, Pageable pageable);
 }
