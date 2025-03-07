@@ -171,8 +171,8 @@ public class UserService {
         dto.setReported(user.getReported());
 
         // 3. 사용자 프로필 이미지 조회
-        //    targetType이 "userProfile"이고, targetId가 userId인 Image를 조회
-        Optional<Image> optionalProfileImage = imageService.getImageByTarget("userProfile", user.getUserId());
+        //    targetType이 "profile"이고, targetId가 userId인 Image를 조회
+        Optional<Image> optionalProfileImage = imageService.getImageByTarget("profile", user.getUserId());
 
         String profileImageUrl;
         if (optionalProfileImage.isPresent()) {
@@ -221,8 +221,8 @@ public class UserService {
         }
         User user = optionalUser.get();
 
-        // 프로필 이미지 삭제: targetType이 'userProfile'이고, targetId가 사용자의 userId인 이미지를 삭제
-        imageService.getImageByTarget("userProfile", user.getUserId())
+        // 프로필 이미지 삭제: targetType이 'profile'이고, targetId가 사용자의 userId인 이미지를 삭제
+        imageService.getImageByTarget("profile", user.getUserId())
                 .ifPresent(img -> imageService.deleteImage(img.getImageId()));
 
         // 이후 사용자 삭제

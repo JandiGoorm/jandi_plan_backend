@@ -1,5 +1,7 @@
 package com.jandi.plan_backend.trip.entity;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.jandi.plan_backend.user.entity.City;
 import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.itinerary.entity.Itinerary;
@@ -14,6 +16,7 @@ import java.util.List;
 @Entity
 @Table(name = "trip")
 @Data
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "tripId")
 public class Trip {
 
     @Id

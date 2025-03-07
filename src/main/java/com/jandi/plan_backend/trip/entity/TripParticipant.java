@@ -1,5 +1,7 @@
 package com.jandi.plan_backend.trip.entity;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 import lombok.Data;
 import com.jandi.plan_backend.user.entity.User;
@@ -9,6 +11,7 @@ import java.time.LocalDateTime;
 @Table(name = "trip_participant")
 @IdClass(TripParticipantId.class)
 @Data
+@JsonIdentityInfo(generator = ObjectIdGenerators.IntSequenceGenerator.class, property = "@id")
 public class TripParticipant {
 
     @Id
