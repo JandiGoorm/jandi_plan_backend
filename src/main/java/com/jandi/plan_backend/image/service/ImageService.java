@@ -78,7 +78,7 @@ public class ImageService {
     /**
      * targetType과 targetId를 이용해 이미지를 조회하는 메서드.
      *
-     * @param targetType 이미지가 속하는 대상 (예: "userProfile", "community", 등)
+     * @param targetType 이미지가 속하는 대상 (예: "profile", "community", 등)
      * @param targetId 대상 엔티티의 식별자
      * @return 해당 조건에 맞는 Image 엔티티 (Optional)
      */
