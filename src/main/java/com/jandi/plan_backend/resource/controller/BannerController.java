@@ -53,16 +53,14 @@ public class BannerController {
     @PatchMapping("/lists/{bannerId}")
     public ResponseEntity<?> updateBanner(
             @PathVariable Integer bannerId,
-            @RequestHeader("Authorization") String token, // 헤더의 Authorization에서 JWT 토큰 받기
-            @RequestParam MultipartFile file, //imageUrl에 넣을 원본 파일
-            @RequestParam String title, //배너 제목
-            @RequestParam String linkUrl //배너 클릭 시 연결할 link
-    ){
-        // Jwt 토큰으로부터 유저 이메일 추출
+            @RequestHeader("Authorization") String token,
+            @RequestParam(value = "file", required = false) MultipartFile file,
+            @RequestParam(value = "title", required = false) String title,
+            @RequestParam(value = "linkUrl", required = false) String linkUrl
+    ) {
         String jwtToken = token.replace("Bearer ", "");
         String userEmail = jwtTokenProvider.getEmail(jwtToken);
 
-        // 배너 수정 및 반환
         BannerRespDTO updatedBanner = bannerService.updateBanner(userEmail, bannerId, file, title, linkUrl);
         return ResponseEntity.ok(updatedBanner);
     }
