@@ -260,8 +260,8 @@ public class PostService {
         //keyword 예외 처리
         if(keyword == null || keyword.isEmpty()){
             throw new BadRequestExceptionMessage("검색어를 입력하세요.");
-        }else if(keyword.trim().length() < 4){
-            throw new BadRequestExceptionMessage("검색어는 4글자 이상이어야 합니다");
+        }else if(keyword.trim().length() < 2){
+            throw new BadRequestExceptionMessage("검색어는 2글자 이상이어야 합니다");
         }
 
         // 검색
