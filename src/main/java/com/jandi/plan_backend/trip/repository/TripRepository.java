@@ -37,4 +37,7 @@ public interface TripRepository extends JpaRepository<Trip, Long> {
 
     @Query("SELECT t FROM Trip t JOIN t.city c WHERE LOWER(c.name) LIKE LOWER(CONCAT('%', :keyword, '%'))")
     List<Trip> searchByCityNameContainingIgnoreCase(String keyword);
+
+    List<Trip> findByUser(User user);
+
 }

@@ -20,14 +20,18 @@ public class ManageCommunityService {
     private final ValidationUtil validationUtil;
     private final CommunityReportedRepository communityReportedRepository;
     private final CommentReportedRepository commentReportedRepository;
+    private final PostService postService;
+    private final CommentService commentService;
 
     public ManageCommunityService(
             ValidationUtil validationUtil,
             CommunityReportedRepository communityReportedRepository,
-            CommentReportedRepository commentReportedRepository) {
+            CommentReportedRepository commentReportedRepository, PostService postService, CommentService commentService) {
         this.validationUtil = validationUtil;
         this.communityReportedRepository = communityReportedRepository;
         this.commentReportedRepository = commentReportedRepository;
+        this.postService = postService;
+        this.commentService = commentService;
     }
 
     public Page<CommunityReportedListDTO> getReportedPosts(String userEmail, int page, int size) {
@@ -61,5 +65,24 @@ public class ManageCommunityService {
                     return new CommentReportedListDTO(comment, reportCount);
                 }
         );
+    }
+
+    // 게시글 강제 삭제
+    public void deletePosts(String userEmail, Integer postId) {
+        User admin = validationUtil.validateUserExists(userEmail);
+        validationUtil.validateUserIsAdmin(admin);
+
+        Community post = validationUtil.validatePostExists(postId);
+        postService.deletePost(postId, post.getUser().getEmail());
+    }
+
+    // 댓글 강제 삭제
+    public void deleteComments(String userEmail, Integer commentId) {
+        User admin = validationUtil.validateUserExists(userEmail);
+        validationUtil.validateUserIsAdmin(admin);
+
+        Comment comment = validationUtil.validateCommentExists(commentId);
+        User user = validationUtil.validateUserExists(comment.getUserId());
+        commentService.deleteComments(commentId, user.getEmail());
     }
 }

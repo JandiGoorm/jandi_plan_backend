@@ -1,14 +1,24 @@
 package com.jandi.plan_backend.user.service;
 
-import com.jandi.plan_backend.commu.dto.UserListDTO;
+import com.jandi.plan_backend.commu.entity.Comment;
+import com.jandi.plan_backend.commu.entity.Community;
+import com.jandi.plan_backend.commu.repository.*;
+import com.jandi.plan_backend.commu.service.CommentService;
+import com.jandi.plan_backend.commu.service.PostService;
 import com.jandi.plan_backend.image.entity.Image;
+import com.jandi.plan_backend.image.repository.ImageRepository;
 import com.jandi.plan_backend.image.service.ImageService;
+import com.jandi.plan_backend.trip.entity.Trip;
+import com.jandi.plan_backend.trip.repository.TripLikeRepository;
+import com.jandi.plan_backend.trip.repository.TripRepository;
+import com.jandi.plan_backend.trip.service.TripService;
 import com.jandi.plan_backend.user.dto.AuthRespDTO;
 import com.jandi.plan_backend.user.dto.ChangePasswordDTO;
 import com.jandi.plan_backend.user.dto.UserLoginDTO;
 import com.jandi.plan_backend.user.dto.UserRegisterDTO;
 import com.jandi.plan_backend.user.dto.UserInfoRespDTO;
 import com.jandi.plan_backend.user.entity.User;
+import com.jandi.plan_backend.user.repository.UserCityPreferenceRepository;
 import com.jandi.plan_backend.user.repository.UserRepository;
 import com.jandi.plan_backend.security.JwtTokenProvider;
 import com.jandi.plan_backend.util.ValidationUtil;
@@ -37,6 +47,21 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final ImageService imageService;
+    private final CommunityRepository communityRepository;
+    private final PostService postService;
+    private final CommentRepository commentRepository;
+    private final CommentService commentService;
+    private final TripRepository tripRepository;
+    private final TripService tripService;
+    private final ImageRepository imageRepository;
+    private final UserCityPreferenceRepository userCityPreferenceRepository;
+    private final CommunityReportedRepository communityReportedRepository;
+    private final CommentReportedRepository commentReportedRepository;
+    private final TripLikeRepository tripLikeRepository;
+    private final CommunityLikeRepository communityLikeRepository;
+    private final CommentLikeRepository commentLikeRepository;
+    private final ValidationUtil validationUtil;
+
 
     @Value("${app.verify.url}")
     private String verifyUrl;
@@ -45,12 +70,41 @@ public class UserService {
                        EmailService emailService,
                        PasswordEncoder passwordEncoder,
                        JwtTokenProvider jwtTokenProvider,
-                       ImageService imageService, ValidationUtil validationUtil) {
+                       ImageService imageService,
+                       ValidationUtil validationUtil,
+                       PostService postService,
+                       CommentRepository commentRepository,
+                       CommentService commentService,
+                       CommunityRepository communityRepository,
+                       TripRepository tripRepository,
+                       TripService tripService,
+                       ImageRepository imageRepository,
+                       UserCityPreferenceRepository userCityPreferenceRepository,
+                       CommunityReportedRepository communityReportedRepository,
+                       CommentReportedRepository commentReportedRepository,
+                       TripLikeRepository tripLikeRepository,
+                       CommunityLikeRepository communityLikeRepository,
+                       CommentLikeRepository commentLikeRepository
+        ) {
         this.userRepository = userRepository;
         this.emailService = emailService;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
         this.imageService = imageService;
+        this.postService = postService;
+        this.commentRepository = commentRepository;
+        this.commentService = commentService;
+        this.communityRepository = communityRepository;
+        this.tripRepository = tripRepository;
+        this.tripService = tripService;
+        this.imageRepository = imageRepository;
+        this.userCityPreferenceRepository = userCityPreferenceRepository;
+        this.communityReportedRepository = communityReportedRepository;
+        this.commentReportedRepository = commentReportedRepository;
+        this.tripLikeRepository = tripLikeRepository;
+        this.communityLikeRepository = communityLikeRepository;
+        this.commentLikeRepository = commentLikeRepository;
+        this.validationUtil = validationUtil;
     }
 
     public User registerUser(UserRegisterDTO dto) {
@@ -212,21 +266,57 @@ public class UserService {
      * 이후 사용자 계정을 삭제한다.
      *
      * @param email 인증된 사용자의 이메일
+     * @return
      * @throws RuntimeException 사용자를 찾을 수 없는 경우 예외 발생
      */
-    public void deleteUser(String email) {
-        Optional<User> optionalUser = userRepository.findByEmail(email);
-        if (optionalUser.isEmpty()) {
-            throw new RuntimeException("사용자를 찾을 수 없습니다.");
-        }
-        User user = optionalUser.get();
+    public boolean deleteUser(String email) {
+        User user = validationUtil.validateUserExists(email);
 
-        // 프로필 이미지 삭제: targetType이 'profile'이고, targetId가 사용자의 userId인 이미지를 삭제
-        imageService.getImageByTarget("profile", user.getUserId())
+        /// 유저의 커뮤니티 활동 삭제
+        for(Comment reply : commentRepository.findByUserIdAndParentCommentIsNotNull(user.getUserId())) {
+            // 유저가 작성한 답글 삭제
+            commentService.deleteComments(reply.getCommentId(), user.getEmail());
+        }
+        for(Comment comment : commentRepository.findByUserIdAndParentCommentIsNull(user.getUserId())) {
+            // 유저가 작성한 댓글 삭제
+            commentService.deleteComments(comment.getCommentId(), user.getEmail());
+        }
+        for(Community community : communityRepository.findByUser(user)) {
+            // 유저가 작성한 게시글 삭제
+            postService.deletePost(community.getPostId(), user.getEmail());
+        }
+        // 유저가 신고한 게시글 정보 삭제
+        communityReportedRepository.
+                deleteAll(communityReportedRepository.findByUser_userId(user.getUserId()));
+        // 유저가 신고한 댓글 정보 삭제
+        commentReportedRepository.
+                deleteAll(commentReportedRepository.findByUser_UserId(user.getUserId()));
+        // 유저가 좋아요한 게시글 정보 삭제
+        communityLikeRepository.
+                deleteAll(communityLikeRepository.findByUser(user));
+        // 유저가 좋아요한 댓글 정보 삭제
+        commentLikeRepository.
+                deleteAll(commentLikeRepository.findByUser(user));
+
+        /// 유저의 여행 관련 활동 삭제
+        for(Trip trip : tripRepository.findByUser(user)) {
+            // 유저의 여행 계획 삭제
+            tripService.deleteMyTrip(trip.getTripId(), user.getEmail());
+        }
+        // 유저의 선호 여행지 정보 삭제
+        userCityPreferenceRepository
+                .deleteAll(userCityPreferenceRepository.findByUser(user));
+        // 유저가 좋아요한 여행 계획 삭제
+        tripLikeRepository
+                .deleteAll(tripLikeRepository.findByUser(user));
+
+        /// 유저의 프로필 삭제
+        imageRepository.findByTargetTypeAndTargetId("profile", user.getUserId())
                 .ifPresent(img -> imageService.deleteImage(img.getImageId()));
 
-        // 이후 사용자 삭제
+        // 유저 탈퇴
         userRepository.delete(user);
+        return userRepository.findByEmail(email).isEmpty();
     }
 
     // 중복 이메일 검증

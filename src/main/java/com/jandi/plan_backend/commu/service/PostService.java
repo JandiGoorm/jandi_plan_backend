@@ -5,10 +5,7 @@ import com.jandi.plan_backend.commu.entity.Comment;
 import com.jandi.plan_backend.commu.entity.Community;
 import com.jandi.plan_backend.commu.entity.CommunityLike;
 import com.jandi.plan_backend.commu.entity.CommunityReported;
-import com.jandi.plan_backend.commu.repository.CommentRepository;
-import com.jandi.plan_backend.commu.repository.CommunityLikeRepository;
-import com.jandi.plan_backend.commu.repository.CommunityRepository;
-import com.jandi.plan_backend.commu.repository.CommunityReportedRepository;
+import com.jandi.plan_backend.commu.repository.*;
 import com.jandi.plan_backend.image.entity.Image;
 import com.jandi.plan_backend.image.repository.ImageRepository;
 import com.jandi.plan_backend.image.service.ImageService;
@@ -44,6 +41,8 @@ public class PostService {
     private final CommunityLikeRepository communityLikeRepository;
     private final InMemoryTempPostService inMemoryTempPostService;
     private final UserRepository userRepository;
+    private final CommentReportedRepository commentReportedRepository;
+    private final CommentLikeRepository commentLikeRepository;
 
     // 생성자 주입
     public PostService(
@@ -55,8 +54,8 @@ public class PostService {
             CommunityReportedRepository communityReportedRepository,
             CommunityLikeRepository communityLikeRepository,
             InMemoryTempPostService inMemoryTempPostService,
-            UserRepository userRepository
-    ) {
+            UserRepository userRepository,
+            CommentReportedRepository commentReportedRepository, CommentLikeRepository commentLikeRepository) {
         this.communityRepository = communityRepository;
         this.validationUtil = validationUtil;
         this.imageService = imageService;
@@ -66,6 +65,8 @@ public class PostService {
         this.communityLikeRepository = communityLikeRepository;
         this.inMemoryTempPostService = inMemoryTempPostService;
         this.userRepository = userRepository;
+        this.commentReportedRepository = commentReportedRepository;
+        this.commentLikeRepository = commentLikeRepository;
     }
 
     /** 특정 게시글 조회 */
@@ -146,11 +147,19 @@ public class PostService {
         // 유저 검증
         User user = validationUtil.validateUserExists(userEmail);
         validationUtil.validateUserRestricted(user);
-        if (user.getUserId() != 1) {
-            validationUtil.validateUserIsAuthorOfPost(user, post);
-        }
+        validationUtil.validateUserIsAuthorOfPost(user, post);
+
+        // 게시글의 신고 및 좋아요 정보 삭제
+        communityReportedRepository.deleteAll(communityReportedRepository.findByCommunity_PostId(postId));
+        communityLikeRepository.deleteAll(communityLikeRepository.findByCommunity(post));
+
+        // 게시글에 달린 모든 댓글 및 댓글의 신고/좋아요 정보 삭제
         List<Comment> comments = commentRepository.findByCommunity(post);
         int commentsCount = comments.size();
+        for (Comment comment : comments) {
+            commentReportedRepository.deleteAll(commentReportedRepository.findByComment_CommentId(comment.getCommentId()));
+            commentLikeRepository.deleteAll(commentLikeRepository.findByComment_CommentId(comment.getCommentId()));
+        }
         commentRepository.deleteAll(comments);
 
         // 게시글과 연결된 모든 이미지 삭제

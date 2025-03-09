@@ -1,6 +1,7 @@
 package com.jandi.plan_backend.commu.repository;
 
 import com.jandi.plan_backend.commu.entity.Community;
+import com.jandi.plan_backend.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -26,4 +27,6 @@ public interface CommunityRepository extends JpaRepository<Community, Integer> {
     // nativeQuery = true로 하여 단어 일부만 검색해도 매칭되도록 함 (단어: 띄어쓰기 기준)
     @Query(value = "SELECT * FROM community WHERE MATCH(title, contents) AGAINST(:keyword IN BOOLEAN MODE)", nativeQuery = true)
     List<Community> searchByTitleAndContents(String keyword);
+
+    List<Community> findByUser(User user);
 }
