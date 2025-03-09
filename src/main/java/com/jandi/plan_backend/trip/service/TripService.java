@@ -1,6 +1,10 @@
 package com.jandi.plan_backend.trip.service;
 
 import com.jandi.plan_backend.image.service.ImageService;
+import com.jandi.plan_backend.itinerary.entity.Itinerary;
+import com.jandi.plan_backend.itinerary.entity.Reservation;
+import com.jandi.plan_backend.itinerary.repository.ItineraryRepository;
+import com.jandi.plan_backend.itinerary.repository.ReservationRepository;
 import com.jandi.plan_backend.trip.dto.MyTripRespDTO;
 import com.jandi.plan_backend.trip.dto.TripItemRespDTO;
 import com.jandi.plan_backend.trip.dto.TripLikeRespDTO;
@@ -22,6 +26,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.List;
@@ -36,18 +41,22 @@ public class TripService {
     private final CityRepository cityRepository;
     private final String urlPrefix = "https://storage.googleapis.com/plan-storage/";
     private final Sort sortByCreate = Sort.by(Sort.Direction.DESC, "createdAt"); //생성일 역순
+    private final ItineraryRepository itineraryRepository;
+    private final ReservationRepository reservationRepository;
 
     public TripService(TripRepository tripRepository,
                        TripLikeRepository tripLikeRepository,
                        ValidationUtil validationUtil,
                        ImageService imageService,
-                       CityRepository cityRepository
-    ) {
+                       CityRepository cityRepository,
+                       ItineraryRepository itineraryRepository, ReservationRepository reservationRepository) {
         this.tripRepository = tripRepository;
         this.tripLikeRepository = tripLikeRepository;
         this.validationUtil = validationUtil;
         this.imageService = imageService;
         this.cityRepository = cityRepository;
+        this.itineraryRepository = itineraryRepository;
+        this.reservationRepository = reservationRepository;
     }
 
     /** 내 여행 계획 목록 전체 조회 (본인 명의의 계획만 조회) */
@@ -228,6 +237,11 @@ public class TripService {
         if (!trip.getUser().getUserId().equals(user.getUserId())) {
             throw new BadRequestExceptionMessage("본인이 작성한 여행 계획만 삭제할 수 있습니다.");
         }
+        // 여행 계획의 일정과 예약 정보 삭제
+        itineraryRepository.deleteAll(itineraryRepository.findByTrip(trip));
+        reservationRepository.deleteAll(reservationRepository.findByTrip(trip));
+
+        // 사용자 지정 대표 이미지 삭제
         imageService.getImageByTarget("trip", tripId)
                 .ifPresent(img -> imageService.deleteImage(img.getImageId()));
         tripRepository.delete(trip);

@@ -2,6 +2,7 @@ package com.jandi.plan_backend.commu.repository;
 
 import com.jandi.plan_backend.commu.entity.Community;
 import com.jandi.plan_backend.commu.entity.CommunityReported;
+import com.jandi.plan_backend.user.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -20,4 +21,8 @@ public interface CommunityReportedRepository extends JpaRepository<CommunityRepo
     ORDER BY COUNT(post) DESC, post.community.postId DESC
     """)
     Page<Object[]> findReportedCommunitiesWithCount(Pageable pageable);
+
+    List<CommunityReported> findByUser_userId(Integer userId);
+
+    List<CommunityReported> findByCommunity_PostId(Integer communityPostId);
 }

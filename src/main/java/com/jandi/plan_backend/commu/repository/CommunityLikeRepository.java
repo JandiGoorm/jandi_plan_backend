@@ -11,4 +11,8 @@ import java.util.Optional;
 public interface CommunityLikeRepository extends JpaRepository<CommunityLike, CommunityLikeId> {
     //특정 유저가 특정 게시물을 좋아요했는지 검색
     Optional<CommunityLike> findByCommunityAndUser(Community community, User user);
+
+    Iterable<? extends CommunityLike> findByCommunity(Community community);
+
+    Iterable<? extends CommunityLike> findByUser(User user);
 }

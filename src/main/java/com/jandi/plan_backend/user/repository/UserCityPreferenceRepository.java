@@ -15,4 +15,6 @@ public interface UserCityPreferenceRepository extends JpaRepository<UserCityPref
     List<UserCityPreference> findByUser_UserId(Integer UserId);
 
     boolean existsByCity(City city);
+
+    List<UserCityPreference> findByUser(User user);
 }

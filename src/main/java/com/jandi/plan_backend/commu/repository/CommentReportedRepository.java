@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface CommentReportedRepository extends JpaRepository<CommentReported, Long> {
@@ -18,4 +19,8 @@ public interface CommentReportedRepository extends JpaRepository<CommentReported
     ORDER BY COUNT(comment) DESC, comment.comment.commentId DESC
     """)
     Page<Object[]> findReportedCommentsWithCount(Pageable pageable);
+
+    Iterable<? extends CommentReported> findByComment_CommentId(Integer commentCommentId);
+
+    List<CommentReported> findByUser_UserId(Integer userUserId);
 }

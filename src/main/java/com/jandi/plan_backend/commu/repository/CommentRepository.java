@@ -30,4 +30,7 @@ public interface CommentRepository extends JpaRepository<Comment, Integer> {
     List<Comment> findByParentCommentCommentId(Integer commentId);
 
     List<Comment> findByCommunity(Community community);
+
+    // 특정 유저의 댓글을 조회하는 메서드
+    List<Comment> findByUserId(Integer userId);
 }

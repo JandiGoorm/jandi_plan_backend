@@ -87,7 +87,6 @@ public class ManageUserController {
     }
 
     /** 부적절 유저 탈퇴 */
-    //제한된 유저 -> 해제 / 일반 유저 -> 제한
     @PostMapping("/withdraw/{userId}")
     public ResponseEntity<?> withdrawUser(
         @PathVariable Integer userId,

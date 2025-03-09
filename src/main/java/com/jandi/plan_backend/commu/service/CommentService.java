@@ -146,7 +146,7 @@ public class CommentService {
     /**
      * 댓글 및 답글 삭제
      */
-    public int deleteComments(String userEmail, Integer commentId) {
+    public int deleteComments(Integer commentId, String userEmail) {
         Comment comment = validationUtil.validateCommentExists(commentId);
         User user = validationUtil.validateUserExists(userEmail);
         validationUtil.validateUserRestricted(user);
@@ -155,10 +155,13 @@ public class CommentService {
         }
         int repliesCount = 0;
         if (comment.getParentComment() == null) {
+            log.info("댓글 삭제: {}", commentId);
             List<Comment> replies = commentRepository.findByParentCommentCommentId(commentId);
+            log.info("하위 답글 {}개 삭제", replies.size());
             repliesCount = replies.size();
             commentRepository.deleteAll(replies);
         } else {
+            log.info("답글 삭제: {}", commentId);
             Comment parentComment = comment.getParentComment();
             parentComment.setRepliesCount(parentComment.getRepliesCount() - 1);
             commentRepository.save(parentComment);
