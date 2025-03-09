@@ -159,12 +159,12 @@ public class CommentService {
             // 답글의 좋아요 및 신고 정보 삭제 후 답글 삭제
             List<Comment> replies = commentRepository.findByParentCommentCommentId(commentId);
             repliesCount = replies.size();
-            for(Comment replie : replies) {
-                commentLikeRepository.deleteAll(commentLikeRepository.findByComment(replie));
-                commentReportedRepository.deleteAll(commentReportedRepository.findByComment(replie));
+            for(Comment reply : replies) {
+                log.info("하위 댓글 삭제: {}", reply.getCommentId());
+                commentLikeRepository.deleteAll(commentLikeRepository.findByComment_CommentId(reply.getCommentId()));
+                commentReportedRepository.deleteAll(commentReportedRepository.findByComment_CommentId(reply.getCommentId()));
             }
             commentRepository.deleteAll(replies);
-            log.info("하위 답글 {}개 삭제", repliesCount);
         } else {
             log.info("답글 삭제: {}", commentId);
             Comment parentComment = comment.getParentComment();

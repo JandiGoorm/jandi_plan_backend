@@ -273,7 +273,11 @@ public class UserService {
         User user = validationUtil.validateUserExists(email);
 
         /// 유저의 커뮤니티 활동 삭제
-        for(Comment comment : commentRepository.findByUserId(user.getUserId())) {
+        for(Comment reply : commentRepository.findByUserIdAndParentCommentIsNotNull(user.getUserId())) {
+            // 유저가 작성한 답글 삭제
+            commentService.deleteComments(reply.getCommentId(), user.getEmail());
+        }
+        for(Comment comment : commentRepository.findByUserIdAndParentCommentIsNull(user.getUserId())) {
             // 유저가 작성한 댓글 삭제
             commentService.deleteComments(comment.getCommentId(), user.getEmail());
         }
