@@ -16,12 +16,10 @@ import java.util.Map;
 @RequestMapping("/api/community")
 public class PostController {
 
-    private final PostService communityService;
     private final JwtTokenProvider jwtTokenProvider;
     private final PostService postService;
 
     public PostController(PostService postService, JwtTokenProvider jwtTokenProvider) {
-        this.communityService = postService;
         this.jwtTokenProvider = jwtTokenProvider;
         this.postService = postService;
     }
@@ -32,7 +30,7 @@ public class PostController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        Page<CommunityListDTO> postsPage = communityService.getAllPosts(page, size);
+        Page<CommunityListDTO> postsPage = postService.getAllPosts(page, size);
         return Map.of(
                 "pageInfo", Map.of(
                         "currentPage", postsPage.getNumber(),
@@ -52,7 +50,7 @@ public class PostController {
     ) {
         String userEmail = (userDetails != null) ? userDetails.getUsername() : null;
 
-        return Map.of("items", communityService.getSpecPost(postId, userEmail));
+        return Map.of("items", postService.getSpecPost(postId, userEmail));
     }
 
     /** 게시물 수정 API */
@@ -68,7 +66,7 @@ public class PostController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
 
-        CommunityRespDTO updatedPost = communityService.updatePost(postDTO, postId, userEmail);
+        CommunityRespDTO updatedPost = postService.updatePost(postDTO, postId, userEmail);
         return ResponseEntity.ok(updatedPost);
     }
 
@@ -88,7 +86,7 @@ public class PostController {
         // 1. 하위 댓글 삭제
         // 2. imageRepository.findAllByTargetTypeAndTargetId("community", postId)를 통해 모든 연결된 이미지를 조회하고,
         //    imageService.deleteImage(imageId)를 반복 호출하여 모두 삭제하도록 구현되어 있어야 합니다.
-        int deleteCommentCount = communityService.deletePost(postId, userEmail);
+        int deleteCommentCount = postService.deletePost(postId, userEmail);
         String returnMsg = (deleteCommentCount == 0) ?
                 "게시물이 삭제되었습니다" : "선택된 게시물과 하위 댓글 " + deleteCommentCount + "개가 삭제되었습니다";
         return ResponseEntity.ok(returnMsg);
@@ -158,7 +156,7 @@ public class PostController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ){
-        Page<CommunityListDTO> postsPage = communityService.search(category, keyword, page, size);
+        Page<CommunityListDTO> postsPage = postService.search(category, keyword, page, size);
         return Map.of(
                 "pageInfo", Map.of(
                         "currentPage", postsPage.getNumber(),
