@@ -150,16 +150,21 @@ public class CommentService {
         Comment comment = validationUtil.validateCommentExists(commentId);
         User user = validationUtil.validateUserExists(userEmail);
         validationUtil.validateUserRestricted(user);
-        if (user.getUserId() != 1) {
-            validationUtil.validateUserIsAuthorOfComment(user, comment);
-        }
+        validationUtil.validateUserIsAuthorOfComment(user, comment);
+
         int repliesCount = 0;
         if (comment.getParentComment() == null) {
             log.info("댓글 삭제: {}", commentId);
+
+            // 답글의 좋아요 및 신고 정보 삭제 후 답글 삭제
             List<Comment> replies = commentRepository.findByParentCommentCommentId(commentId);
-            log.info("하위 답글 {}개 삭제", replies.size());
             repliesCount = replies.size();
+            for(Comment replie : replies) {
+                commentLikeRepository.deleteAll(commentLikeRepository.findByComment(replie));
+                commentReportedRepository.deleteAll(commentReportedRepository.findByComment(replie));
+            }
             commentRepository.deleteAll(replies);
+            log.info("하위 답글 {}개 삭제", repliesCount);
         } else {
             log.info("답글 삭제: {}", commentId);
             Comment parentComment = comment.getParentComment();
@@ -169,6 +174,10 @@ public class CommentService {
         Community post = comment.getCommunity();
         post.setCommentCount(post.getCommentCount() - 1 - repliesCount);
         communityRepository.save(post);
+
+        // 자신의 좋아요 및 신고 정보 삭제 후 자신 삭제
+        commentLikeRepository.deleteAll(commentLikeRepository.findByComment(comment));
+        commentReportedRepository.deleteAll(commentReportedRepository.findByComment(comment));
         commentRepository.delete(comment);
         return repliesCount;
     }

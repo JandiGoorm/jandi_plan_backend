@@ -98,4 +98,22 @@ public class ManageCommunityController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    // 부적절 게시글 삭제
+    @DeleteMapping("/delete/comments/{commentId}")
+    public ResponseEntity<?> deleteComments(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Integer commentId
+    ){
+        if(userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "로그인이 필요합니다."));
+        }
+        String userEmail = userDetails.getUsername();
+        try{
+            manageCommunityService.deleteComments(userEmail, commentId);
+            return ResponseEntity.ok("삭제되었습니다.");
+        }catch (Exception e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }

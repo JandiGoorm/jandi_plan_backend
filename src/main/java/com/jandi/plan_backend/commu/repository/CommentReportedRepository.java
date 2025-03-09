@@ -1,5 +1,6 @@
 package com.jandi.plan_backend.commu.repository;
 
+import com.jandi.plan_backend.commu.entity.Comment;
 import com.jandi.plan_backend.commu.entity.CommentReported;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,4 +24,6 @@ public interface CommentReportedRepository extends JpaRepository<CommentReported
     Iterable<? extends CommentReported> findByComment_CommentId(Integer commentCommentId);
 
     List<CommentReported> findByUser_UserId(Integer userUserId);
+
+    Iterable<? extends CommentReported> findByComment(Comment comment);
 }
