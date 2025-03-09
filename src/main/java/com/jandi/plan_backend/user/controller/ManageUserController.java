@@ -87,7 +87,7 @@ public class ManageUserController {
     }
 
     /** 부적절 유저 탈퇴 */
-    @PostMapping("/withdraw/{userId}")
+    @DeleteMapping("/delete/{userId}")
     public ResponseEntity<?> withdrawUser(
         @PathVariable Integer userId,
         @RequestHeader("Authorization") String token // 헤더의 Authorization에서 JWT 토큰 받기
@@ -96,8 +96,11 @@ public class ManageUserController {
         String jwtToken = token.replace("Bearer ", "");
         String userEmail = jwtTokenProvider.getEmail(jwtToken);
 
-        Boolean isWithdraw = manageUserService.withdrawUser(userEmail, userId);
-        return ResponseEntity.ok((isWithdraw) ?
-                "탈퇴되었습니다" : "탈퇴에 문제가 발생했습니다");
+        try{
+            manageUserService.withdrawUser(userEmail, userId);
+            return ResponseEntity.ok("탈퇴되었습니다.");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }
