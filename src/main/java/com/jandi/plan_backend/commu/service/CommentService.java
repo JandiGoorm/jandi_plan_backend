@@ -146,19 +146,27 @@ public class CommentService {
     /**
      * 댓글 및 답글 삭제
      */
-    public int deleteComments(String userEmail, Integer commentId) {
+    public int deleteComments(Integer commentId, String userEmail) {
         Comment comment = validationUtil.validateCommentExists(commentId);
         User user = validationUtil.validateUserExists(userEmail);
         validationUtil.validateUserRestricted(user);
-        if (user.getUserId() != 1) {
-            validationUtil.validateUserIsAuthorOfComment(user, comment);
-        }
+        validationUtil.validateUserIsAuthorOfComment(user, comment);
+
         int repliesCount = 0;
         if (comment.getParentComment() == null) {
+            log.info("댓글 삭제: {}", commentId);
+
+            // 답글의 좋아요 및 신고 정보 삭제 후 답글 삭제
             List<Comment> replies = commentRepository.findByParentCommentCommentId(commentId);
             repliesCount = replies.size();
+            for(Comment reply : replies) {
+                log.info("하위 댓글 삭제: {}", reply.getCommentId());
+                commentLikeRepository.deleteAll(commentLikeRepository.findByComment_CommentId(reply.getCommentId()));
+                commentReportedRepository.deleteAll(commentReportedRepository.findByComment_CommentId(reply.getCommentId()));
+            }
             commentRepository.deleteAll(replies);
         } else {
+            log.info("답글 삭제: {}", commentId);
             Comment parentComment = comment.getParentComment();
             parentComment.setRepliesCount(parentComment.getRepliesCount() - 1);
             commentRepository.save(parentComment);
@@ -166,6 +174,10 @@ public class CommentService {
         Community post = comment.getCommunity();
         post.setCommentCount(post.getCommentCount() - 1 - repliesCount);
         communityRepository.save(post);
+
+        // 자신의 좋아요 및 신고 정보 삭제 후 자신 삭제
+        commentLikeRepository.deleteAll(commentLikeRepository.findByComment(comment));
+        commentReportedRepository.deleteAll(commentReportedRepository.findByComment(comment));
         commentRepository.delete(comment);
         return repliesCount;
     }

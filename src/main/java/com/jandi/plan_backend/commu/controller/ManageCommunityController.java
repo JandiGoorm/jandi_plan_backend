@@ -4,7 +4,9 @@ import com.jandi.plan_backend.commu.dto.CommentReportRespDTO;
 import com.jandi.plan_backend.commu.dto.CommentReportedListDTO;
 import com.jandi.plan_backend.commu.dto.CommunityListDTO;
 import com.jandi.plan_backend.commu.dto.CommunityReportedListDTO;
+import com.jandi.plan_backend.commu.repository.CommunityRepository;
 import com.jandi.plan_backend.commu.service.ManageCommunityService;
+import com.jandi.plan_backend.commu.service.PostService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -77,5 +79,41 @@ public class ManageCommunityController {
         );
 
         return ResponseEntity.ok(response);  // Map을 ResponseEntity로 감싸서 반환
+    }
+
+    // 부적절 게시글 삭제
+    @DeleteMapping("/delete/posts/{postId}")
+    public ResponseEntity<?> deletePosts(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Integer postId
+    ){
+        if(userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "로그인이 필요합니다."));
+        }
+        String userEmail = userDetails.getUsername();
+        try{
+            manageCommunityService.deletePosts(userEmail, postId);
+            return ResponseEntity.ok("삭제되었습니다.");
+        }catch (Exception e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    // 부적절 게시글 삭제
+    @DeleteMapping("/delete/comments/{commentId}")
+    public ResponseEntity<?> deleteComments(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Integer commentId
+    ){
+        if(userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "로그인이 필요합니다."));
+        }
+        String userEmail = userDetails.getUsername();
+        try{
+            manageCommunityService.deleteComments(userEmail, commentId);
+            return ResponseEntity.ok("삭제되었습니다.");
+        }catch (Exception e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }
