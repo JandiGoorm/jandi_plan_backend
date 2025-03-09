@@ -6,6 +6,7 @@ import com.jandi.plan_backend.user.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -30,4 +31,10 @@ public interface TripRepository extends JpaRepository<Trip, Long> {
 
     // 타인의 공개 플랜 + 본인의 모든 플랜 조회
     Page<Trip> findByPrivatePlanOrUser(boolean b, User user, Pageable pageable);
+
+    @Query("SELECT t FROM Trip t WHERE LOWER(t.title) LIKE LOWER(CONCAT('%', :keyword, '%'))")
+    List<Trip> searchByTitleContainingIgnoreCase(String keyword);
+
+    @Query("SELECT t FROM Trip t JOIN t.city c WHERE LOWER(c.name) LIKE LOWER(CONCAT('%', :keyword, '%'))")
+    List<Trip> searchByCityNameContainingIgnoreCase(String keyword);
 }

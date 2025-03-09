@@ -220,4 +220,32 @@ public class TripController {
         );
         return ResponseEntity.ok(updatedTrip);
     }
+
+    /**
+     * 여행 계획 검색 API
+     *
+     * @param category 검색 카테고리 ("TITLE", "CITY", "BOTH")
+     * @param keyword  검색어 (2글자 이상)
+     * @param page     페이지 번호 (기본: 0)
+     * @param size     페이지 크기 (기본: 10)
+     * @return 검색 결과를 담은 페이지 객체 (TripRespDTO)
+     */
+    @GetMapping("/search")
+    public ResponseEntity<?> searchTrips(
+            @RequestParam String category,
+            @RequestParam String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Page<TripRespDTO> tripsPage = tripService.searchTrips(category, keyword, page, size);
+        return ResponseEntity.ok(Map.of(
+                "pageInfo", Map.of(
+                        "currentPage", tripsPage.getNumber(),
+                        "currentSize", tripsPage.getContent().size(),
+                        "totalPages", tripsPage.getTotalPages(),
+                        "totalSize", tripsPage.getTotalElements()
+                ),
+                "items", tripsPage.getContent()
+        ));
+    }
 }

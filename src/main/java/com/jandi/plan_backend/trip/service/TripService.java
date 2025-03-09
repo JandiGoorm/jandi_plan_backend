@@ -16,15 +16,14 @@ import com.jandi.plan_backend.util.ValidationUtil;
 import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
 import com.jandi.plan_backend.util.service.PaginationService;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -289,5 +288,58 @@ public class TripService {
                 .orElse(null);
 
         return new TripRespDTO(trip.getUser(), userProfileUrl, trip, cityImageUrl, tripImageUrl);
+    }
+
+    /**
+     * 여행 계획 검색 기능
+     *
+     * @param category "TITLE", "CITY", "BOTH" 중 하나 (대소문자 구분 없음)
+     * @param keyword 검색어 (2글자 이상)
+     * @param page    페이지 번호
+     * @param size    페이지 크기
+     * @return 검색 결과를 담은 페이지 객체 (TripRespDTO)
+     */
+    public Page<TripRespDTO> searchTrips(String category, String keyword, int page, int size) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            throw new BadRequestExceptionMessage("검색어를 입력하세요.");
+        }
+        if (keyword.trim().length() < 2) {
+            throw new BadRequestExceptionMessage("검색어는 2글자 이상이어야 합니다.");
+        }
+
+        List<Trip> searchList;
+        String lowerKeyword = keyword.trim();
+
+        switch (category.toUpperCase()) {
+            case "TITLE":
+                searchList = tripRepository.searchByTitleContainingIgnoreCase(lowerKeyword);
+                break;
+            case "CITY":
+                searchList = tripRepository.searchByCityNameContainingIgnoreCase(lowerKeyword);
+                break;
+            case "BOTH":
+                // 두 검색 결과를 합칩니다. 중복 제거를 위해 Set 사용
+                Set<Trip> resultSet = new HashSet<>();
+                resultSet.addAll(tripRepository.searchByTitleContainingIgnoreCase(lowerKeyword));
+                resultSet.addAll(tripRepository.searchByCityNameContainingIgnoreCase(lowerKeyword));
+                searchList = new ArrayList<>(resultSet);
+                break;
+            default:
+                throw new BadRequestExceptionMessage("검색 카테고리가 잘못되었습니다. TITLE, CITY, BOTH 중 하나를 입력하세요.");
+        }
+
+        // 정렬: 최신 트립이 먼저 보이도록 tripId 내림차순 정렬 (또는 createdAt으로 정렬)
+        searchList.sort(Comparator.comparing(Trip::getTripId).reversed());
+        long totalCount = searchList.size();
+
+        // 페이징 처리
+        return PaginationService.getPagedData(page, size, totalCount,
+                pageable -> {
+                    int start = (int) pageable.getOffset();
+                    int end = Math.min(start + pageable.getPageSize(), searchList.size());
+                    List<Trip> pagedList = searchList.subList(start, end);
+                    return new PageImpl<>(pagedList, pageable, totalCount);
+                },
+                this::convertToTripRespDTO);
     }
 }
