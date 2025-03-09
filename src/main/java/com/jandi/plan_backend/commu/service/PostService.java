@@ -147,9 +147,8 @@ public class PostService {
         // 유저 검증
         User user = validationUtil.validateUserExists(userEmail);
         validationUtil.validateUserRestricted(user);
-        if (user.getUserId() != 1) {
-            validationUtil.validateUserIsAuthorOfPost(user, post);
-        }
+        validationUtil.validateUserIsAuthorOfPost(user, post);
+
         // 게시글의 신고 및 좋아요 정보 삭제
         communityReportedRepository.deleteAll(communityReportedRepository.findByCommunity_PostId(postId));
         communityLikeRepository.deleteAll(communityLikeRepository.findByCommunity(post));
@@ -160,8 +159,8 @@ public class PostService {
         for (Comment comment : comments) {
             commentReportedRepository.deleteAll(commentReportedRepository.findByComment_CommentId(comment.getCommentId()));
             commentLikeRepository.deleteAll(commentLikeRepository.findByComment_CommentId(comment.getCommentId()));
-            commentRepository.delete(comment);
         }
+        commentRepository.deleteAll(comments);
 
         // 게시글과 연결된 모든 이미지 삭제
         List<Image> images = imageRepository.findAllByTargetTypeAndTargetId("community", postId);

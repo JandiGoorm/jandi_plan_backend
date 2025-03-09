@@ -20,14 +20,16 @@ public class ManageCommunityService {
     private final ValidationUtil validationUtil;
     private final CommunityReportedRepository communityReportedRepository;
     private final CommentReportedRepository commentReportedRepository;
+    private final PostService postService;
 
     public ManageCommunityService(
             ValidationUtil validationUtil,
             CommunityReportedRepository communityReportedRepository,
-            CommentReportedRepository commentReportedRepository) {
+            CommentReportedRepository commentReportedRepository, PostService postService) {
         this.validationUtil = validationUtil;
         this.communityReportedRepository = communityReportedRepository;
         this.commentReportedRepository = commentReportedRepository;
+        this.postService = postService;
     }
 
     public Page<CommunityReportedListDTO> getReportedPosts(String userEmail, int page, int size) {
@@ -61,5 +63,13 @@ public class ManageCommunityService {
                     return new CommentReportedListDTO(comment, reportCount);
                 }
         );
+    }
+
+    public void deletePosts(String userEmail, Integer postId) {
+        User admin = validationUtil.validateUserExists(userEmail);
+        validationUtil.validateUserIsAdmin(admin);
+
+        Community post = validationUtil.validatePostExists(postId);
+        postService.deletePost(postId, post.getUser().getEmail());
     }
 }
