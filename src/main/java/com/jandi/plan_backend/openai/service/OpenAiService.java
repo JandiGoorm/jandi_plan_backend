@@ -22,25 +22,39 @@ public class OpenAiService {
     // 사용하려는 모델 이름 (가상의 "gpt-4o-mini")
     private final String modelName = "gpt-4o-mini";
 
+    // 기본 max_tokens를 넉넉히 (예: 512)
+    private static final int DEFAULT_MAX_TOKENS = 512;
+
+    // temperature=0 (정확한 JSON 유도)
+    private static final double TEMPERATURE = 0.0;
+
     public OpenAiService(WebClient.Builder webClientBuilder) {
         this.webClient = webClientBuilder.baseUrl("https://api.openai.com/v1").build();
     }
 
     /**
-     * OpenAI API를 호출하여 질문에 대한 답변을 반환합니다.
-     * 모델은 gpt-4o-mini를 사용하며, 채팅 엔드포인트를 사용합니다.
-     *
-     * @param requestDTO 질문 및 옵션을 담은 DTO (prompt, max_tokens 등)
-     * @return OpenAiResponseDTO API 응답
+     * 기존: askQuestion
+     * -> 채팅 기반으로, modelName / max_tokens / temperature 등을 지정하여 요청
      */
     public OpenAiResponseDTO askQuestion(OpenAiRequestDTO requestDTO) {
-        log.info("OpenAI API 호출: prompt = {}", requestDTO.getPrompt());
+        return askChatCompletion(requestDTO.getPrompt(), requestDTO.getMax_tokens());
+    }
 
-        // 채팅 엔드포인트 요청 본문 생성: 메시지 배열로 구성 (role "user")
+    /**
+     * 추가: ChatCompletion 전용 메서드
+     * - prompt, maxTokens, temperature=0으로 호출
+     */
+    public OpenAiResponseDTO askChatCompletion(String prompt, int maxTokens) {
+        if (maxTokens <= 0) {
+            maxTokens = DEFAULT_MAX_TOKENS;
+        }
+        log.info("OpenAI API 호출: prompt = {}", prompt);
+
         ChatPayloadDTO payload = new ChatPayloadDTO(
                 modelName,
-                Collections.singletonList(new ChatPayloadDTO.Message("user", requestDTO.getPrompt())),
-                requestDTO.getMax_tokens()
+                Collections.singletonList(new ChatPayloadDTO.Message("user", prompt)),
+                maxTokens,
+                TEMPERATURE
         );
 
         return webClient.post()

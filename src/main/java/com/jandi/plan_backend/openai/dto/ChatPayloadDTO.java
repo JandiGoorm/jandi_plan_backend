@@ -10,6 +10,7 @@ public class ChatPayloadDTO {
     private String model;
     private List<Message> messages;
     private int max_tokens;
+    private double temperature;  // <-- 추가
 
     @Data
     @AllArgsConstructor
