@@ -149,7 +149,6 @@ public class CommentService {
     public int deleteComments(Integer commentId, String userEmail) {
         Comment comment = validationUtil.validateCommentExists(commentId);
         User user = validationUtil.validateUserExists(userEmail);
-        validationUtil.validateUserRestricted(user);
         validationUtil.validateUserIsAuthorOfComment(user, comment);
 
         int repliesCount = 0;

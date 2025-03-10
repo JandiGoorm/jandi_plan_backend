@@ -109,7 +109,6 @@ public class ReservationService {
     public boolean deleteReservation(String userEmail, Integer reservationId) {
         // 유저 검증
         User user = validationUtil.validateUserExists(userEmail);
-        validationUtil.validateUserRestricted(user);
 
         // 예약 검증
         Reservation reservation = validationUtil.validateReservationExists(reservationId.longValue());
