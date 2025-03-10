@@ -93,7 +93,7 @@ public class SecurityConfig {
                                 // trip 관련
                                 "/api/trip/*", "/api/trip/itinerary/*",
 
-                                "/error"
+                                "/error", "/api/openai/ask"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
