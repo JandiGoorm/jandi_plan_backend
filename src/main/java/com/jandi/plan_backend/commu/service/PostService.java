@@ -146,7 +146,6 @@ public class PostService {
 
         // 유저 검증
         User user = validationUtil.validateUserExists(userEmail);
-        validationUtil.validateUserRestricted(user);
         validationUtil.validateUserIsAuthorOfPost(user, post);
 
         // 게시글의 신고 및 좋아요 정보 삭제

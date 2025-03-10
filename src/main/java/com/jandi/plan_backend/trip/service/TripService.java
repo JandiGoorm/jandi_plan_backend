@@ -232,7 +232,6 @@ public class TripService {
     /** 내 여행 계획 삭제 */
     public void deleteMyTrip(Integer tripId, String userEmail) {
         User user = validationUtil.validateUserExists(userEmail);
-        validationUtil.validateUserRestricted(user);
         Trip trip = validationUtil.validateTripExists(tripId);
         if (!trip.getUser().getUserId().equals(user.getUserId())) {
             throw new BadRequestExceptionMessage("본인이 작성한 여행 계획만 삭제할 수 있습니다.");
