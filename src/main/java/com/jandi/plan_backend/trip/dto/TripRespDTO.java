@@ -7,9 +7,7 @@ import lombok.Getter;
 import java.time.LocalDate;
 
 /**
- * 여행 계획 조회 시 반환할 DTO
- * - tripImageUrl: 사용자가 직접 업로드한 여행계획 이미지 (있으면 표시)
- * - cityImageUrl: 도시 이미지
+ * 여행 계획 목록/기본 조회 DTO
  */
 @Getter
 public class TripRespDTO {
@@ -27,16 +25,9 @@ public class TripRespDTO {
     private final Boolean privatePlan;
     private final Double latitude;
     private final Double longitude;
-
-    // 도시 이미지
     private final String cityImageUrl;
-    // 여행 계획 전용 이미지 (사용자가 업로드)
     private final String tripImageUrl;
 
-    /**
-     * 4개 인자 버전 (기존 코드와 호환)
-     * tripImageUrl = null
-     */
     public TripRespDTO(User user,
                        String userProfileUrl,
                        Trip trip,
@@ -44,9 +35,6 @@ public class TripRespDTO {
         this(user, userProfileUrl, trip, cityImageUrl, null);
     }
 
-    /**
-     * 5개 인자 버전 (새로운 로직: tripImageUrl 추가)
-     */
     public TripRespDTO(User user,
                        String userProfileUrl,
                        Trip trip,
@@ -65,28 +53,25 @@ public class TripRespDTO {
         this.privatePlan = trip.getPrivatePlan();
         this.latitude = trip.getCity().getLatitude();
         this.longitude = trip.getCity().getLongitude();
-
         this.cityImageUrl = cityImageUrl;
         this.tripImageUrl = tripImageUrl;
     }
 
-    public TripRespDTO(TripRespDTO tripRespDTO) {
-        this.user = tripRespDTO.getUser();
-        this.tripId = tripRespDTO.getTripId();
-        this.title = tripRespDTO.getTitle();
-        this.startDate = tripRespDTO.getStartDate();
-        this.endDate = tripRespDTO.getEndDate();
-        this.likeCount = tripRespDTO.getLikeCount();
-        this.budget = tripRespDTO.getBudget();
-        this.cityId = tripRespDTO.getCityId();
-        this.cityName = tripRespDTO.getCityName();
-        this.countryName = tripRespDTO.getCountryName();
-        this.privatePlan = tripRespDTO.getPrivatePlan();
-
-        this.latitude = tripRespDTO.getLatitude();
-        this.longitude = tripRespDTO.getLongitude();
-        this.cityImageUrl = tripRespDTO.getCityImageUrl();
-
-        this.tripImageUrl = tripRespDTO.getTripImageUrl();
+    public TripRespDTO(TripRespDTO other) {
+        this.user = other.getUser();
+        this.tripId = other.getTripId();
+        this.title = other.getTitle();
+        this.startDate = other.getStartDate();
+        this.endDate = other.getEndDate();
+        this.likeCount = other.getLikeCount();
+        this.budget = other.getBudget();
+        this.cityId = other.getCityId();
+        this.cityName = other.getCityName();
+        this.countryName = other.getCountryName();
+        this.privatePlan = other.getPrivatePlan();
+        this.latitude = other.getLatitude();
+        this.longitude = other.getLongitude();
+        this.cityImageUrl = other.getCityImageUrl();
+        this.tripImageUrl = other.getTripImageUrl();
     }
 }
