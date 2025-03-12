@@ -13,6 +13,9 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
 
+/**
+ * 여행 계획 엔티티
+ */
 @Entity
 @Table(name = "trip")
 @Data
@@ -55,9 +58,18 @@ public class Trip {
     @JoinColumn(name = "city_id", nullable = false)
     private City city;
 
-    /**
-     * 생성자: 엔티티 생성 시 기본 필드 초기화
-     */
+    @OneToMany(mappedBy = "trip", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TripLike> tripLikes;
+
+    @OneToMany(mappedBy = "trip", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TripParticipant> participants;
+
+    @OneToMany(mappedBy = "trip", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Itinerary> itineraries;
+
+    @OneToMany(mappedBy = "trip", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Reservation> reservations;
+
     public Trip(User user, String title, Boolean privatePlan,
                 LocalDate startDate, LocalDate endDate, Integer budget, City city) {
         this.user = user;
@@ -70,13 +82,8 @@ public class Trip {
     }
 
     public Trip() {
-
     }
 
-    /**
-     * 엔티티가 처음 저장되기 전에 자동 실행됨.
-     * createdAt, updatedAt, likeCount 기본값 설정
-     */
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
@@ -86,39 +93,8 @@ public class Trip {
         }
     }
 
-    /**
-     * 엔티티가 업데이트될 때 updatedAt 자동 갱신
-     */
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
     }
-
-    /**
-     * TripLike 엔티티와의 1:N 관계.
-     * Trip 삭제 시 TripLike도 자동으로 삭제되도록 cascade와 orphanRemoval 설정.
-     */
-    @OneToMany(mappedBy = "trip", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<TripLike> tripLikes;
-
-    /**
-     * TripParticipant 엔티티와의 1:N 관계.
-     * Trip 삭제 시 TripParticipant도 자동으로 삭제되도록 cascade와 orphanRemoval 설정.
-     */
-    @OneToMany(mappedBy = "trip", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<TripParticipant> participants;
-
-    /**
-     * Itinerary 엔티티와의 1:N 관계.
-     * Trip 삭제 시 연관 일정도 자동으로 삭제됩니다.
-     */
-    @OneToMany(mappedBy = "trip", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Itinerary> itineraries;
-
-    /**
-     * Reservation 엔티티와의 1:N 관계.
-     * Trip 삭제 시 연관 예약도 자동으로 삭제됩니다.
-     */
-    @OneToMany(mappedBy = "trip", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Reservation> reservations;
 }

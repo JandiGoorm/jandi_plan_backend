@@ -11,16 +11,17 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * 여행 계획 좋아요 관련 레포지토리
+ */
 public interface TripLikeRepository extends JpaRepository<TripLike, TripLikeId> {
-    //특정 유저가 특정 여행계획을 좋아요했는지 검색
+
     Optional<TripLike> findByTripAndUser(Trip trip, User user);
 
-    //특정 유저가 좋아요한 여행 계획 조회
     Page<Object> findByUser(User user, Pageable pageable);
 
     List<TripLike> findByUser(User user);
 
-    //특정 유저가 좋아요한 여행 계획 갯수 반환
     long countByUser(User user);
 
     Optional<Object> findByTripAndUser_Email(Trip trip, String userEmail);

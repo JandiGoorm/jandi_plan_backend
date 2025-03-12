@@ -20,6 +20,6 @@ public class ReservationReqDTO {
     }
 
     public ReservationCategory getCategoryEnum() {
-        return ReservationCategory.fromDisplayName(category); // 한글 → ENUM 변환
+        return ReservationCategory.fromDisplayName(category);
     }
 }
