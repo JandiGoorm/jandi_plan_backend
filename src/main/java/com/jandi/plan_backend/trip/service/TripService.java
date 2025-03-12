@@ -251,7 +251,7 @@ public class TripService {
     /**
      * 특정 tripId가 userEmail의 소유인지 여부 확인
      */
-    public boolean isOwnerOfTrip(String userEmail, int tripId) {
+    public boolean isOwnerOfTrip(String userEmail, Integer tripId) {
         Trip trip = validationUtil.validateTripExists(tripId); // trip 존재 여부 검증
         User user = validationUtil.validateUserExists(userEmail); // 사용자 검증
         return trip.getUser().getUserId().equals(user.getUserId());
