@@ -21,35 +21,22 @@ public class PlaceController {
         this.jwtTokenProvider = jwtTokenProvider;
     }
 
-    /**
-     * 장소 생성 API
-     * 로그인한 사용자만 장소를 생성할 수 있습니다.
-     */
     @PostMapping
     public ResponseEntity<PlaceRespDTO> createPlace(
             @RequestHeader("Authorization") String token,
             @RequestBody PlaceReqDTO placeReqDTO
     ) {
-        String jwtToken = token.replace("Bearer ", "");
-        String userEmail = jwtTokenProvider.getEmail(jwtToken);
+        String userEmail = jwtTokenProvider.getEmail(token.replace("Bearer ", ""));
         PlaceRespDTO savedPlace = placeService.createPlace(userEmail, placeReqDTO);
         return ResponseEntity.ok(savedPlace);
     }
 
-    /**
-     * 장소 단건 조회 API
-     * 누구나 조회 가능합니다.
-     */
     @GetMapping("/{placeId}")
     public ResponseEntity<PlaceRespDTO> getPlace(@PathVariable Long placeId) {
         PlaceRespDTO placeRespDTO = placeService.getPlace(placeId);
         return ResponseEntity.ok(placeRespDTO);
     }
 
-    /**
-     * 전체 장소 조회 API
-     * 누구나 조회 가능합니다.
-     */
     @GetMapping
     public ResponseEntity<List<PlaceRespDTO>> getAllPlaces() {
         List<PlaceRespDTO> places = placeService.getAllPlaces();
