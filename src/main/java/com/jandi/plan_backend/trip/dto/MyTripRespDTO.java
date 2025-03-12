@@ -5,14 +5,13 @@ import com.jandi.plan_backend.user.entity.User;
 import lombok.Getter;
 
 /**
- * 본인 여행 계획 전용 DTO
- * TripRespDTO를 상속하여 privatePlan 등 추가 정보를 포함
+ * 내 여행 계획 전용 DTO (비공개 여부를 함께 반환)
  */
 @Getter
 public class MyTripRespDTO extends TripRespDTO {
+
     private final Boolean privatePlan;
 
-    // 4개 인자 생성자 (tripImageUrl = null)
     public MyTripRespDTO(User user,
                          String userProfileUrl,
                          Trip trip,
@@ -21,7 +20,6 @@ public class MyTripRespDTO extends TripRespDTO {
         this.privatePlan = trip.getPrivatePlan();
     }
 
-    // 5개 인자 생성자 (tripImageUrl 포함)
     public MyTripRespDTO(User user,
                          String userProfileUrl,
                          Trip trip,

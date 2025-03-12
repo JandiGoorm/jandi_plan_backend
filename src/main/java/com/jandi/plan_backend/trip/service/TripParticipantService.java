@@ -15,68 +15,59 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * 동반자 관리 로직
+ */
 @Service
 @RequiredArgsConstructor
 public class TripParticipantService {
 
     private final TripParticipantRepository tripParticipantRepository;
     private final UserRepository userRepository;
-    private final ValidationUtil validationUtil; // validateTripExists(), validateUserExists() 등 구현 필요
+    private final ValidationUtil validationUtil;
 
     /**
-     * 여행 계획(Trip)에 동반자를 추가합니다.
-     * @param tripId              여행 계획 ID
-     * @param participantUserName 동반자로 추가할 사용자의 닉네임
-     * @param role                역할 (예: "동반자", "리더" 등)
-     * @return 추가된 TripParticipant 정보를 담은 DTO
+     * 동반자 추가
      */
     public TripParticipantRespDTO addParticipant(Integer tripId, String participantUserName, String role) {
         Trip trip = validationUtil.validateTripExists(tripId);
         User participant = userRepository.findByUserName(participantUserName)
-                .orElseThrow(() -> new RuntimeException("User not found with userName: " + participantUserName));
+                .orElseThrow(() -> new RuntimeException("User not found: " + participantUserName));
 
-        TripParticipant tripParticipant = new TripParticipant();
-        tripParticipant.setTrip(trip);
-        tripParticipant.setParticipant(participant);
-        tripParticipant.setRole(role);
-        tripParticipant.setCreatedAt(LocalDateTime.now());
-        TripParticipant saved = tripParticipantRepository.save(tripParticipant);
+        TripParticipant tp = new TripParticipant();
+        tp.setTrip(trip);
+        tp.setParticipant(participant);
+        tp.setRole(role);
+        tp.setCreatedAt(LocalDateTime.now());
+        TripParticipant saved = tripParticipantRepository.save(tp);
 
         return convertToDTO(saved);
     }
 
     /**
-     * 특정 여행 계획의 동반자 목록을 조회합니다.
-     * @param tripId 여행 계획 ID
-     * @return 동반자 DTO 목록
+     * 동반자 목록 조회
      */
     public List<TripParticipantRespDTO> getParticipants(Integer tripId) {
-        List<TripParticipant> participants = tripParticipantRepository.findByTrip_TripId(tripId);
-        return participants.stream()
+        return tripParticipantRepository.findByTrip_TripId(tripId).stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
 
     /**
-     * 특정 여행 계획에서 동반자를 삭제합니다.
-     * @param tripId              여행 계획 ID
-     * @param participantUserName 삭제할 동반자 사용자 닉네임
+     * 동반자 삭제
      */
     @Transactional
     public void removeParticipant(Integer tripId, String participantUserName) {
         tripParticipantRepository.deleteByTrip_TripIdAndParticipant_UserName(tripId, participantUserName);
     }
 
-    /**
-     * TripParticipant 엔티티를 TripParticipantRespDTO로 변환합니다.
-     */
-    private TripParticipantRespDTO convertToDTO(TripParticipant tripParticipant) {
+    private TripParticipantRespDTO convertToDTO(TripParticipant tp) {
         return new TripParticipantRespDTO(
-                tripParticipant.getTrip().getTripId(),
-                tripParticipant.getParticipant().getUserId(),
-                tripParticipant.getParticipant().getUserName(),
-                tripParticipant.getRole(),
-                tripParticipant.getCreatedAt()
+                tp.getTrip().getTripId(),
+                tp.getParticipant().getUserId(),
+                tp.getParticipant().getUserName(),
+                tp.getRole(),
+                tp.getCreatedAt()
         );
     }
 }

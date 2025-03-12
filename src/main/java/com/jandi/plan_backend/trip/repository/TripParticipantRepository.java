@@ -5,9 +5,12 @@ import com.jandi.plan_backend.trip.entity.TripParticipantId;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
+/**
+ * 여행 계획 동반자 관련 레포지토리
+ */
 public interface TripParticipantRepository extends JpaRepository<TripParticipant, TripParticipantId> {
+
     List<TripParticipant> findByTrip_TripId(Integer tripId);
 
-    // 동반자 삭제: tripId와 participant의 userName으로 삭제
     void deleteByTrip_TripIdAndParticipant_UserName(Integer tripId, String userName);
 }

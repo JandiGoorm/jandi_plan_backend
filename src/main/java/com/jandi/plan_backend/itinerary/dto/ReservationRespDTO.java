@@ -1,7 +1,6 @@
 package com.jandi.plan_backend.itinerary.dto;
 
 import com.jandi.plan_backend.itinerary.entity.Reservation;
-import com.jandi.plan_backend.itinerary.entity.ReservationCategory;
 import lombok.Data;
 
 @Data
@@ -13,10 +12,12 @@ public class ReservationRespDTO {
     private Integer cost;
 
     public ReservationRespDTO(Reservation reservation, boolean isEnglishCategory) {
-        reservationId = reservation.getReservationId();
-        category = (isEnglishCategory) ? reservation.getCategory().name() : reservation.getCategory().getDisplayName();
-        title = reservation.getTitle();
-        description = reservation.getDescription();
-        cost = reservation.getCost();
+        this.reservationId = reservation.getReservationId();
+        this.category = isEnglishCategory
+                ? reservation.getCategory().name()
+                : reservation.getCategory().getDisplayName();
+        this.title = reservation.getTitle();
+        this.description = reservation.getDescription();
+        this.cost = reservation.getCost();
     }
 }

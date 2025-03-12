@@ -7,6 +7,9 @@ import lombok.Data;
 import com.jandi.plan_backend.user.entity.User;
 import java.time.LocalDateTime;
 
+/**
+ * 여행 계획 동반자 엔티티
+ */
 @Entity
 @Table(name = "trip_participant")
 @IdClass(TripParticipantId.class)

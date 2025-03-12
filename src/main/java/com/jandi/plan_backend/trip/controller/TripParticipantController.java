@@ -9,40 +9,34 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * 여행 계획 동반자 관련 API
+ */
 @RestController
 @RequestMapping("/api/trip")
 @RequiredArgsConstructor
 public class TripParticipantController {
 
     private final TripParticipantService tripParticipantService;
-    private final JwtTokenProvider jwtTokenProvider; // JWT 관련 추가 검증 시 사용
+    private final JwtTokenProvider jwtTokenProvider;
 
     /**
-     * 여행 계획의 동반자 추가 API
-     * POST /api/trip/{tripId}/participants
-     *
-     * @param tripId              여행 계획 ID
-     * @param participantUserName 동반자로 추가할 사용자의 닉네임
-     * @param role                역할 (옵션, 기본값 "동반자")
-     * @return 추가된 동반자 정보를 담은 DTO
+     * 동반자 추가
      */
     @PostMapping("/{tripId}/participants")
     public ResponseEntity<TripParticipantRespDTO> addParticipant(
             @PathVariable Integer tripId,
-            @RequestHeader("Authorization") String token,  // JWT 검증 로직 추가 가능
+            @RequestHeader("Authorization") String token,
             @RequestParam String participantUserName,
             @RequestParam(required = false, defaultValue = "동반자") String role
     ) {
+        // 토큰 검증이 필요한 경우 추가
         TripParticipantRespDTO dto = tripParticipantService.addParticipant(tripId, participantUserName, role);
         return ResponseEntity.ok(dto);
     }
 
     /**
-     * 여행 계획의 동반자 목록 조회 API
-     * GET /api/trip/{tripId}/participants
-     *
-     * @param tripId 여행 계획 ID
-     * @return 동반자 DTO 목록
+     * 동반자 목록 조회
      */
     @GetMapping("/{tripId}/participants")
     public ResponseEntity<List<TripParticipantRespDTO>> getParticipants(@PathVariable Integer tripId) {
@@ -51,12 +45,7 @@ public class TripParticipantController {
     }
 
     /**
-     * 여행 계획의 동반자 삭제 API
-     * DELETE /api/trip/{tripId}/participants/{participantUserName}
-     *
-     * @param tripId              여행 계획 ID
-     * @param participantUserName 삭제할 동반자 사용자 닉네임
-     * @return 삭제 결과 메시지
+     * 동반자 삭제
      */
     @DeleteMapping("/{tripId}/participants/{participantUserName}")
     public ResponseEntity<?> removeParticipant(
