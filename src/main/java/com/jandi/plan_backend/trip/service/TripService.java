@@ -64,7 +64,7 @@ public class TripService {
     /**
      * 내 여행 계획 목록 조회
      */
-    public Page<MyTripRespDTO> getAllMyTrips(String userEmail, int page, int size) {
+    public Page<MyTripRespDTO> getAllMyTrips(String userEmail, Integer page, Integer size) {
         User user = validationUtil.validateUserExists(userEmail);
         long totalCount = tripRepository.countByUser(user);
 
@@ -83,7 +83,7 @@ public class TripService {
     /**
      * 좋아요한 여행 계획 목록 조회
      */
-    public Page<TripRespDTO> getLikedTrips(String userEmail, int page, int size) {
+    public Page<TripRespDTO> getLikedTrips(String userEmail, Integer page, Integer size) {
         User user = validationUtil.validateUserExists(userEmail);
         long totalCount = tripLikeRepository.countByUser(user);
 
@@ -102,7 +102,7 @@ public class TripService {
     /**
      * 공개된 여행 계획 목록(또는 로그인 유저/관리자에 따른 목록) 조회
      */
-    public Page<TripRespDTO> getAllTrips(String userEmail, int page, int size) {
+    public Page<TripRespDTO> getAllTrips(String userEmail, Integer page, Integer size) {
         Sort sort = Sort.by(Sort.Direction.DESC, "tripId");
 
         if (userEmail == null) {
@@ -323,7 +323,7 @@ public class TripService {
     /**
      * 검색 (제목, 도시명, 둘 다)
      */
-    public Page<TripRespDTO> searchTrips(String category, String keyword, int page, int size) {
+    public Page<TripRespDTO> searchTrips(String category, String keyword, Integer page, Integer size) {
         if (keyword == null || keyword.trim().length() < 2) {
             throw new BadRequestExceptionMessage("검색어는 2글자 이상 입력");
         }
