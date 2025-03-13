@@ -18,7 +18,7 @@ public class RecommPlaceRespDTO {
     private double longitude;
     private int ratingCount;
     private boolean dineIn;
-    private String openTimeJson; // <- DB 저장용 (JSON 형태)
+    private String openTimeJson;
     private String country;
     private String city;
 }

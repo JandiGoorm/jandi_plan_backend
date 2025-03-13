@@ -1,45 +1,52 @@
 package com.jandi.plan_backend.googlePlace.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
 
+import java.time.LocalDateTime;
+
+@Getter
+@Setter
 @Entity
-@Table(name = "place_recommendation",
-        uniqueConstraints = @UniqueConstraint(columnNames = {"place_id"}))
-@Data
+@Table(name = "place_recommendation")
 public class PlaceRecommendation {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name="place_id", length = 255, nullable = false)
+    @Column(name = "place_id", length = 128, nullable = false)
     private String placeId;
 
-    @Column(name="name", length = 255)
+    @Column(length = 255)
     private String name;
 
-    @Column(name="country", length = 255)
-    private String country;
-
-    @Column(name="city", length = 255)
-    private String city;
-
-    @Column(name="address", length = 1024)
-    private String address;
-
-    @Column(name="detail_url", length = 1024)
+    @Column(name = "detail_url", length = 1024)
     private String detailUrl;
 
-    @Column(name="photo_url", length = 1024) // 길이 확장
+    @Column(length = 1024)
     private String photoUrl;
 
-    @Column(name="open_time_json", columnDefinition = "TEXT") // TEXT로 변경
+    @Column(length = 255)
+    private String address;
+
+    private double latitude;
+    private double longitude;
+    private double rating;
+    private int ratingCount;
+    private boolean dineIn; // 1이면 매장 식사 가능, 0이면 매장 식사 불가능
+
+    @Column(name = "open_time_json", columnDefinition = "TEXT")
     private String openTimeJson;
 
-    private Double latitude;
-    private Double longitude;
-    private Double rating;
-    private Integer ratingCount;
-    private Boolean dineIn;
+    @Column(length = 100)
+    private String country;
+
+    @Column(length = 100)
+    private String city;
+
+    @CreationTimestamp
+    private LocalDateTime createdAt;
 }
