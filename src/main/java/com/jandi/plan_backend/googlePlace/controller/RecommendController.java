@@ -3,6 +3,7 @@ package com.jandi.plan_backend.googlePlace.controller;
 import com.jandi.plan_backend.googlePlace.dto.RecommPlaceReqDTO;
 import com.jandi.plan_backend.googlePlace.dto.RecommPlaceRespDTO;
 import com.jandi.plan_backend.googlePlace.service.RecommendService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,7 +24,10 @@ public class RecommendController {
      * 없거나 오래됐으면 구글 API로 갱신 후 DB 저장 & 반환
      */
     @PostMapping("/restaurant")
-    public ResponseEntity<List<RecommPlaceRespDTO>> getRecommendedPlaces(@RequestBody RecommPlaceReqDTO reqDTO) {
+    public ResponseEntity<List<RecommPlaceRespDTO>> getRecommendedPlaces(
+            @Valid @RequestBody RecommPlaceReqDTO reqDTO
+    ) {
+        // cityId 유효성 검증(@Valid) → 실패 시 400 Bad Request 자동 응답
         List<RecommPlaceRespDTO> result = recommendService.getAllRecommendedPlace(reqDTO);
         return ResponseEntity.ok(result);
     }

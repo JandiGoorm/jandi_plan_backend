@@ -14,7 +14,9 @@ import com.google.maps.model.PlacesSearchResponse;
 import com.google.maps.model.PlacesSearchResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -42,16 +44,20 @@ public class RecommendService {
      * 없으면 Google Places API로 새 데이터를 받아와 DB에 저장 후 반환.
      */
     public List<RecommPlaceRespDTO> getAllRecommendedPlace(RecommPlaceReqDTO reqDTO) {
-        // cityId로 City 엔티티 조회
+        // cityId가 유효한지(= DB에 존재하는지) 확인
         Integer cityId = reqDTO.getCityId();
         City cityEntity = cityRepo.findById(cityId)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid cityId: " + cityId));
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "Invalid cityId: " + cityId + " (City not found in DB)"
+                ));
 
-        // 도시 이름과 국가 이름 가져오기 (Country 엔티티에 name 필드가 있다고 가정)
+        // 도시 이름과 국가 이름 가져오기
+        // (Country 엔티티에 getName()이 있다고 가정)
         String countryName = cityEntity.getCountry().getName();
         String cityName = cityEntity.getName();
 
-        // 최근 30일 이내 데이터가 있는지 확인
+        // 최근 30일 이내 데이터 조회
         LocalDateTime oneMonthAgo = LocalDateTime.now().minusDays(30);
         List<PlaceRecommendation> recentList =
                 placeRepo.findByCountryAndCityAndCreatedAtAfter(countryName, cityName, oneMonthAgo);
@@ -67,13 +73,13 @@ public class RecommendService {
         // 기존 데이터 삭제
         placeRepo.deleteByCountryAndCity(countryName, cityName);
 
-        // Google Places API를 호출하여 새 데이터 받아오기
+        // Google Places API로 새 데이터 받아오기
         return callGooglePlacesApiAndSave(countryName, cityName);
     }
 
     /**
-     * Google Places API를 호출하여 "국가명 + 도시명 + '맛집'" 으로 검색하고,
-     * 결과를 DB에 저장한 후 DTO 리스트로 반환
+     * Google Places API를 호출하여 "국가명 + 도시명 + '맛집'" 으로 검색 후
+     * 결과를 DB에 저장하고 DTO 리스트로 반환
      */
     private List<RecommPlaceRespDTO> callGooglePlacesApiAndSave(String country, String city) {
         String searchKeyword = country + " " + city + " 맛집";
@@ -83,18 +89,15 @@ public class RecommendService {
 
         List<RecommPlaceRespDTO> result = new ArrayList<>();
         try {
-            // 텍스트 검색
             PlacesSearchResponse response = PlacesApi.textSearchQuery(context, searchKeyword).await();
             if (response.results == null || response.results.length == 0) {
                 log.info("No place found for keyword={}", searchKeyword);
                 return Collections.emptyList();
             }
 
-            // 최대 10개의 결과만 사용(예시)
             PlacesSearchResult[] searchResults = response.results;
             for (int i = 0; i < Math.min(searchResults.length, 10); i++) {
                 PlacesSearchResult sr = searchResults[i];
-                // placeId로 상세정보 가져오기 → DB 저장
                 RecommPlaceRespDTO dto = getPlaceDetailsAndSave(sr.placeId, country, city);
                 if (dto != null) {
                     result.add(dto);
@@ -108,10 +111,9 @@ public class RecommendService {
 
     /**
      * Google Places API에서 placeId로 상세 정보를 가져온 뒤 DB에 저장.
-     * 이미 DB에 placeId가 존재하면 중복 저장을 방지하고 기존 데이터 반환.
+     * 이미 DB에 placeId가 존재하면 기존 데이터를 반환(중복 저장 방지).
      */
     private RecommPlaceRespDTO getPlaceDetailsAndSave(String placeId, String country, String city) {
-        // 이미 저장된 placeId인지 확인
         Optional<PlaceRecommendation> existing = placeRepo.findByPlaceId(placeId);
         if (existing.isPresent()) {
             return convertToDTO(existing.get());
@@ -124,14 +126,12 @@ public class RecommendService {
 
         try {
             PlaceDetails details = PlacesApi.placeDetails(context, placeId)
-                    .language("ko")  // 한국어
+                    .language("ko")
                     .await();
 
-            // rating, ratingCount
             float rating = details.rating;
             int ratingCount = details.userRatingsTotal;
 
-            // photoUrl
             String photoUrl = null;
             if (details.photos != null && details.photos.length > 0) {
                 photoUrl = "https://maps.googleapis.com/maps/api/place/photo?maxwidth=500&photoreference="
@@ -139,13 +139,11 @@ public class RecommendService {
                         + "&key=" + googleApiKey;
             }
 
-            // 영업시간
             String openTimeJson = null;
             if (details.currentOpeningHours != null && details.currentOpeningHours.weekdayText != null) {
                 openTimeJson = String.join(", ", details.currentOpeningHours.weekdayText);
             }
 
-            // 엔티티 생성 후 저장
             PlaceRecommendation entity = new PlaceRecommendation();
             entity.setPlaceId(placeId);
             entity.setName(details.name);
@@ -162,7 +160,6 @@ public class RecommendService {
             entity.setCity(city);
 
             placeRepo.save(entity);
-
             return convertToDTO(entity);
         } catch (Exception e) {
             log.error("Error fetching details for placeId {}: {}", placeId, e.getMessage());
@@ -171,7 +168,7 @@ public class RecommendService {
     }
 
     /**
-     * 엔티티를 DTO로 변환
+     * PlaceRecommendation 엔티티를 RecommPlaceRespDTO로 변환
      */
     private RecommPlaceRespDTO convertToDTO(PlaceRecommendation entity) {
         RecommPlaceRespDTO dto = new RecommPlaceRespDTO();
