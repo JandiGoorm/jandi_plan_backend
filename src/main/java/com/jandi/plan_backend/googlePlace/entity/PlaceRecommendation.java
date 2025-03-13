@@ -36,7 +36,7 @@ public class PlaceRecommendation {
     private double longitude;
     private double rating;
     private int ratingCount;
-    private boolean dineIn; // 1이면 매장 식사 가능, 0이면 매장 식사 불가능
+    private boolean dineIn;
 
     @Column(name = "open_time_json", columnDefinition = "TEXT")
     private String openTimeJson;
