@@ -16,6 +16,12 @@ public class RecommendController {
 
     private final RecommendService recommendService;
 
+    /**
+     * POST /api/map/recommend/restaurant
+     * RequestBody로 { "cityId": 123 }를 받고,
+     * DB에서 1개월 이내 데이터가 있으면 반환,
+     * 없거나 오래됐으면 구글 API로 갱신 후 DB 저장 & 반환
+     */
     @PostMapping("/restaurant")
     public ResponseEntity<List<RecommPlaceRespDTO>> getRecommendedPlaces(@RequestBody RecommPlaceReqDTO reqDTO) {
         List<RecommPlaceRespDTO> result = recommendService.getAllRecommendedPlace(reqDTO);
