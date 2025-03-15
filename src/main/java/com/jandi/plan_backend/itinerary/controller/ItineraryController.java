@@ -12,6 +12,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/trip/itinerary")
 public class ItineraryController {
+
     private final ItineraryService itineraryService;
     private final JwtTokenProvider jwtTokenProvider;
 
@@ -20,11 +21,6 @@ public class ItineraryController {
         this.jwtTokenProvider = jwtTokenProvider;
     }
 
-    /**
-     * 특정 여행 계획에 속한 모든 일정 조회
-     * - 공개된 여행 계획은 토큰 없이 조회 가능
-     * - 비공개 여행 계획은 액세스토큰이 있어야 본인만 조회 가능
-     */
     @GetMapping("/{tripId}")
     public ResponseEntity<?> getItineraries(
             @PathVariable Integer tripId,
@@ -32,53 +28,40 @@ public class ItineraryController {
     ) {
         String userEmail = null;
         if (token != null) {
-            String jwtToken = token.replace("Bearer ", "");
-            userEmail = jwtTokenProvider.getEmail(jwtToken);
+            userEmail = jwtTokenProvider.getEmail(token.replace("Bearer ", ""));
         }
         List<ItineraryRespDTO> itineraryList = itineraryService.getItineraries(userEmail, tripId);
         return ResponseEntity.ok(itineraryList);
     }
 
-    /**
-     * 특정 여행 계획에 새로운 일정 추가 (작성자 본인만 가능)
-     */
     @PostMapping("/{tripId}")
     public ResponseEntity<ItineraryRespDTO> createItinerary(
             @PathVariable Integer tripId,
             @RequestHeader("Authorization") String token,
             @RequestBody ItineraryReqDTO itineraryReqDTO
     ) {
-        String jwtToken = token.replace("Bearer ", "");
-        String userEmail = jwtTokenProvider.getEmail(jwtToken);
+        String userEmail = jwtTokenProvider.getEmail(token.replace("Bearer ", ""));
         ItineraryRespDTO savedItinerary = itineraryService.createItinerary(userEmail, tripId, itineraryReqDTO);
         return ResponseEntity.ok(savedItinerary);
     }
 
-    /**
-     * 일정 수정
-     */
     @PatchMapping("/{itineraryId}")
     public ResponseEntity<ItineraryRespDTO> updateItinerary(
             @PathVariable Long itineraryId,
             @RequestHeader("Authorization") String token,
             @RequestBody ItineraryReqDTO itineraryReqDTO
     ) {
-        String jwtToken = token.replace("Bearer ", "");
-        String userEmail = jwtTokenProvider.getEmail(jwtToken);
+        String userEmail = jwtTokenProvider.getEmail(token.replace("Bearer ", ""));
         ItineraryRespDTO updatedItinerary = itineraryService.updateItinerary(userEmail, itineraryId, itineraryReqDTO);
         return ResponseEntity.ok(updatedItinerary);
     }
 
-    /**
-     * 일정 삭제
-     */
     @DeleteMapping("/{itineraryId}")
     public ResponseEntity<?> deleteItinerary(
             @PathVariable Long itineraryId,
             @RequestHeader("Authorization") String token
     ) {
-        String jwtToken = token.replace("Bearer ", "");
-        String userEmail = jwtTokenProvider.getEmail(jwtToken);
+        String userEmail = jwtTokenProvider.getEmail(token.replace("Bearer ", ""));
         boolean isDeleted = itineraryService.deleteItinerary(userEmail, itineraryId);
         return isDeleted ? ResponseEntity.ok("일정이 삭제되었습니다.") : ResponseEntity.badRequest().build();
     }

@@ -1,21 +1,26 @@
 package com.jandi.plan_backend.googlePlace.service;
 
-import org.springframework.beans.factory.annotation.Value;
 import com.jandi.plan_backend.googlePlace.dto.RecommPlaceReqDTO;
 import com.jandi.plan_backend.googlePlace.dto.RecommPlaceRespDTO;
+import com.jandi.plan_backend.googlePlace.entity.PlaceRecommendation;
+import com.jandi.plan_backend.googlePlace.repository.PlaceRecommendationRepository;
 import com.jandi.plan_backend.util.service.GoogleApiException;
-import lombok.extern.slf4j.Slf4j;
+import com.jandi.plan_backend.user.entity.City;
+import com.jandi.plan_backend.user.repository.CityRepository;
 import com.google.maps.GeoApiContext;
 import com.google.maps.PlacesApi;
+import com.google.maps.model.PlaceDetails;
 import com.google.maps.model.PlacesSearchResponse;
 import com.google.maps.model.PlacesSearchResult;
-import com.google.maps.model.PlaceDetails;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -24,114 +29,162 @@ public class RecommendService {
     @Value("${google.api.key}")
     private String googleApiKey;
 
-    // 추천 맛집 검색 결과 반환
-    public List<RecommPlaceRespDTO> getAllRecommendedPlace(RecommPlaceReqDTO reqDTO) throws GoogleApiException {
-        List<RecommPlaceRespDTO> result = new ArrayList<>();
+    private final PlaceRecommendationRepository placeRepo;
+    private final CityRepository cityRepo;
 
-        // "{국가} {도시} 맛집" 검색 키워드 구성
-        String country = reqDTO.getCountry();
-        String city = reqDTO.getCity();
+    public RecommendService(PlaceRecommendationRepository placeRepo,
+                            CityRepository cityRepo) {
+        this.placeRepo = placeRepo;
+        this.cityRepo = cityRepo;
+    }
+
+    /**
+     * 요청받은 cityId로 City 엔티티를 조회한 뒤,
+     * 최근 30일 이내에 저장된 맛집 추천 데이터가 있으면 그대로 반환,
+     * 없으면 Google Places API로 새 데이터를 받아와 DB에 저장 후 반환.
+     */
+    public List<RecommPlaceRespDTO> getAllRecommendedPlace(RecommPlaceReqDTO reqDTO) {
+        // cityId가 유효한지(= DB에 존재하는지) 확인
+        Integer cityId = reqDTO.getCityId();
+        City cityEntity = cityRepo.findById(cityId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "Invalid cityId: " + cityId + " (City not found in DB)"
+                ));
+
+        // 도시 이름과 국가 이름 가져오기
+        // (Country 엔티티에 getName()이 있다고 가정)
+        String countryName = cityEntity.getCountry().getName();
+        String cityName = cityEntity.getName();
+
+        // 최근 30일 이내 데이터 조회
+        LocalDateTime oneMonthAgo = LocalDateTime.now().minusDays(30);
+        List<PlaceRecommendation> recentList =
+                placeRepo.findByCountryAndCityAndCreatedAtAfter(countryName, cityName, oneMonthAgo);
+
+        if (!recentList.isEmpty()) {
+            log.info("Returning data from DB for cityId={}, size={}", cityId, recentList.size());
+            return recentList.stream()
+                    .map(this::convertToDTO)
+                    .collect(Collectors.toList());
+        }
+
+        log.info("No recent data found for cityId={}. Deleting old data and fetching new data.", cityId);
+        // 기존 데이터 삭제
+        placeRepo.deleteByCountryAndCity(countryName, cityName);
+
+        // Google Places API로 새 데이터 받아오기
+        return callGooglePlacesApiAndSave(countryName, cityName);
+    }
+
+    /**
+     * Google Places API를 호출하여 "국가명 + 도시명 + '맛집'" 으로 검색 후
+     * 결과를 DB에 저장하고 DTO 리스트로 반환
+     */
+    private List<RecommPlaceRespDTO> callGooglePlacesApiAndSave(String country, String city) {
         String searchKeyword = country + " " + city + " 맛집";
-
-
-        // Google Maps API 키 등록
         GeoApiContext context = new GeoApiContext.Builder()
                 .apiKey(googleApiKey)
                 .build();
 
-        //api 키 확인
-        log.info("Google API Key: {}", googleApiKey);
-
+        List<RecommPlaceRespDTO> result = new ArrayList<>();
         try {
-            // Text Search API 호출
             PlacesSearchResponse response = PlacesApi.textSearchQuery(context, searchKeyword).await();
-            if (response.results != null && response.results.length > 0) {
-                // 검색한 모든 장소들에 대해, 장소 세부정보 API 호출
-                for (PlacesSearchResult res : response.results) {
-                    RecommPlaceRespDTO place = getPlaceDetails(res.placeId);
-                    if (place != null) result.add(place);
+            if (response.results == null || response.results.length == 0) {
+                log.info("No place found for keyword={}", searchKeyword);
+                return Collections.emptyList();
+            }
+
+            PlacesSearchResult[] searchResults = response.results;
+            for (int i = 0; i < Math.min(searchResults.length, 10); i++) {
+                PlacesSearchResult sr = searchResults[i];
+                RecommPlaceRespDTO dto = getPlaceDetailsAndSave(sr.placeId, country, city);
+                if (dto != null) {
+                    result.add(dto);
                 }
-            } else
-                log.info("No place found : {}", searchKeyword);
+            }
         } catch (Exception e) {
             throw new GoogleApiException(e);
         }
         return result;
     }
 
-    // 장소 세부정보 API
-    private RecommPlaceRespDTO getPlaceDetails(String placeId) {
-        // Google Maps API 키 등록
+    /**
+     * Google Places API에서 placeId로 상세 정보를 가져온 뒤 DB에 저장.
+     * 이미 DB에 placeId가 존재하면 기존 데이터를 반환(중복 저장 방지).
+     */
+    private RecommPlaceRespDTO getPlaceDetailsAndSave(String placeId, String country, String city) {
+        Optional<PlaceRecommendation> existing = placeRepo.findByPlaceId(placeId);
+        if (existing.isPresent()) {
+            return convertToDTO(existing.get());
+        }
+
         GeoApiContext context = new GeoApiContext.Builder()
                 .apiKey(googleApiKey)
-                .disableRetries()  // 재시도 비활성화 (오류가 계속 발생할 경우 무한 루프 방지)
+                .disableRetries()
                 .build();
 
-        String photoUrl;
-
         try {
-            // Details API 호출
-            PlaceDetails details = PlacesApi.placeDetails(context, placeId).language("ko").await();
+            PlaceDetails details = PlacesApi.placeDetails(context, placeId)
+                    .language("ko")
+                    .await();
 
-            // 응답 데이터 구조를 로그로 출력
-            log.info("PlaceDetails Response: {}", details);
+            float rating = details.rating;
+            int ratingCount = details.userRatingsTotal;
 
-            // 예상치 못한 필드 무시
-            if (details.secondaryOpeningHours != null) {
-                log.warn("Ignoring secondaryOpeningHours field to avoid JSON parsing issues.");
+            String photoUrl = null;
+            if (details.photos != null && details.photos.length > 0) {
+                photoUrl = "https://maps.googleapis.com/maps/api/place/photo?maxwidth=500&photoreference="
+                        + details.photos[0].photoReference
+                        + "&key=" + googleApiKey;
             }
 
-            // 이미지가 없는 장소는 결과에 포함하지 않음
-            if (details.photos == null || details.photos.length == 0) {
-                return null;
+            String openTimeJson = null;
+            if (details.currentOpeningHours != null && details.currentOpeningHours.weekdayText != null) {
+                openTimeJson = String.join(", ", details.currentOpeningHours.weekdayText);
             }
 
-            // 장소 이미지를 url로 저장 (maxwidth = 500 설정)
-            photoUrl = "https://maps.googleapis.com/maps/api/place/photo?maxwidth=500&photoreference="
-                    .concat(details.photos[0].photoReference) // 첫 번째 이미지 사용
-                    .concat("&key=")
-                    .concat(googleApiKey);
+            PlaceRecommendation entity = new PlaceRecommendation();
+            entity.setPlaceId(placeId);
+            entity.setName(details.name);
+            entity.setDetailUrl(details.url != null ? details.url.toString() : null);
+            entity.setRating(rating);
+            entity.setPhotoUrl(photoUrl);
+            entity.setAddress(details.formattedAddress);
+            entity.setLatitude(details.geometry.location.lat);
+            entity.setLongitude(details.geometry.location.lng);
+            entity.setRatingCount(ratingCount);
+            entity.setDineIn(details.dineIn);
+            entity.setOpenTimeJson(openTimeJson);
+            entity.setCountry(country);
+            entity.setCity(city);
 
-            // 영업 시간을 Map<String, String>으로 저장
-            String[] weekdayText = details.currentOpeningHours.weekdayText;
-            Map<String, String> openTime = convertToMap(weekdayText);
-
-            return new RecommPlaceRespDTO(details, photoUrl, openTime);
+            placeRepo.save(entity);
+            return convertToDTO(entity);
         } catch (Exception e) {
-            log.error("Error fetching place details for placeId {}: {}", placeId, e.getMessage());
+            log.error("Error fetching details for placeId {}: {}", placeId, e.getMessage());
             return null;
         }
     }
 
-    // String[]으로 주어진 영업 시간을 요일별로 매핑되게끔 변환
-    public static Map<String, String> convertToMap(String[] scheduleArray) {
-        Map<String, String> scheduleMap = new LinkedHashMap<>();
-        String currentDay = null;
-        StringBuilder openTime = new StringBuilder();
-
-        for (String entry : scheduleArray) {
-            if (entry.contains(":")) {
-                String[] parts = entry.split(": ", 2);
-                if (parts.length == 2) {
-                    if (currentDay != null) {
-                        scheduleMap.put(currentDay, openTime.toString().trim());
-                    }
-                    currentDay = parts[0];
-                    openTime = new StringBuilder(parts[1]);
-                }
-            } else {
-                if (!openTime.isEmpty()) {
-                    openTime.append(", ");
-                }
-                openTime.append(entry);
-            }
-        }
-
-        // 마지막 요일 데이터 추가
-        if (currentDay != null) {
-            scheduleMap.put(currentDay, openTime.toString().trim());
-        }
-
-        return scheduleMap;
+    /**
+     * PlaceRecommendation 엔티티를 RecommPlaceRespDTO로 변환
+     */
+    private RecommPlaceRespDTO convertToDTO(PlaceRecommendation entity) {
+        RecommPlaceRespDTO dto = new RecommPlaceRespDTO();
+        dto.setPlaceId(entity.getPlaceId());
+        dto.setName(entity.getName());
+        dto.setUrl(entity.getDetailUrl());
+        dto.setRating(entity.getRating());
+        dto.setPhotoUrl(entity.getPhotoUrl());
+        dto.setAddress(entity.getAddress());
+        dto.setLatitude(entity.getLatitude());
+        dto.setLongitude(entity.getLongitude());
+        dto.setRatingCount(entity.getRatingCount());
+        dto.setDineIn(entity.isDineIn());
+        dto.setOpenTimeJson(entity.getOpenTimeJson());
+        dto.setCountry(entity.getCountry());
+        dto.setCity(entity.getCity());
+        return dto;
     }
 }

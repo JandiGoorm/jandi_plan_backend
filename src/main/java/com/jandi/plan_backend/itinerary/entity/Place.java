@@ -2,7 +2,6 @@ package com.jandi.plan_backend.itinerary.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import com.jandi.plan_backend.trip.entity.Trip;
 
 @Entity
 @Table(name = "place", uniqueConstraints = {
@@ -10,6 +9,7 @@ import com.jandi.plan_backend.trip.entity.Trip;
 })
 @Data
 public class Place {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long placeId;

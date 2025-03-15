@@ -8,6 +8,7 @@ import lombok.Data;
 @Table(name = "reservation")
 @Data
 public class Reservation {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long reservationId;

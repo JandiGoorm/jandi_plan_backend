@@ -22,12 +22,7 @@ public class PlaceService {
         this.validationUtil = validationUtil;
     }
 
-    /**
-     * 장소 생성
-     * 로그인한 사용자만 생성할 수 있도록 userEmail을 받아서 검증합니다.
-     */
     public PlaceRespDTO createPlace(String userEmail, PlaceReqDTO reqDTO) {
-        // userEmail을 통해 사용자 존재 여부를 검증(로그인 되어 있는지 확인)
         validationUtil.validateUserExists(userEmail);
 
         Place place = new Place();
@@ -39,18 +34,12 @@ public class PlaceService {
         return mapToDTO(savedPlace);
     }
 
-    /**
-     * 장소 단건 조회
-     */
     public PlaceRespDTO getPlace(Long placeId) {
         Place place = placeRepository.findById(placeId)
                 .orElseThrow(() -> new BadRequestExceptionMessage("존재하지 않는 장소입니다."));
         return mapToDTO(place);
     }
 
-    /**
-     * 전체 장소 조회
-     */
     public List<PlaceRespDTO> getAllPlaces() {
         return placeRepository.findAll()
                 .stream()
@@ -59,6 +48,12 @@ public class PlaceService {
     }
 
     private PlaceRespDTO mapToDTO(Place place) {
-        return new PlaceRespDTO(place.getPlaceId(), place.getName(), place.getAddress(), place.getLatitude(), place.getLongitude());
+        return new PlaceRespDTO(
+                place.getPlaceId(),
+                place.getName(),
+                place.getAddress(),
+                place.getLatitude(),
+                place.getLongitude()
+        );
     }
 }
