@@ -53,4 +53,15 @@ public class User {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Community> communities;
+
+    @Column(nullable = false)
+    private int role;
+
+    public Role getRoleEnum() {
+        return Role.fromValue(this.role);
+    }
+
+    public void setRoleEnum(Role role) {
+        this.role = role.getValue();
+    }
 }

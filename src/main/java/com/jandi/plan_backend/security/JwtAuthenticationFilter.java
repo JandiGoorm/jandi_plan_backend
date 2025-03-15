@@ -53,43 +53,49 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
-        // "Authorization" 헤더 값 추출
         String header = request.getHeader("Authorization");
 
-        // 헤더가 null이 아니고 "Bearer "로 시작하면 JWT 토큰이 존재함
-        if (header != null && header.startsWith("Bearer ")) {
-            // "Bearer " 이후의 문자열을 토큰으로 간주
-            String token = header.substring(7);
-            log.debug("요청 헤더에서 JWT 토큰 발견");
-
-            // 토큰 유효성 검사
-            if (jwtTokenProvider.validateToken(token)) {
-                // 토큰에서 이메일 정보 추출
-                String email = jwtTokenProvider.getEmail(token);
-                log.debug("토큰이 유효함. 이메일: {}", email);
-
-                // 이메일을 기반으로 사용자 정보 조회
-                UserDetails userDetails = userDetailsService.loadUserByUsername(email);
-
-                // 사용자 정보와 권한을 담아 인증 토큰 생성
-                UsernamePasswordAuthenticationToken auth =
-                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-
-                // 요청의 세부 정보를 인증 토큰에 설정
-                auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-                // SecurityContext에 인증 정보를 설정하여 인증된 상태로 만듦
-                SecurityContextHolder.getContext().setAuthentication(auth);
-            } else {
-                // 토큰이 유효하지 않을 경우 경고 로그 출력
-                log.warn("유효하지 않은 JWT 토큰");
-            }
-        } else {
-            // Authorization 헤더가 없거나 Bearer 토큰 형식이 아니면 디버그 로그 출력
+        if (header == null || !header.startsWith("Bearer ")) {
             log.debug("요청 헤더에 JWT 토큰이 없음");
+            filterChain.doFilter(request, response);
+            return;
         }
 
-        // 다음 필터로 요청과 응답 전달
+        String token = header.substring(7);
+        log.debug("요청 헤더에서 JWT 토큰 발견");
+
+        try {
+            // 토큰 유효성 검사
+            if (!jwtTokenProvider.validateToken(token)) {
+                log.warn("유효하지 않은 JWT 토큰");
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid JWT Token"); // 401 반환
+                return;
+            }
+
+            // 토큰에서 이메일과 역할 정보 추출
+            String email = jwtTokenProvider.getEmail(token);
+            log.debug("토큰이 유효함. 이메일: {}", email);
+
+            // 이메일을 기반으로 사용자 정보 조회
+            UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+
+            // 사용자 정보와 권한을 담아 인증 토큰 생성
+            log.info("userDetails.getAuthorities(): {}", userDetails.getAuthorities());
+            UsernamePasswordAuthenticationToken auth =
+                    new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+
+            // 요청의 세부 정보를 인증 토큰에 설정
+            auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+            // SecurityContext에 인증 정보를 설정하여 인증된 상태로 만듦
+            SecurityContextHolder.getContext().setAuthentication(auth);
+
+        } catch (Exception e) {
+            log.error("JWT 처리 중 오류 발생: {}", e.getMessage());
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
+            return;
+        }
+
         filterChain.doFilter(request, response);
     }
 }

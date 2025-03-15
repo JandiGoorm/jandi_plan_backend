@@ -87,15 +87,11 @@ public class ValidationUtil {
     }
 
     // 검증용
-    public void validateUserIsAdmin(User user) {
-        if (user.getUserId() != 1) {
+    public Boolean validateUserIsAdmin(User user) {
+        if (!"ADMIN".equals(user.getRoleEnum().name())) {
             throw new BadRequestExceptionMessage("관리자 권한이 필요한 작업입니다.");
         }
-    }
-
-    // 판별용
-    public Boolean validateUserIsAdmin(Integer userId) {
-        return userId.equals(1);
+        return true;
     }
 
     /* ==========================

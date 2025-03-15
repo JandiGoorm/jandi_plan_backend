@@ -1,5 +1,8 @@
 package com.jandi.plan_backend.security;
 
+import com.jandi.plan_backend.user.entity.Role;
+import com.jandi.plan_backend.user.entity.User;
+import com.jandi.plan_backend.user.repository.UserRepository;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
@@ -9,6 +12,7 @@ import org.springframework.stereotype.Component;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
+import java.util.Objects;
 
 @Slf4j
 @Component
@@ -21,12 +25,14 @@ public class JwtTokenProvider {
 
     // 리프레시 토큰 유효기간 (7일)
     private final long refreshValidityInMilliseconds = 7 * 24 * 60 * 60 * 1000;
+    private final UserRepository userRepository;
 
     /**
      * application.properties에 설정한 jwt.secret 값을 주입받아 SecretKey를 생성합니다.
      */
-    public JwtTokenProvider(@Value("${jwt.secret}") String jwtSecret) {
+    public JwtTokenProvider(@Value("${jwt.secret}") String jwtSecret, UserRepository userRepository) {
         this.secretKey = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+        this.userRepository = userRepository;
     }
 
     /**
@@ -37,14 +43,23 @@ public class JwtTokenProvider {
      */
     public String createToken(String email) {
         log.info("이메일 '{}' 에 대해 액세스 JWT 토큰 생성 시작", email);
+
+        User user = userRepository.findByEmail(email).orElse(null);
+        if (user == null) {
+            throw new IllegalArgumentException("존재하지 않는 사용자입니다.");
+        }
+
         Date now = new Date();
         Date expiry = new Date(now.getTime() + validityInMilliseconds);
         String token = Jwts.builder()
                 .setSubject(email)
+                .claim("role", "ROLE_" + user.getRoleEnum().name())  // 유저의 권한을 jwt에 저장
+                //유저가 존재할 때 유저 권환 저장
                 .setIssuedAt(now)
                 .setExpiration(expiry)
                 .signWith(secretKey)
                 .compact();
+        log.info("토큰 생성 - 사용자 이메일: {}, 역할: {}", email, user.getRoleEnum().name());
         log.info("액세스 토큰 생성 완료. 만료 시간: {}", expiry);
         return token;
     }
@@ -86,6 +101,24 @@ public class JwtTokenProvider {
             return claims.getSubject();
         } catch (JwtException | IllegalArgumentException e) {
             log.error("토큰에서 이메일 추출 실패: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    public Role getUserRoleFromToken(String token) {
+        try {
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(secretKey)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+
+            String roleStr = claims.get("role", String.class);
+            log.debug("토큰에서 추출한 권한: {}", roleStr);
+
+            return Role.valueOf(roleStr.replace("ROLE_", ""));
+        } catch (JwtException | IllegalArgumentException e) {
+            log.error("토큰에서 권한 추출 실패: {}", e.getMessage());
             return null;
         }
     }

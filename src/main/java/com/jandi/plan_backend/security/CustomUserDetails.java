@@ -2,9 +2,11 @@ package com.jandi.plan_backend.security;
 
 import com.jandi.plan_backend.user.entity.User;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * 사용자 정보를 담은 커스텀 UserDetails 구현체.
@@ -12,36 +14,32 @@ import java.util.Collections;
  */
 public class CustomUserDetails implements UserDetails {
 
-    private final Integer userId;
-    private final String email;
-    private final String password;
+    private final User user;
     private final Collection<? extends GrantedAuthority> authorities;
 
     public CustomUserDetails(User user) {
         // User 엔티티에 PK가 "userId" 필드로 정의되어 있고, getter가 getUserId()라면:
-        this.userId = user.getUserId();
-        this.email = user.getEmail();
-        this.password = user.getPassword();
-        this.authorities = Collections.emptyList();
+        this.user = user;
+        this.authorities = List.of(new SimpleGrantedAuthority("ROLE_" + user.getRoleEnum().name()));
     }
 
     public Integer getUserId() {
-        return userId;
+        return user.getUserId();
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return authorities;
+        return List.of(new SimpleGrantedAuthority("ROLE_" + user.getRoleEnum().name()));
     }
 
     @Override
     public String getPassword() {
-        return password;
+        return user.getPassword();
     }
 
     @Override
     public String getUsername() {
-        return email;
+        return user.getEmail();
     }
 
     @Override

@@ -16,6 +16,9 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
     public void commence(HttpServletRequest request,
                          HttpServletResponse response,
                          AuthenticationException authException) throws IOException {
-        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
+        response.setContentType("application/json; charset=UTF-8");
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.getWriter().write("{ \"status\": 401, \"error\": \"Unauthorized\", \"message\": \"로그인이 필요합니다.\" }");
     }
 }
+

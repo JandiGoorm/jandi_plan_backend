@@ -68,19 +68,13 @@ public class ManageCommunityService {
     }
 
     // 게시글 강제 삭제
-    public void deletePosts(String userEmail, Integer postId) {
-        User admin = validationUtil.validateUserExists(userEmail);
-        validationUtil.validateUserIsAdmin(admin);
-
+    public void deletePosts(Integer postId) {
         Community post = validationUtil.validatePostExists(postId);
         postService.deletePost(postId, post.getUser().getEmail());
     }
 
     // 댓글 강제 삭제
-    public void deleteComments(String userEmail, Integer commentId) {
-        User admin = validationUtil.validateUserExists(userEmail);
-        validationUtil.validateUserIsAdmin(admin);
-
+    public void deleteComments(Integer commentId) {
         Comment comment = validationUtil.validateCommentExists(commentId);
         User user = validationUtil.validateUserExists(comment.getUserId());
         commentService.deleteComments(commentId, user.getEmail());
