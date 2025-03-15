@@ -90,9 +90,8 @@ public class ManageCommunityController {
         if(userDetails == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "로그인이 필요합니다."));
         }
-        String userEmail = userDetails.getUsername();
         try{
-            manageCommunityService.deletePosts(userEmail, postId);
+            manageCommunityService.deletePosts(postId);
             return ResponseEntity.ok("삭제되었습니다.");
         }catch (Exception e){
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -108,9 +107,8 @@ public class ManageCommunityController {
         if(userDetails == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "로그인이 필요합니다."));
         }
-        String userEmail = userDetails.getUsername();
         try{
-            manageCommunityService.deleteComments(userEmail, commentId);
+            manageCommunityService.deleteComments(commentId);
             return ResponseEntity.ok("삭제되었습니다.");
         }catch (Exception e){
             return ResponseEntity.badRequest().body(e.getMessage());

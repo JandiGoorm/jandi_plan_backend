@@ -53,11 +53,7 @@ public class NoticeService {
     /**
      * 공지사항 작성 (임시 ID 없이 바로 저장)
      */
-    public NoticeRespDTO writeNotice(NoticeReqDTO noticeDTO, String userEmail) {
-        // 관리자 검증
-        User user = validationUtil.validateUserExists(userEmail);
-        validationUtil.validateUserIsAdmin(user);
-
+    public NoticeRespDTO writeNotice(NoticeReqDTO noticeDTO) {
         // 공지사항 생성
         Notice notice = new Notice();
         notice.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
@@ -72,11 +68,7 @@ public class NoticeService {
     /**
      * 공지사항 수정
      */
-    public NoticeRespDTO updateNotice(NoticeReqDTO noticeDTO, Integer noticeId, String userEmail) {
-        // 관리자 검증
-        User user = validationUtil.validateUserExists(userEmail);
-        validationUtil.validateUserIsAdmin(user);
-
+    public NoticeRespDTO updateNotice(NoticeReqDTO noticeDTO, Integer noticeId) {
         // 공지사항 검증
         Notice notice = validationUtil.validateNoticeExists(noticeId);
 
@@ -96,11 +88,7 @@ public class NoticeService {
      * 공지사항 삭제
      * 공지사항에 연결된 모든 이미지도 함께 삭제
      */
-    public boolean deleteNotice(String userEmail, Integer noticeId) {
-        // 관리자 검증
-        User user = validationUtil.validateUserExists(userEmail);
-        validationUtil.validateUserIsAdmin(user);
-
+    public boolean deleteNotice(Integer noticeId) {
         // 공지사항 검증
         Notice notice = validationUtil.validateNoticeExists(noticeId);
 
@@ -123,7 +111,6 @@ public class NoticeService {
     public NoticeRespDTO finalizeNotice(String userEmail, NoticeFinalizeReqDTO finalizeReqDTO) {
         // 관리자 검증
         User user = validationUtil.validateUserExists(userEmail);
-        validationUtil.validateUserIsAdmin(user);
 
         // 임시 Notice ID 검증
         int tempNoticeId = finalizeReqDTO.getTempNoticeId();

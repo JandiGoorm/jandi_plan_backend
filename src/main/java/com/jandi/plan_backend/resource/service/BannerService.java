@@ -83,7 +83,6 @@ public class BannerService {
                                       MultipartFile file, String title, String link) {
         // 1) 유저 검증 (관리자 권한)
         User user = validationUtil.validateUserExists(email);
-        validationUtil.validateUserIsAdmin(user);
 
         // 2) 배너글 검증
         Banner banner = validationUtil.validateBannerExists(bannerId);
@@ -112,11 +111,7 @@ public class BannerService {
     }
 
     /** 배너글 삭제 */
-    public boolean deleteBanner(String userEmail, Integer bannerId) {
-        // 1) 유저 검증 (관리자 권한)
-        User user = validationUtil.validateUserExists(userEmail);
-        validationUtil.validateUserIsAdmin(user);
-
+    public boolean deleteBanner(Integer bannerId) {
         // 2) 배너글 검증
         Banner banner = validationUtil.validateBannerExists(bannerId);
 

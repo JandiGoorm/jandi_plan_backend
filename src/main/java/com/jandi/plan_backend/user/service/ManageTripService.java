@@ -58,7 +58,6 @@ public class ManageTripService {
     public ContinentRespDTO createNewContinent(String userEmail, String continentName, MultipartFile file) {
         // 유저 & 권한 검증
         User user = validationUtil.validateUserExists(userEmail);
-        validationUtil.validateUserIsAdmin(user);
 
         // 중복 검증
         if (continentRepository.findByName(continentName).isPresent()) {
@@ -82,7 +81,6 @@ public class ManageTripService {
             String userEmail, String continentName, String countryName) {
         //유저 검증
         User user = validationUtil.validateUserExists(userEmail);
-        validationUtil.validateUserIsAdmin(user);
 
         //대륙 검증
         Continent continent = validationUtil.validateContinentExists(continentName);
@@ -107,7 +105,6 @@ public class ManageTripService {
                                      Double latitude, Double longitude) {
         // 유저 & 권한 검증
         User user = validationUtil.validateUserExists(userEmail);
-        validationUtil.validateUserIsAdmin(user);
 
         // 국가 검증
         Country country = validationUtil.validateCountryExists(countryName);
@@ -139,7 +136,6 @@ public class ManageTripService {
     public CountryRespDTO updateCountry(String userEmail, Integer countryId, String countryName) {
         // 유저 검증
         User user = validationUtil.validateUserExists(userEmail);
-        validationUtil.validateUserIsAdmin(user);
 
         // 국가 검증
         Country country = validationUtil.validateCountryExists(Long.valueOf(countryId));
@@ -158,7 +154,6 @@ public class ManageTripService {
                                   String description, MultipartFile file, Double latitude, Double longitude) {
         // 유저 검증
         User user = validationUtil.validateUserExists(userEmail);
-        validationUtil.validateUserIsAdmin(user);
 
         // 도시 검증
         City city = validationUtil.validateCityExists(cityId);
@@ -193,7 +188,6 @@ public class ManageTripService {
     public Integer deleteCountry(String userEmail, Integer countryId) {
         // 유저 검증
         User user = validationUtil.validateUserExists(userEmail);
-        validationUtil.validateUserIsAdmin(user);
 
         // 도시 검증
         Country country = validationUtil.validateCountryExists(Long.valueOf(countryId));
@@ -228,7 +222,6 @@ public class ManageTripService {
     public boolean deleteCity(String userEmail, Integer cityId) {
         // 유저 검증
         User user = validationUtil.validateUserExists(userEmail);
-        validationUtil.validateUserIsAdmin(user);
 
         // 도시 검증
         City city = validationUtil.validateCityExists(cityId);

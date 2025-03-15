@@ -28,10 +28,7 @@ public class ReservationService {
 
     public Map<String, Object> getReservation(String userEmail, Integer tripId) {
         User user = validationUtil.validateUserExists(userEmail);
-        validationUtil.validateUserRestricted(user);
-
         Trip trip = validationUtil.validateTripExists(tripId);
-        validationUtil.validateUserIsAuthorOfTrip(user, trip);
 
         List<Reservation> allReservations = reservationRepository.findByTrip_TripId(tripId);
 
@@ -62,7 +59,6 @@ public class ReservationService {
         validationUtil.validateUserRestricted(user);
 
         Trip trip = validationUtil.validateTripExists(tripId);
-        validationUtil.validateUserIsAuthorOfTrip(user, trip);
 
         Reservation reservation = new Reservation();
         reservation.setTrip(trip);

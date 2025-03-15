@@ -117,7 +117,7 @@ public class TripService {
             );
         } else {
             User user = validationUtil.validateUserExists(userEmail);
-            if (validationUtil.validateUserIsAdmin(user.getUserId())) {
+            if (validationUtil.validateUserIsAdmin(user)) {
                 // 관리자 -> 전체
                 long totalCount = tripRepository.count();
                 return PaginationService.getPagedData(page, size, totalCount,

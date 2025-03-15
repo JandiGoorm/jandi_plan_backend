@@ -51,6 +51,8 @@ public class ManageUtilController {
         String jwtToken = token.replace("Bearer ", "");
         String userEmail = jwtTokenProvider.getEmail(jwtToken);
         User user = validationUtil.validateUserExists(userEmail);
+        String role = String.valueOf(jwtTokenProvider.getUserRoleFromToken(token));
+        log.info("userEmail: " + userEmail + ", role: " + role);
         validationUtil.validateUserIsAdmin(user);
 
         LocalDateTime today = LocalDateTime.now(ZoneId.of("Asia/Seoul")); // 현재 시간
