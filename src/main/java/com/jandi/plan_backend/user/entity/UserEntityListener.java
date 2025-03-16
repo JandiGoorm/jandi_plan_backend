@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Component
 @RequiredArgsConstructor
@@ -31,13 +32,13 @@ public class UserEntityListener {
     public void afterUpdate(User user) {
         // 만약 Role이 변경되었다면 로그 저장
         if (this.previousRole != user.getRole()) {
+            // 로그 기록
             RoleLog roleLog = new RoleLog();
             roleLog.setUser(user);
             roleLog.setPrevRole(this.previousRole);
             roleLog.setNewRole(user.getRole());
             roleLog.setChangedBy("SYSTEM"); // 비정상적인 변경은 SYSTEM이 감지함
-
-            roleLog.setChangedAt(LocalDateTime.now());
+            roleLog.setChangedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
             roleLogRepository.save(roleLog);
         }
     }
