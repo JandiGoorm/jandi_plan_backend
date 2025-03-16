@@ -28,12 +28,20 @@ public class ReservationService {
     }
 
     public Map<String, Object> getReservation(String userEmail, Integer tripId) {
-        User user = validationUtil.validateUserExists(userEmail);
         Trip trip = validationUtil.validateTripExists(tripId);
 
+        // 비공개 여행인 경우에만 사용자 검증 (작성자만 조회)
+        if (trip.getPrivatePlan()) {
+            User user = validationUtil.validateUserExists(userEmail);
+            if (!trip.getUser().getUserId().equals(user.getUserId())) {
+                throw new BadRequestExceptionMessage("비공개 여행 계획은 작성자만 조회할 수 있습니다.");
+            }
+        }
+
+        // 공개 여행인 경우, 로그인 여부와 관계없이 예약 정보를 조회
         List<Reservation> allReservations = reservationRepository.findByTrip_TripId(tripId);
 
-        // 예약 정보를 카테고리별로 그룹핑
+        // 예약 정보를 카테고리별 그룹핑
         Map<String, List<ReservationRespDTO>> data = allReservations.stream()
                 .map(r -> new ReservationRespDTO(r, true))
                 .collect(Collectors.groupingBy(ReservationRespDTO::getCategory));
