@@ -40,11 +40,12 @@ public class RecommendService {
 
     /**
      * 요청받은 cityId로 City 엔티티를 조회한 뒤,
-     * 최근 30일 이내에 저장된 맛집 추천 데이터가 있으면 그대로 반환,
-     * 없으면 Google Places API로 새 데이터를 받아와 DB에 저장 후 반환.
+     * 최근 30일 이내에 저장된 맛집 추천 데이터가 있으면 그 개수를 확인한다.
+     * - 10개 이상이면 그대로 반환
+     * - 10개 미만이면 Google Places API를 호출하여 부족분을 채운 뒤 반환
      */
     public List<RecommPlaceRespDTO> getAllRecommendedPlace(RecommPlaceReqDTO reqDTO) {
-        // cityId가 유효한지(= DB에 존재하는지) 확인
+        // cityId 유효성 검증
         Integer cityId = reqDTO.getCityId();
         City cityEntity = cityRepo.findById(cityId)
                 .orElseThrow(() -> new ResponseStatusException(
@@ -52,8 +53,6 @@ public class RecommendService {
                         "Invalid cityId: " + cityId + " (City not found in DB)"
                 ));
 
-        // 도시 이름과 국가 이름 가져오기
-        // (Country 엔티티에 getName()이 있다고 가정)
         String countryName = cityEntity.getCountry().getName();
         String cityName = cityEntity.getName();
 
@@ -62,51 +61,86 @@ public class RecommendService {
         List<PlaceRecommendation> recentList =
                 placeRepo.findByCountryAndCityAndCreatedAtAfter(countryName, cityName, oneMonthAgo);
 
-        if (!recentList.isEmpty()) {
-            log.info("Returning data from DB for cityId={}, size={}", cityId, recentList.size());
-            return recentList.stream()
-                    .map(this::convertToDTO)
-                    .collect(Collectors.toList());
+        if (recentList.isEmpty()) {
+            // 완전히 0개인 경우: 기존 데이터를 모두 지우고 새로 검색
+            log.info("No recent data found for cityId={}. Deleting old data and fetching new data.", cityId);
+            placeRepo.deleteByCountryAndCity(countryName, cityName);
+
+            // 새로 가져와서 DB 저장
+            callGooglePlacesApiAndAppend(countryName, cityName, 0);
+        } else {
+            // 1~9개인 경우: 기존 데이터는 유지하고, 부족분만큼 추가로 검색
+            if (recentList.size() < 10) {
+                log.info("Found {} recent data for cityId={}, fetching more to reach 10...", recentList.size(), cityId);
+                callGooglePlacesApiAndAppend(countryName, cityName, recentList.size());
+            }
         }
 
-        log.info("No recent data found for cityId={}. Deleting old data and fetching new data.", cityId);
-        // 기존 데이터 삭제
-        placeRepo.deleteByCountryAndCity(countryName, cityName);
-
-        // Google Places API로 새 데이터 받아오기
-        return callGooglePlacesApiAndSave(countryName, cityName);
+        // 최종적으로 DB에서 10개까지만 추려서 반환
+        List<PlaceRecommendation> finalList = placeRepo.findByCountryAndCityAndCreatedAtAfter(countryName, cityName, oneMonthAgo);
+        return finalList.stream()
+                .map(this::convertToDTO)
+                .limit(10)
+                .collect(Collectors.toList());
     }
 
     /**
-     * Google Places API를 호출하여 "국가명 + 도시명 + '맛집'" 으로 검색 후
-     * 결과를 DB에 저장하고 DTO 리스트로 반환
+     * DB에 저장된 개수가 countSoFar(기존 개수)보다 적을 경우,
+     * Google Places API의 nextPageToken을 사용해 추가로 검색을 시도한다.
      */
-    private List<RecommPlaceRespDTO> callGooglePlacesApiAndSave(String country, String city) {
+    private void callGooglePlacesApiAndAppend(String country, String city, int countSoFar) {
         String searchKeyword = country + " " + city + " 맛집";
         GeoApiContext context = new GeoApiContext.Builder()
                 .apiKey(googleApiKey)
                 .build();
 
-        List<RecommPlaceRespDTO> result = new ArrayList<>();
         try {
+            // 첫 페이지 검색
             PlacesSearchResponse response = PlacesApi.textSearchQuery(context, searchKeyword).await();
-            if (response.results == null || response.results.length == 0) {
-                log.info("No place found for keyword={}", searchKeyword);
-                return Collections.emptyList();
+            saveSearchResultsToDB(response.results, country, city);
+
+            // nextPageToken
+            String nextPageToken = response.nextPageToken;
+
+            // DB에 저장된 개수를 다시 확인
+            int storedCount = placeRepo.findByCountryAndCity(country, city).size();
+
+            // DB에 10개 미만이고, 다음 페이지가 존재하면 계속 조회
+            while (storedCount < 10 && nextPageToken != null) {
+                // next_page_token 유효해질 때까지 2초 대기
+                Thread.sleep(2000);
+
+                response = PlacesApi.textSearchQuery(context, searchKeyword)
+                        .pageToken(nextPageToken)
+                        .await();
+
+                saveSearchResultsToDB(response.results, country, city);
+
+                // 다음 페이지 토큰 갱신
+                nextPageToken = response.nextPageToken;
+
+                // 다시 DB에 저장된 개수를 확인
+                storedCount = placeRepo.findByCountryAndCity(country, city).size();
             }
 
-            PlacesSearchResult[] searchResults = response.results;
-            for (int i = 0; i < Math.min(searchResults.length, 10); i++) {
-                PlacesSearchResult sr = searchResults[i];
-                RecommPlaceRespDTO dto = getPlaceDetailsAndSave(sr.placeId, country, city);
-                if (dto != null) {
-                    result.add(dto);
-                }
-            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new GoogleApiException("Thread interrupted while fetching next page", e);
         } catch (Exception e) {
             throw new GoogleApiException(e);
         }
-        return result;
+    }
+
+    /**
+     * PlacesSearchResult 배열을 순회하며 DB에 저장하는 메서드
+     */
+    private void saveSearchResultsToDB(PlacesSearchResult[] results, String country, String city) {
+        if (results == null) {
+            return;
+        }
+        for (PlacesSearchResult sr : results) {
+            getPlaceDetailsAndSave(sr.placeId, country, city);
+        }
     }
 
     /**
