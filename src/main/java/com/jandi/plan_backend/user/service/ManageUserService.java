@@ -1,7 +1,7 @@
 package com.jandi.plan_backend.user.service;
 
 import com.jandi.plan_backend.commu.dto.UserListDTO;
-import com.jandi.plan_backend.user.entity.User;
+import com.jandi.plan_backend.user.dto.RoleReqDTO;
 import com.jandi.plan_backend.user.repository.UserRepository;
 import com.jandi.plan_backend.util.ValidationUtil;
 import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
@@ -9,7 +9,15 @@ import com.jandi.plan_backend.util.service.PaginationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
+import com.jandi.plan_backend.user.entity.RoleLog;
+import com.jandi.plan_backend.user.entity.User;
+import com.jandi.plan_backend.user.repository.RoleLogRepository;
+import jakarta.transaction.Transactional;
+import com.jandi.plan_backend.user.entity.Role;
 
+
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Arrays;
 
 @Slf4j
@@ -18,12 +26,19 @@ public class ManageUserService {
     private final ValidationUtil validationUtil;
     private final UserRepository userRepository;
     private final UserService userService;
+    private final RoleLogRepository roleLogRepository;
 
 
-    public ManageUserService(ValidationUtil validationUtil, UserRepository userRepository, UserService userService) {
+    public ManageUserService(
+            ValidationUtil validationUtil,
+            UserRepository userRepository,
+            UserService userService,
+            RoleLogRepository roleLogRepository
+    ) {
         this.validationUtil = validationUtil;
         this.userRepository = userRepository;
         this.userService = userService;
+        this.roleLogRepository = roleLogRepository;
     }
 
     //유저 목록 로드
@@ -73,5 +88,36 @@ public class ManageUserService {
 
         log.info("선택된 유저: {}{}", user.getEmail(), user.getReported() ? "(제재)" : "(일반)");
         return userService.deleteUser(user.getEmail());
+    }
+
+    // 유저 권한 변경
+    @Transactional
+    public void changeUserRole(Integer targetUserId, RoleReqDTO reqDTO, String curUserEmail) {
+        try{
+            // 대상 사용자 검증
+            User targetUser = validationUtil.validateUserExists(targetUserId);
+            User curUser = validationUtil.validateUserExists(curUserEmail);
+
+            // 기존 역할 저장
+            int previousRole = targetUser.getRole();
+
+            // 문자열(Role) → 숫자(int) 변환
+            int updatedRole = Role.fromString(reqDTO.getRoleName());
+
+            // 역할 변경
+            targetUser.setRole(updatedRole);
+            userRepository.save(targetUser);
+
+            // 로그 기록
+            RoleLog roleLog = new RoleLog();
+            roleLog.setUser(targetUser);
+            roleLog.setPrevRole(previousRole);
+            roleLog.setNewRole(updatedRole);
+            roleLog.setChangedBy(curUser);
+            roleLog.setChangedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
+            roleLogRepository.save(roleLog);
+        }catch(Exception e){
+            throw new BadRequestExceptionMessage(e.getMessage());
+        }
     }
 }
