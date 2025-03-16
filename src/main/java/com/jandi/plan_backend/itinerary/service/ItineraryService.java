@@ -34,6 +34,7 @@ public class ItineraryService {
 
     public List<ItineraryRespDTO> getItineraries(String userEmail, Integer tripId) {
         Trip trip = validationUtil.validateTripExists(tripId);
+        // 비공개 여행은 작성자만 조회 가능하도록 함
         if (trip.getPrivatePlan()) {
             User user = validationUtil.validateUserExists(userEmail);
             if (!trip.getUser().getUserId().equals(user.getUserId())) {
@@ -41,7 +42,6 @@ public class ItineraryService {
             }
         }
         List<Itinerary> itineraries = itineraryRepository.findByTrip_TripId(tripId);
-
         return itineraries.stream().map(itinerary -> {
             Optional<Place> placeOpt = placeRepository.findById(itinerary.getPlaceId());
             if (placeOpt.isEmpty()) {
@@ -62,9 +62,8 @@ public class ItineraryService {
     public ItineraryRespDTO createItinerary(String userEmail, Integer tripId, ItineraryReqDTO reqDTO) {
         User user = validationUtil.validateUserExists(userEmail);
         Trip trip = validationUtil.validateTripExists(tripId);
-        if (!trip.getUser().getUserId().equals(user.getUserId())) {
-            throw new BadRequestExceptionMessage("본인이 작성한 여행 계획에만 일정을 추가할 수 있습니다.");
-        }
+        // 작성자 또는 동반자 권한 검증
+        validationUtil.validateUserHasEditPermission(user, trip);
 
         LocalDate date = LocalDate.parse(reqDTO.getDate());
         LocalTime startTime = LocalTime.parse(reqDTO.getStartTime());
@@ -76,7 +75,7 @@ public class ItineraryService {
         itinerary.setStartTime(startTime);
         itinerary.setTitle(reqDTO.getTitle());
         itinerary.setCost(reqDTO.getCost());
-        itinerary.setCreatedAt(date); // 필요하다면 변경
+        itinerary.setCreatedAt(date); // 필요에 따라 변경
 
         itineraryRepository.save(itinerary);
 
@@ -99,10 +98,9 @@ public class ItineraryService {
         User user = validationUtil.validateUserExists(userEmail);
         Itinerary itinerary = itineraryRepository.findById(itineraryId)
                 .orElseThrow(() -> new BadRequestExceptionMessage("존재하지 않는 일정입니다."));
-
-        if (!itinerary.getTrip().getUser().getUserId().equals(user.getUserId())) {
-            throw new BadRequestExceptionMessage("본인이 작성한 여행 계획의 일정만 수정할 수 있습니다.");
-        }
+        Trip trip = itinerary.getTrip();
+        // 작성자 또는 동반자 권한 검증
+        validationUtil.validateUserHasEditPermission(user, trip);
 
         if (reqDTO.getPlaceId() != null) {
             itinerary.setPlaceId(reqDTO.getPlaceId());
@@ -140,10 +138,9 @@ public class ItineraryService {
         User user = validationUtil.validateUserExists(userEmail);
         Itinerary itinerary = itineraryRepository.findById(itineraryId)
                 .orElseThrow(() -> new BadRequestExceptionMessage("존재하지 않는 일정입니다."));
-
-        if (!itinerary.getTrip().getUser().getUserId().equals(user.getUserId())) {
-            throw new BadRequestExceptionMessage("본인이 작성한 여행 계획의 일정만 삭제할 수 있습니다.");
-        }
+        Trip trip = itinerary.getTrip();
+        // 작성자 또는 동반자 권한 검증
+        validationUtil.validateUserHasEditPermission(user, trip);
         itineraryRepository.delete(itinerary);
         return true;
     }
