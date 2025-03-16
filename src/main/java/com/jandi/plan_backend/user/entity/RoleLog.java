@@ -29,7 +29,6 @@ public class RoleLog {
     @Column(nullable = false)
     private LocalDateTime changedAt; // 변경 시각
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "changed_by_user_id", nullable = false) // 변경 요청자의 ID
-    private User changedBy;
+    @Column(nullable = false)
+    private String changedBy; // 변경 요청자의 이메일 주소 or 시스템
 }

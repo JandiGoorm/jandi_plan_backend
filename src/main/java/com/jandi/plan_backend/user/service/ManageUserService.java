@@ -113,7 +113,7 @@ public class ManageUserService {
             roleLog.setUser(targetUser);
             roleLog.setPrevRole(previousRole);
             roleLog.setNewRole(updatedRole);
-            roleLog.setChangedBy(curUser);
+            roleLog.setChangedBy(curUser.getEmail());
             roleLog.setChangedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
             roleLogRepository.save(roleLog);
         }catch(Exception e){
