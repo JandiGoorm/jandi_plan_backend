@@ -99,20 +99,23 @@ public class ManageUserService {
             User curUser = validationUtil.validateUserExists(curUserEmail);
 
             // 기존 역할 저장
-            int previousRole = targetUser.getRole();
+            int previousRole = targetUser.getRole(); // 기존 역할
+            int intRole = Role.fromString(reqDTO.getRoleName()); // 새 역할: 문자열 -> 숫자로 변환
 
-            // 문자열(Role) → 숫자(int) 변환
-            int updatedRole = Role.fromString(reqDTO.getRoleName());
+            // 기존과 같을 경우 변경하지 않고 에러 반환
+            if(previousRole==intRole) {
+                throw new BadRequestExceptionMessage("기존과 동일한 권한을 입력했습니다.");
+            }
 
             // 역할 변경
-            targetUser.setRole(updatedRole);
+            targetUser.setRole(intRole);
             userRepository.save(targetUser);
 
             // 로그 기록
             RoleLog roleLog = new RoleLog();
             roleLog.setUser(targetUser);
             roleLog.setPrevRole(previousRole);
-            roleLog.setNewRole(updatedRole);
+            roleLog.setNewRole(intRole);
             roleLog.setChangedBy(curUser.getEmail());
             roleLog.setChangedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
             roleLogRepository.save(roleLog);
