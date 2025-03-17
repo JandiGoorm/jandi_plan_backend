@@ -358,7 +358,7 @@ public class TripService {
      */
     private TripRespDTO convertToTripRespDTO(Trip trip) {
         // 작성자 프로필 이미지
-        String userProfileUrl = imageService.getImageByTarget("userProfile", trip.getUser().getUserId())
+        String userProfileUrl = imageService.getImageByTarget("profile", trip.getUser().getUserId())
                 .map(img -> urlPrefix + img.getImageUrl())
                 .orElse(null);
 

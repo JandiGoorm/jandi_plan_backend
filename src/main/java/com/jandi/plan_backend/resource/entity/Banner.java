@@ -21,5 +21,8 @@ public class Banner {
     private String title;
 
     @Column(length = 255)
+    private String subtitle;
+
+    @Column(length = 255)
     private String linkUrl;
 }
