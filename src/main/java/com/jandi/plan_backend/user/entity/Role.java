@@ -22,5 +22,14 @@ public enum Role {
         }
         throw new IllegalArgumentException("잘못된 role 입력: " + value);
     }
+
+    public static int fromString(String roleName) {
+        for (Role role : Role.values()) {
+            if (role.name().equalsIgnoreCase(roleName)) { // 문자열을 int로 변환
+                return role.getValue();
+            }
+        }
+        throw new IllegalArgumentException("잘못된 role 입력: " + roleName);
+    }
 }
 

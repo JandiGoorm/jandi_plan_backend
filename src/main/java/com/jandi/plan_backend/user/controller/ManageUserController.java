@@ -2,10 +2,12 @@ package com.jandi.plan_backend.user.controller;
 
 import com.jandi.plan_backend.commu.dto.UserListDTO;
 import com.jandi.plan_backend.security.JwtTokenProvider;
+import com.jandi.plan_backend.user.dto.RoleReqDTO;
 import com.jandi.plan_backend.user.service.ManageUserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -102,5 +104,20 @@ public class ManageUserController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+
+    /** 권한 변경 */
+    @PutMapping("/change-role/{userId}")
+    public ResponseEntity<?> changeUserRole(
+            @PathVariable Integer userId,
+            @RequestBody RoleReqDTO reqDTO,
+            @RequestHeader("Authorization") String token // 헤더의 Authorization에서 JWT 토큰 받기
+    ) {
+        // Jwt 토큰으로부터 유저 이메일 추출
+        String jwtToken = token.replace("Bearer ", "");
+        String userEmail = jwtTokenProvider.getEmail(jwtToken);
+
+        manageUserService.changeUserRole(userId, reqDTO, userEmail);
+        return ResponseEntity.ok().body("성공적으로 변경되었습니다.");
     }
 }
