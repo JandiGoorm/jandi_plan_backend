@@ -1,8 +1,6 @@
 package com.jandi.plan_backend.commu.repository;
 
-import com.jandi.plan_backend.commu.entity.Community;
 import com.jandi.plan_backend.commu.entity.CommunityReported;
-import com.jandi.plan_backend.user.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

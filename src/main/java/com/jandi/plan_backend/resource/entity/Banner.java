@@ -2,6 +2,7 @@ package com.jandi.plan_backend.resource.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -18,6 +19,9 @@ public class Banner {
 
     @Column(length = 255)
     private String title;
+
+    @Column(length = 255)
+    private String subtitle;
 
     @Column(length = 255)
     private String linkUrl;

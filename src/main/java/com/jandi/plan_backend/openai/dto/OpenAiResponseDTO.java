@@ -1,6 +1,7 @@
 package com.jandi.plan_backend.openai.dto;
 
 import lombok.Data;
+
 import java.util.List;
 
 @Data
@@ -15,7 +16,7 @@ public class OpenAiResponseDTO {
     public static class Choice {
         private int index;
         private Message message;
-        private String finish_reason; // 필요에 따라 추가
+        private String finish_reason;
 
         @Data
         public static class Message {

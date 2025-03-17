@@ -15,4 +15,5 @@ public class UserInfoRespDTO {
     private boolean verified;
     private boolean reported;
     private String profileImageUrl;
+    private String role;
 }

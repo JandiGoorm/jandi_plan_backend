@@ -1,8 +1,6 @@
 package com.jandi.plan_backend.trip.service;
 
 import com.jandi.plan_backend.image.service.ImageService;
-import com.jandi.plan_backend.itinerary.entity.Itinerary;
-import com.jandi.plan_backend.itinerary.entity.Reservation;
 import com.jandi.plan_backend.itinerary.repository.ItineraryRepository;
 import com.jandi.plan_backend.itinerary.repository.ReservationRepository;
 import com.jandi.plan_backend.trip.dto.*;
@@ -360,7 +358,7 @@ public class TripService {
      */
     private TripRespDTO convertToTripRespDTO(Trip trip) {
         // 작성자 프로필 이미지
-        String userProfileUrl = imageService.getImageByTarget("userProfile", trip.getUser().getUserId())
+        String userProfileUrl = imageService.getImageByTarget("profile", trip.getUser().getUserId())
                 .map(img -> urlPrefix + img.getImageUrl())
                 .orElse(null);
 

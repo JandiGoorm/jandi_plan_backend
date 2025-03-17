@@ -1,12 +1,8 @@
 package com.jandi.plan_backend.commu.controller;
 
-import com.jandi.plan_backend.commu.dto.CommentReportRespDTO;
 import com.jandi.plan_backend.commu.dto.CommentReportedListDTO;
-import com.jandi.plan_backend.commu.dto.CommunityListDTO;
 import com.jandi.plan_backend.commu.dto.CommunityReportedListDTO;
-import com.jandi.plan_backend.commu.repository.CommunityRepository;
 import com.jandi.plan_backend.commu.service.ManageCommunityService;
-import com.jandi.plan_backend.commu.service.PostService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

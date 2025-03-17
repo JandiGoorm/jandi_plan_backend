@@ -10,6 +10,7 @@ public class BannerListDTO {
     private final Integer bannerId;
     private final LocalDateTime createdAt;
     private final String title;
+    private final String subtitle;
     private final String linkUrl;
     private final String imageUrl;
 
@@ -17,6 +18,7 @@ public class BannerListDTO {
         this.bannerId = banner.getBannerId();
         this.createdAt = banner.getCreatedAt();
         this.title = banner.getTitle();
+        this.subtitle = banner.getSubtitle();
         this.linkUrl = banner.getLinkUrl();
         this.imageUrl = imageUrl;
     }

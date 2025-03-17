@@ -3,6 +3,7 @@ package com.jandi.plan_backend.trip.repository;
 import com.jandi.plan_backend.trip.entity.TripParticipant;
 import com.jandi.plan_backend.trip.entity.TripParticipantId;
 import org.springframework.data.jpa.repository.JpaRepository;
+
 import java.util.List;
 
 /**

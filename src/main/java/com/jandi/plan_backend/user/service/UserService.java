@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Optional;
@@ -223,6 +224,7 @@ public class UserService {
         dto.setUsername(user.getUserName());
         dto.setVerified(user.getVerified());
         dto.setReported(user.getReported());
+        dto.setRole(user.getRoleEnum().name());
 
         // 3. 사용자 프로필 이미지 조회
         //    targetType이 "profile"이고, targetId가 userId인 Image를 조회

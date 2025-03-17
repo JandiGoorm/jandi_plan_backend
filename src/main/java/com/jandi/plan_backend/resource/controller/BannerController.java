@@ -1,6 +1,7 @@
 package com.jandi.plan_backend.resource.controller;
 
-import com.jandi.plan_backend.resource.dto.*;
+import com.jandi.plan_backend.resource.dto.BannerListDTO;
+import com.jandi.plan_backend.resource.dto.BannerRespDTO;
 import com.jandi.plan_backend.resource.service.BannerService;
 import com.jandi.plan_backend.security.JwtTokenProvider;
 import org.springframework.http.ResponseEntity;
@@ -14,7 +15,7 @@ import java.util.Map;
 @RequestMapping("/api/banner")
 public class BannerController {
     private final BannerService bannerService;
-    private final JwtTokenProvider jwtTokenProvider; // JWT 토큰 관련
+    private final JwtTokenProvider jwtTokenProvider;
 
     public BannerController(BannerService bannerService, JwtTokenProvider jwtTokenProvider) {
         this.bannerService = bannerService;
@@ -27,25 +28,30 @@ public class BannerController {
         List<BannerListDTO> banners = bannerService.getAllBanners();
 
         return Map.of(
-                "bannerInfo", Map.of("size", banners.size()), //배너 정보
-                "items", banners //배너 데이터
+                "bannerInfo", Map.of("size", banners.size()),
+                "items", banners
         );
     }
 
     /** 배너 작성 API */
     @PostMapping("/lists")
     public ResponseEntity<?> writeBanner(
-            @RequestHeader("Authorization") String token, // 헤더의 Authorization에서 JWT 토큰 받기
-            @RequestPart MultipartFile file, //imageUrl에 넣을 원본 파일
-            @RequestParam String title, //배너 제목
-            @RequestParam String linkUrl //배너 클릭 시 연결할 link
+            @RequestHeader("Authorization") String token,
+            @RequestPart MultipartFile file,
+            @RequestParam String title,
+            @RequestParam(required = false) String subtitle,  // 추가
+            @RequestParam String linkUrl
     ) {
-        // Jwt 토큰으로부터 유저 이메일 추출
         String jwtToken = token.replace("Bearer ", "");
         String userEmail = jwtTokenProvider.getEmail(jwtToken);
 
-        // 배너 저장 및 반환
-        BannerRespDTO savedBanner = bannerService.writeBanner(userEmail, file, title, linkUrl);
+        BannerRespDTO savedBanner = bannerService.writeBanner(
+                userEmail,
+                file,
+                title,
+                subtitle, // 소제목
+                linkUrl
+        );
         return ResponseEntity.ok(savedBanner);
     }
 
@@ -56,24 +62,33 @@ public class BannerController {
             @RequestHeader("Authorization") String token,
             @RequestParam(value = "file", required = false) MultipartFile file,
             @RequestParam(value = "title", required = false) String title,
+            @RequestParam(value = "subtitle", required = false) String subtitle, // 추가
             @RequestParam(value = "linkUrl", required = false) String linkUrl
     ) {
         String jwtToken = token.replace("Bearer ", "");
         String userEmail = jwtTokenProvider.getEmail(jwtToken);
 
-        BannerRespDTO updatedBanner = bannerService.updateBanner(userEmail, bannerId, file, title, linkUrl);
+        BannerRespDTO updatedBanner = bannerService.updateBanner(
+                userEmail,
+                bannerId,
+                file,
+                title,
+                subtitle, // 소제목
+                linkUrl
+        );
         return ResponseEntity.ok(updatedBanner);
     }
 
     /** 배너 삭제 API */
     @DeleteMapping("/lists/{bannerId}")
     public ResponseEntity<?> deleteBanner(
-            @PathVariable Integer bannerId, //삭제할 bannerId
-            @RequestHeader("Authorization") String token // 헤더의 Authorization에서 JWT 토큰 받기
+            @PathVariable Integer bannerId,
+            @RequestHeader("Authorization") String token
     ){
-        // 배너 삭제 및 반환
-        String returnMsg = (bannerService.deleteBanner(bannerId)) ?
-                "삭제되었습니다" : "삭제 과정에서 문제가 발생했습니다. 다시 한번 시도해주세요";
+        boolean isDeleted = bannerService.deleteBanner(bannerId);
+        String returnMsg = isDeleted
+                ? "삭제되었습니다"
+                : "삭제 과정에서 문제가 발생했습니다. 다시 한번 시도해주세요";
         return ResponseEntity.ok(returnMsg);
     }
 }

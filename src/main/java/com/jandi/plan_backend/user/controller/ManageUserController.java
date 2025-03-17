@@ -1,13 +1,12 @@
 package com.jandi.plan_backend.user.controller;
 
-import com.jandi.plan_backend.commu.dto.UserListDTO;
+import com.jandi.plan_backend.user.dto.UserListDTO;
 import com.jandi.plan_backend.security.JwtTokenProvider;
 import com.jandi.plan_backend.user.dto.RoleReqDTO;
 import com.jandi.plan_backend.user.service.ManageUserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;

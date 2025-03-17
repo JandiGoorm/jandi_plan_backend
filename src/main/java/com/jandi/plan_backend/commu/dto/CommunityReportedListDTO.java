@@ -1,7 +1,6 @@
 package com.jandi.plan_backend.commu.dto;
 
 import com.jandi.plan_backend.commu.entity.Community;
-import com.jandi.plan_backend.image.service.ImageService;
 import lombok.Getter;
 
 /** 신고 게시물을 조회할 때 넘겨줄 dto.
