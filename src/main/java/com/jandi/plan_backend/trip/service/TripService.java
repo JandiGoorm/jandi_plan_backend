@@ -1,8 +1,6 @@
 package com.jandi.plan_backend.trip.service;
 
 import com.jandi.plan_backend.image.service.ImageService;
-import com.jandi.plan_backend.itinerary.entity.Itinerary;
-import com.jandi.plan_backend.itinerary.entity.Reservation;
 import com.jandi.plan_backend.itinerary.repository.ItineraryRepository;
 import com.jandi.plan_backend.itinerary.repository.ReservationRepository;
 import com.jandi.plan_backend.trip.dto.*;

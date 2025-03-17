@@ -3,7 +3,6 @@ package com.jandi.plan_backend.user.controller;
 import com.jandi.plan_backend.commu.repository.CommunityRepository;
 import com.jandi.plan_backend.security.JwtTokenProvider;
 import com.jandi.plan_backend.trip.repository.TripRepository;
-import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.user.repository.UserRepository;
 import com.jandi.plan_backend.util.ValidationUtil;
 import lombok.extern.slf4j.Slf4j;

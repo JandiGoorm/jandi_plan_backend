@@ -2,6 +2,7 @@ package com.jandi.plan_backend.image.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+
 import java.time.LocalDateTime;
 
 @Entity

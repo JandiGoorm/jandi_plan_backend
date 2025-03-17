@@ -1,6 +1,7 @@
 package com.jandi.plan_backend.user.entity;
 
 import lombok.Data;
+
 import java.io.Serializable;
 
 @Data

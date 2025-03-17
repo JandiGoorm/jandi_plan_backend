@@ -1,6 +1,5 @@
 package com.jandi.plan_backend.commu.dto;
 
-import com.jandi.plan_backend.commu.entity.CommentReported;
 import com.jandi.plan_backend.commu.entity.CommunityReported;
 import lombok.Getter;
 

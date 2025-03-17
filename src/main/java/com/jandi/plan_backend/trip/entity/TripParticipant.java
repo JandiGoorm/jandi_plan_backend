@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 import lombok.Data;
 import com.jandi.plan_backend.user.entity.User;
+
 import java.time.LocalDateTime;
 
 /**

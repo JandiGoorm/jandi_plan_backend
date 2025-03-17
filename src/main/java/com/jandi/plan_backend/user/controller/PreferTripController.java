@@ -6,7 +6,6 @@ import com.jandi.plan_backend.user.dto.ContinentRespDTO;
 import com.jandi.plan_backend.user.dto.CountryRespDTO;
 import com.jandi.plan_backend.user.dto.PreferCityReqDTO;
 import com.jandi.plan_backend.user.service.PreferTripService;
-import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

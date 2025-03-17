@@ -3,6 +3,7 @@ package com.jandi.plan_backend.trip.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 import com.jandi.plan_backend.user.entity.User;
+
 import java.time.LocalDateTime;
 
 /**

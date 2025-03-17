@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
+
 import java.io.IOException;
 
 /** 인증이 필요한 엔드포인트에서 인증이 되지 않을 시 스프링부트 시큐리티는 403으로 처리

@@ -1,6 +1,5 @@
 package com.jandi.plan_backend.resource.service;
 
-import com.jandi.plan_backend.image.entity.Image;
 import com.jandi.plan_backend.resource.dto.BannerListDTO;
 import com.jandi.plan_backend.resource.dto.BannerRespDTO;
 import com.jandi.plan_backend.resource.entity.Banner;
@@ -18,7 +17,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j

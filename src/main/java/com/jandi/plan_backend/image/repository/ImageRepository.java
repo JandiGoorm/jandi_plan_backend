@@ -2,6 +2,7 @@ package com.jandi.plan_backend.image.repository;
 
 import com.jandi.plan_backend.image.entity.Image;
 import org.springframework.data.jpa.repository.JpaRepository;
+
 import java.util.List;
 import java.util.Optional;
 

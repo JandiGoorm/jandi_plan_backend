@@ -6,14 +6,11 @@ import com.jandi.plan_backend.commu.entity.Comment;
 import com.jandi.plan_backend.commu.entity.Community;
 import com.jandi.plan_backend.commu.repository.CommentReportedRepository;
 import com.jandi.plan_backend.commu.repository.CommunityReportedRepository;
-import com.jandi.plan_backend.image.service.ImageService;
 import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.util.ValidationUtil;
 import com.jandi.plan_backend.util.service.PaginationService;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 public class ManageCommunityService {
