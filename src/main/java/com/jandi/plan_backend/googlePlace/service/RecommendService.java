@@ -9,6 +9,7 @@ import com.jandi.plan_backend.user.entity.City;
 import com.jandi.plan_backend.user.repository.CityRepository;
 import com.google.maps.GeoApiContext;
 import com.google.maps.PlacesApi;
+import com.google.maps.model.LatLng;
 import com.google.maps.model.PlaceDetails;
 import com.google.maps.model.PlacesSearchResponse;
 import com.google.maps.model.PlacesSearchResult;
@@ -29,6 +30,9 @@ public class RecommendService {
     @Value("${google.api.key}")
     private String googleApiKey;
 
+    // 검색 반경 (예: 30km)
+    private static final int SEARCH_RADIUS = 30000;
+
     private final PlaceRecommendationRepository placeRepo;
     private final CityRepository cityRepo;
 
@@ -42,7 +46,7 @@ public class RecommendService {
      * 요청받은 cityId로 City 엔티티를 조회한 뒤,
      * 최근 30일 이내에 저장된 맛집 추천 데이터가 있으면 그 개수를 확인한다.
      * - 10개 이상이면 그대로 반환
-     * - 10개 미만이면 Google Places API를 호출하여 부족분을 채운 뒤 반환
+     * - 10개 미만이면 Google Places API (Nearby Search)를 호출하여 부족분을 채운 뒤 반환
      */
     public List<RecommPlaceRespDTO> getAllRecommendedPlace(RecommPlaceReqDTO reqDTO) {
         // cityId 유효성 검증
@@ -53,6 +57,7 @@ public class RecommendService {
                         "Invalid cityId: " + cityId + " (City not found in DB)"
                 ));
 
+        // 국가/도시 이름
         String countryName = cityEntity.getCountry().getName();
         String cityName = cityEntity.getName();
 
@@ -61,23 +66,24 @@ public class RecommendService {
         List<PlaceRecommendation> recentList =
                 placeRepo.findByCountryAndCityAndCreatedAtAfter(countryName, cityName, oneMonthAgo);
 
+        // DB에 저장된 맛집이 0개인 경우 → 기존 데이터 삭제 후 새 검색
         if (recentList.isEmpty()) {
-            // 완전히 0개인 경우: 기존 데이터를 모두 지우고 새로 검색
             log.info("No recent data found for cityId={}. Deleting old data and fetching new data.", cityId);
             placeRepo.deleteByCountryAndCity(countryName, cityName);
 
-            // 새로 가져와서 DB 저장
-            callGooglePlacesApiAndAppend(countryName, cityName, 0);
+            // 새로 검색하여 DB 저장
+            callGooglePlacesApiAndAppend(cityEntity, 0);
         } else {
-            // 1~9개인 경우: 기존 데이터는 유지하고, 부족분만큼 추가로 검색
+            // 1~9개인 경우: 부족분만큼 추가 검색
             if (recentList.size() < 10) {
                 log.info("Found {} recent data for cityId={}, fetching more to reach 10...", recentList.size(), cityId);
-                callGooglePlacesApiAndAppend(countryName, cityName, recentList.size());
+                callGooglePlacesApiAndAppend(cityEntity, recentList.size());
             }
         }
 
         // 최종적으로 DB에서 10개까지만 추려서 반환
-        List<PlaceRecommendation> finalList = placeRepo.findByCountryAndCityAndCreatedAtAfter(countryName, cityName, oneMonthAgo);
+        List<PlaceRecommendation> finalList =
+                placeRepo.findByCountryAndCityAndCreatedAtAfter(countryName, cityName, oneMonthAgo);
         return finalList.stream()
                 .map(this::convertToDTO)
                 .limit(10)
@@ -85,24 +91,35 @@ public class RecommendService {
     }
 
     /**
-     * DB에 저장된 개수가 countSoFar(기존 개수)보다 적을 경우,
-     * Google Places API의 nextPageToken을 사용해 추가로 검색을 시도한다.
+     * Google Places API의 Nearby Search를 사용하여,
+     * 도시의 위/경도를 중심으로 반경(SEARCH_RADIUS) 내 "맛집" 검색.
+     * nextPageToken이 존재하면 최대 10개 이상 모을 때까지 반복.
      */
-    private void callGooglePlacesApiAndAppend(String country, String city, int countSoFar) {
-        String searchKeyword = country + " " + city + " 맛집";
+    private void callGooglePlacesApiAndAppend(City cityEntity, int countSoFar) {
+        double lat = cityEntity.getLatitude();
+        double lng = cityEntity.getLongitude();
+        String country = cityEntity.getCountry().getName();
+        String city = cityEntity.getName();
+
+        // GeoApiContext 생성
         GeoApiContext context = new GeoApiContext.Builder()
                 .apiKey(googleApiKey)
                 .build();
 
         try {
-            // 첫 페이지 검색
-            PlacesSearchResponse response = PlacesApi.textSearchQuery(context, searchKeyword).await();
+            // 첫 페이지 Nearby Search
+            PlacesSearchResponse response = PlacesApi.nearbySearchQuery(context, new LatLng(lat, lng))
+                    .radius(SEARCH_RADIUS)
+                    .keyword("맛집")
+                    .language("ko")
+                    .await();
+
             saveSearchResultsToDB(response.results, country, city);
 
             // nextPageToken
             String nextPageToken = response.nextPageToken;
 
-            // DB에 저장된 개수를 다시 확인
+            // DB에 저장된 개수 확인
             int storedCount = placeRepo.findByCountryAndCity(country, city).size();
 
             // DB에 10개 미만이고, 다음 페이지가 존재하면 계속 조회
@@ -110,7 +127,10 @@ public class RecommendService {
                 // next_page_token 유효해질 때까지 2초 대기
                 Thread.sleep(2000);
 
-                response = PlacesApi.textSearchQuery(context, searchKeyword)
+                response = PlacesApi.nearbySearchQuery(context, new LatLng(lat, lng))
+                        .radius(SEARCH_RADIUS)
+                        .keyword("맛집")
+                        .language("ko")
                         .pageToken(nextPageToken)
                         .await();
 
@@ -119,7 +139,7 @@ public class RecommendService {
                 // 다음 페이지 토큰 갱신
                 nextPageToken = response.nextPageToken;
 
-                // 다시 DB에 저장된 개수를 확인
+                // 다시 DB에 저장된 개수 확인
                 storedCount = placeRepo.findByCountryAndCity(country, city).size();
             }
 
@@ -153,12 +173,14 @@ public class RecommendService {
             return convertToDTO(existing.get());
         }
 
+        // 별도 context (disableRetries) 생성
         GeoApiContext context = new GeoApiContext.Builder()
                 .apiKey(googleApiKey)
                 .disableRetries()
                 .build();
 
         try {
+            // placeDetails
             PlaceDetails details = PlacesApi.placeDetails(context, placeId)
                     .language("ko")
                     .await();
