@@ -1,6 +1,6 @@
 package com.jandi.plan_backend.user.controller;
 
-import com.jandi.plan_backend.commu.dto.UserListDTO;
+import com.jandi.plan_backend.user.dto.UserListDTO;
 import com.jandi.plan_backend.security.JwtTokenProvider;
 import com.jandi.plan_backend.user.dto.RoleReqDTO;
 import com.jandi.plan_backend.user.service.ManageUserService;

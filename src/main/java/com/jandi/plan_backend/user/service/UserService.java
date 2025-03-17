@@ -223,6 +223,7 @@ public class UserService {
         dto.setUsername(user.getUserName());
         dto.setVerified(user.getVerified());
         dto.setReported(user.getReported());
+        dto.setRole(user.getRoleEnum().name());
 
         // 3. 사용자 프로필 이미지 조회
         //    targetType이 "profile"이고, targetId가 userId인 Image를 조회

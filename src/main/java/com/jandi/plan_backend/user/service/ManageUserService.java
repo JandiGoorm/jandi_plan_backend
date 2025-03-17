@@ -1,5 +1,7 @@
 package com.jandi.plan_backend.user.service;
 
+import com.jandi.plan_backend.user.dto.UserListDTO;
+import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.commu.dto.UserListDTO;
 import com.jandi.plan_backend.user.dto.RoleReqDTO;
 import com.jandi.plan_backend.user.repository.UserRepository;
@@ -14,8 +16,6 @@ import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.user.repository.RoleLogRepository;
 import jakarta.transaction.Transactional;
 import com.jandi.plan_backend.user.entity.Role;
-
-
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Arrays;
