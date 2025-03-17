@@ -26,13 +26,22 @@ public class CustomErrorController implements ErrorController {
     public ResponseEntity<?> handleError(WebRequest webRequest) {
         Map<String, Object> attributes = errorAttributes.getErrorAttributes(webRequest, ErrorAttributeOptions.defaults());
         int status = (int) attributes.getOrDefault("status", 500);
-        String message = (String) attributes.getOrDefault("error", "Internal Server Error");
+
+        String message;
+        if (status == 401) {
+            message = "토큰값 확인이 필요합니다.";
+        } else if (status == 404) {
+            message = "요청하신 경로를 찾을 수 없습니다.";
+        } else {
+            message = (String) attributes.getOrDefault("message",
+                    attributes.getOrDefault("error", "알 수 없는 오류 발생"));
+        }
 
         // 원하는 추가 정보를 설정할 수 있습니다.
         Map<String, Object> errorResponse = new HashMap<>();
         errorResponse.put("status", status);
-        errorResponse.put("error", message);
-        errorResponse.put("message", attributes.getOrDefault("message", "요청하신 경로를 찾을 수 없습니다."));
+        errorResponse.put("error", errorAttributes.getErrorAttributes(webRequest, ErrorAttributeOptions.defaults()).get("error"));
+        errorResponse.put("message", message);
         errorResponse.put("timestamp", LocalDateTime.now());
 
         return new ResponseEntity<>(errorResponse, HttpStatus.valueOf(status));

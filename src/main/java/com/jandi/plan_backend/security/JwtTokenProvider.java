@@ -137,9 +137,18 @@ public class JwtTokenProvider {
                     .parseClaimsJws(token);
             log.debug("JWT 토큰 유효함");
             return true;
-        } catch (JwtException | IllegalArgumentException e) {
-            log.error("JWT 토큰 유효성 검사 실패: {}", e.getMessage());
-            return false;
+        } catch (ExpiredJwtException e) {
+            log.error("JWT 토큰 유효성 검사 실패: 토큰 만료");
+        } catch (SecurityException e) {
+            log.error("JWT 토큰 유효성 검사 실패: 유효하지 않은 서명");
+        } catch (MalformedJwtException e) {
+            log.error("JWT 토큰 유효성 검사 실패: 잘못된 형식의 토큰");
+        } catch (UnsupportedJwtException e) {
+            log.error("JWT 토큰 유효성 검사 실패: 지원되지 않는 토큰");
+        } catch (IllegalArgumentException e) {
+            log.error("JWT 토큰 유효성 검사 실패: 빈 토큰 또는 잘못된 토큰");
         }
+        return false;
     }
+
 }
