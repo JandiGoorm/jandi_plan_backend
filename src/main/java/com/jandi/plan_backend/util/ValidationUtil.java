@@ -53,7 +53,7 @@ public class ValidationUtil {
                           CountryRepository countryRepository,
                           CityRepository cityRepository,
                           TripRepository tripRepository,
-                          ReservationRepository reservationRepository, ReservationRepository reservationRepository1) {
+                          ReservationRepository reservationRepository) {
 
         this.userRepository = userRepository;
         this.communityRepository = communityRepository;
@@ -64,7 +64,7 @@ public class ValidationUtil {
         this.countryRepository = countryRepository;
         this.cityRepository = cityRepository;
         this.tripRepository = tripRepository;
-        this.reservationRepository = reservationRepository1;
+        this.reservationRepository = reservationRepository;
     }
 
     /* ==========================
@@ -86,12 +86,8 @@ public class ValidationUtil {
         }
     }
 
-    // 검증용
     public Boolean validateUserIsAdmin(User user) {
-        if (!"ADMIN".equals(user.getRoleEnum().name())) {
-            throw new BadRequestExceptionMessage("관리자 권한이 필요한 작업입니다.");
-        }
-        return true;
+        return "ADMIN".equals(user.getRoleEnum().name());
     }
 
     /* ==========================
@@ -112,8 +108,6 @@ public class ValidationUtil {
        3) 댓글 관련 검증
        ========================== */
     public Comment validateCommentExists(Integer commentId) {
-        // commentRepository.findByCommentId(...) => Optional<Object>
-        // -> instanceof 체크 후 캐스팅
         Object commentObj = commentRepository.findByCommentId(commentId)
                 .orElseThrow(() -> new BadRequestExceptionMessage("존재하지 않는 댓글입니다."));
 
@@ -150,14 +144,12 @@ public class ValidationUtil {
                 .orElseThrow(() -> new BadRequestExceptionMessage("등록되지 않은 대륙입니다."));
     }
 
-    // 오버라이딩
     public Country validateCountryExists(Long countryId) {
         return countryRepository.findById(countryId)
                 .orElseThrow(() -> new BadRequestExceptionMessage("등록되지 않은 국가입니다."));
     }
 
     public Country validateCountryExists(String countryName) {
-        // countryRepository.findByName(...) => 만약 Optional<Object> 라면 아래와 같은 로직 필요
         Object countryObj = countryRepository.findByName(countryName)
                 .orElseThrow(() -> new BadRequestExceptionMessage("등록되지 않은 국가입니다."));
 
@@ -173,32 +165,32 @@ public class ValidationUtil {
     }
 
     /* ==========================
-       6) Trip(여행) 검증 예시
+       6) Trip(여행) 검증
        ========================== */
     // 만약 TripRepository의 PK가 Long이라면, findById(Long) 필요
     // 파라미터로 Integer를 받되, longValue()로 변환
     public Trip validateTripExists(Integer tripId) {
-        Object tripObj = tripRepository.findById(tripId.longValue())
+        Trip tripObj = tripRepository.findById(tripId.longValue())
                 .orElseThrow(() -> new BadRequestExceptionMessage("존재하지 않는 여행 계획입니다."));
 
-        if (!(tripObj instanceof Trip)) {
+        if (tripObj == null) {
             throw new BadRequestExceptionMessage("존재하지 않는 여행 계획입니다.");
         }
-        return (Trip) tripObj;
+        return tripObj;
     }
-
-    public void validateUserIsAuthorOfTrip(User user, Trip trip) {
-        if (!Objects.equals(user.getUserId(), trip.getUser().getUserId())) {
-            log.info("user.getUserId() = {}", user.getUserId());
-            log.info("trip.getUser().getUserId() = {}", trip.getUser().getUserId());
-            throw new BadRequestExceptionMessage("작성자 본인만 수정할 수 있습니다.");
-        }
-    }
-
 
     public Reservation validateReservationExists(Long reservationId) {
         return reservationRepository.findByReservationId(reservationId)
                 .orElseThrow(() -> new BadRequestExceptionMessage("존재하지 않는 예약 일정입니다."));
+    }
+
+    public void validateUserHasEditPermission(User user, Trip trip) {
+        boolean isOwner = trip.getUser().getUserId().equals(user.getUserId());
+        boolean isParticipant = trip.getParticipants() != null && trip.getParticipants().stream()
+                .anyMatch(tp -> tp.getParticipant().getUserId().equals(user.getUserId()));
+        if (!isOwner && !isParticipant) {
+            throw new BadRequestExceptionMessage("여행 계획에 참여한 사용자만 해당 작업을 수행할 수 있습니다.");
+        }
     }
 
     /* ==========================

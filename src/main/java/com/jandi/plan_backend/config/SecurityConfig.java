@@ -164,7 +164,10 @@ public class SecurityConfig {
                                 // reported - delete 관련
                                 "/api/manage/user/delete/{userId}",
                                 "/api/manage/community/delete/posts/{postId}",
-                                "/api/manage/community/delete/comments/{commentId}"
+                                "/api/manage/community/delete/comments/{commentId}",
+
+                                // 유저 관련
+                                "api/manage/user/change-role/{user_id}"
                         ).hasRole("ADMIN")
                         // 그 외 모든 요청은 인증 필요
                         .anyRequest().authenticated()

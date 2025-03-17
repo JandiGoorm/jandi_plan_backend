@@ -57,7 +57,6 @@ public class BannerService {
     public BannerRespDTO writeBanner(String email, MultipartFile file, String title, String link) {
         // 1) 유저 검증 (관리자 권한)
         User user = validationUtil.validateUserExists(email);
-        validationUtil.validateUserIsAdmin(user);
 
         // 2) 배너글 생성 (imageUrl 칼럼 없음)
         Banner banner = new Banner();

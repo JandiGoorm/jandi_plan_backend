@@ -7,6 +7,7 @@ import com.jandi.plan_backend.itinerary.repository.ReservationRepository;
 import com.jandi.plan_backend.trip.entity.Trip;
 import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.util.ValidationUtil;
+import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -27,12 +28,20 @@ public class ReservationService {
     }
 
     public Map<String, Object> getReservation(String userEmail, Integer tripId) {
-        User user = validationUtil.validateUserExists(userEmail);
         Trip trip = validationUtil.validateTripExists(tripId);
 
+        // 비공개 여행인 경우에만 사용자 검증 (작성자만 조회)
+        if (trip.getPrivatePlan()) {
+            User user = validationUtil.validateUserExists(userEmail);
+            if (!trip.getUser().getUserId().equals(user.getUserId())) {
+                throw new BadRequestExceptionMessage("비공개 여행 계획은 작성자만 조회할 수 있습니다.");
+            }
+        }
+
+        // 공개 여행인 경우, 로그인 여부와 관계없이 예약 정보를 조회
         List<Reservation> allReservations = reservationRepository.findByTrip_TripId(tripId);
 
-        // 카테고리별로 예약 정보 그룹핑
+        // 예약 정보를 카테고리별 그룹핑
         Map<String, List<ReservationRespDTO>> data = allReservations.stream()
                 .map(r -> new ReservationRespDTO(r, true))
                 .collect(Collectors.groupingBy(ReservationRespDTO::getCategory));
@@ -44,7 +53,7 @@ public class ReservationService {
                         Collectors.summingInt(Reservation::getCost)
                 ));
 
-        // 전체 비용
+        // 전체 비용 계산
         int totalCost = cost.values().stream().mapToInt(Integer::intValue).sum();
         cost.put("TOTAL", totalCost);
 
@@ -57,8 +66,9 @@ public class ReservationService {
     public ReservationRespDTO createReservation(String userEmail, Integer tripId, ReservationReqDTO reservedDTO) {
         User user = validationUtil.validateUserExists(userEmail);
         validationUtil.validateUserRestricted(user);
-
         Trip trip = validationUtil.validateTripExists(tripId);
+        // 작성자 또는 동반자 권한 검증
+        validationUtil.validateUserHasEditPermission(user, trip);
 
         Reservation reservation = new Reservation();
         reservation.setTrip(trip);
@@ -74,14 +84,15 @@ public class ReservationService {
     public ReservationRespDTO updateReservation(String userEmail, Integer reservationId, ReservationReqDTO reservedDTO) {
         User user = validationUtil.validateUserExists(userEmail);
         validationUtil.validateUserRestricted(user);
-
         Reservation reservation = validationUtil.validateReservationExists(reservationId.longValue());
-        validationUtil.validateUserIsAuthorOfTrip(user, reservation.getTrip());
+        Trip trip = reservation.getTrip();
+        // 작성자 또는 동반자 권한 검증
+        validationUtil.validateUserHasEditPermission(user, trip);
 
-        if(reservedDTO.getCategory() != null) reservation.setCategory(reservedDTO.getCategoryEnum());
-        if(reservedDTO.getTitle() != null) reservation.setTitle(reservedDTO.getTitle());
-        if(reservedDTO.getDescription() != null) reservation.setDescription(reservedDTO.getDescription());
-        if(reservedDTO.getCost() != null) reservation.setCost(reservedDTO.getCost());
+        if (reservedDTO.getCategory() != null) reservation.setCategory(reservedDTO.getCategoryEnum());
+        if (reservedDTO.getTitle() != null) reservation.setTitle(reservedDTO.getTitle());
+        if (reservedDTO.getDescription() != null) reservation.setDescription(reservedDTO.getDescription());
+        if (reservedDTO.getCost() != null) reservation.setCost(reservedDTO.getCost());
 
         reservationRepository.save(reservation);
         return new ReservationRespDTO(reservation, false);
@@ -90,8 +101,9 @@ public class ReservationService {
     public boolean deleteReservation(String userEmail, Integer reservationId) {
         User user = validationUtil.validateUserExists(userEmail);
         Reservation reservation = validationUtil.validateReservationExists(reservationId.longValue());
-        validationUtil.validateUserIsAuthorOfTrip(user, reservation.getTrip());
-
+        Trip trip = reservation.getTrip();
+        // 작성자 또는 동반자 권한 검증
+        validationUtil.validateUserHasEditPermission(user, trip);
         reservationRepository.delete(reservation);
         return true;
     }

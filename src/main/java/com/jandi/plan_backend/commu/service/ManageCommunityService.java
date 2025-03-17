@@ -37,7 +37,6 @@ public class ManageCommunityService {
     public Page<CommunityReportedListDTO> getReportedPosts(String userEmail, int page, int size) {
         //유저 검증
         User admin = validationUtil.validateUserExists(userEmail);
-        validationUtil.validateUserIsAdmin(admin);
 
         long totalCount = communityReportedRepository.count(); // 전체 신고된 게시글 수
         return PaginationService.getPagedData(page, size, totalCount,
@@ -54,7 +53,6 @@ public class ManageCommunityService {
     public Page<CommentReportedListDTO> getReportedComments(String userEmail, int page, int size) {
         //유저 검증
         User admin = validationUtil.validateUserExists(userEmail);
-        validationUtil.validateUserIsAdmin(admin);
 
         long totalCount = commentReportedRepository.count(); // 전체 신고된 게시글 수
         return PaginationService.getPagedData(page, size, totalCount,

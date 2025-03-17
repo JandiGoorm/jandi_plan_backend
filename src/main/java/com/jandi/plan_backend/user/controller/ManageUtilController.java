@@ -47,14 +47,6 @@ public class ManageUtilController {
     public Map<String, Long> getMonthUsers(
             @RequestHeader("Authorization") String token
     ) {
-        // Jwt 토큰으로부터 유저 이메일 추출
-        String jwtToken = token.replace("Bearer ", "");
-        String userEmail = jwtTokenProvider.getEmail(jwtToken);
-        User user = validationUtil.validateUserExists(userEmail);
-        String role = String.valueOf(jwtTokenProvider.getUserRoleFromToken(token));
-        log.info("userEmail: " + userEmail + ", role: " + role);
-        validationUtil.validateUserIsAdmin(user);
-
         LocalDateTime today = LocalDateTime.now(ZoneId.of("Asia/Seoul")); // 현재 시간
         LocalDateTime curMonth = today.toLocalDate().withDayOfMonth(1).atStartOfDay(); // 현재 달의 1일 00:00:00
         log.info("Today is {}, curMonth is {}", today, curMonth);
@@ -83,12 +75,6 @@ public class ManageUtilController {
     public Map<String, Long> getServiceData(
             @RequestHeader("Authorization") String token // 헤더의 Authorization에서 JWT 토큰 받기
     ) {
-        // Jwt 토큰으로부터 유저 이메일 추출
-        String jwtToken = token.replace("Bearer ", "");
-        String userEmail = jwtTokenProvider.getEmail(jwtToken);
-        User user = validationUtil.validateUserExists(userEmail);
-        validationUtil.validateUserIsAdmin(user);
-
         LocalDateTime today = LocalDateTime.now(ZoneId.of("Asia/Seoul")); // 현재 시간까지 포함됨
         LocalDateTime last7Days = today.minusDays(7).toLocalDate().atStartOfDay(); // 7일 전 00:00:00부터
         log.info("Today is {}, last7Days ago is {}", today, last7Days);
