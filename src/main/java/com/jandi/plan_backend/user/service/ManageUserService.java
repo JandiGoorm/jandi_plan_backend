@@ -1,6 +1,6 @@
 package com.jandi.plan_backend.user.service;
 
-import com.jandi.plan_backend.commu.dto.UserListDTO;
+import com.jandi.plan_backend.user.dto.UserListDTO;
 import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.user.repository.UserRepository;
 import com.jandi.plan_backend.util.ValidationUtil;
@@ -9,8 +9,6 @@ import com.jandi.plan_backend.util.service.PaginationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
-
-import java.util.Arrays;
 
 @Slf4j
 @Service
