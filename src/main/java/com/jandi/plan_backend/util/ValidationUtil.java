@@ -90,6 +90,10 @@ public class ValidationUtil {
         return "ADMIN".equals(user.getRoleEnum().name());
     }
 
+    public Boolean validateUserIsStaff(User user) {
+        return "STAFF".equals(user.getRoleEnum().name());
+    }
+
     /* ==========================
        2) 커뮤니티(게시글) 관련 검증
        ========================== */
