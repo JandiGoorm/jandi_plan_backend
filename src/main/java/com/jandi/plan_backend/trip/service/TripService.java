@@ -151,7 +151,12 @@ public class TripService {
                 throw new BadRequestExceptionMessage("비공개 여행 계획입니다. 로그인 필요");
             }
             User currentUser = validationUtil.validateUserExists(userEmail);
-            if (!trip.getUser().getUserId().equals(currentUser.getUserId())) {
+
+            boolean isOwner = trip.getUser().getUserId().equals(currentUser.getUserId());
+            boolean isParticipant = trip.getParticipants().stream()
+                    .anyMatch(tp -> tp.getParticipant().getUserId().equals(currentUser.getUserId()));
+
+            if (!isOwner && !isParticipant) {
                 throw new BadRequestExceptionMessage("비공개 여행 계획 접근 불가");
             }
         }
