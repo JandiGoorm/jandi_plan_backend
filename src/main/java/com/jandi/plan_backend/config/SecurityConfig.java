@@ -160,7 +160,6 @@ public class SecurityConfig {
                                 "/api/manage/trip/cities", "/api/manage/trip/cities/{cityId}",
 
                                 // reported - delete 관련
-                                "/api/manage/user/delete/{userId}",
                                 "/api/manage/community/delete/posts/{postId}",
                                 "/api/manage/community/delete/comments/{commentId}"
                         ).hasAnyRole("STAFF", "ADMIN")
@@ -168,6 +167,7 @@ public class SecurityConfig {
                         // 관리자 권한 필요
                         .requestMatchers(
                                 // 유저 관련
+                                "/api/manage/user/delete/{userId}",
                                 "api/manage/user/change-role/{user_id}"
                         ).hasRole("ADMIN")
                         // 그 외 모든 요청은 인증 필요
