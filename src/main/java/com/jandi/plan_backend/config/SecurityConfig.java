@@ -148,11 +148,8 @@ public class SecurityConfig {
                                 "/api/manage/community/reported/comments", "/api/manage/community/reported/posts",
 
                                 // 통계 조회
-                                "/api/manage/util/all", "/api/manage/util/month/users"
-                        ).hasAnyRole("STAFF", "ADMIN")
+                                "/api/manage/util/all", "/api/manage/util/month/users",
 
-                        // 관리자 권한 필요
-                        .requestMatchers(
                                 // resource - notice & banner 관련
                                 "/api/notice/", "/api/notice/{noticeId}",
                                 "/api/banner/lists", "/api/banner/lists/{bannderId}", "/api/images/upload/notice",
@@ -165,8 +162,11 @@ public class SecurityConfig {
                                 // reported - delete 관련
                                 "/api/manage/user/delete/{userId}",
                                 "/api/manage/community/delete/posts/{postId}",
-                                "/api/manage/community/delete/comments/{commentId}",
+                                "/api/manage/community/delete/comments/{commentId}"
+                        ).hasAnyRole("STAFF", "ADMIN")
 
+                        // 관리자 권한 필요
+                        .requestMatchers(
                                 // 유저 관련
                                 "api/manage/user/change-role/{user_id}"
                         ).hasRole("ADMIN")
