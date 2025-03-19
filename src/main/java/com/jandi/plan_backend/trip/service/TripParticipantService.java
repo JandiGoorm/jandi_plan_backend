@@ -7,6 +7,7 @@ import com.jandi.plan_backend.trip.repository.TripParticipantRepository;
 import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.user.repository.UserRepository;
 import com.jandi.plan_backend.util.ValidationUtil;
+import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,10 +31,26 @@ public class TripParticipantService {
      * 동반자 추가
      */
     public TripParticipantRespDTO addParticipant(Integer tripId, String participantUserName, String role) {
+        // 1) Trip, User 검증
         Trip trip = validationUtil.validateTripExists(tripId);
         User participant = userRepository.findByUserName(participantUserName)
                 .orElseThrow(() -> new RuntimeException("User not found: " + participantUserName));
 
+        // 2) 이미 동반자로 등록되어 있는지 확인
+        boolean alreadyParticipant = tripParticipantRepository
+                .findByTrip_TripIdAndParticipant_UserName(tripId, participantUserName)
+                .stream() // Optional이 아니라 List면 stream() 전환
+                .findAny() // List => Optional
+                .isPresent(); // 있으면 true
+
+        // (또는 .isEmpty() 체크도 가능)
+
+        if (alreadyParticipant) {
+            // 중복 등록 불가 → 400 에러
+            throw new BadRequestExceptionMessage("이미 동반자로 등록된 사용자입니다.");
+        }
+
+        // 3) 신규 동반자 등록
         TripParticipant tp = new TripParticipant();
         tp.setTrip(trip);
         tp.setParticipant(participant);
