@@ -120,8 +120,10 @@ public class TripService {
             );
         } else {
             User user = validationUtil.validateUserExists(userEmail);
-            if (validationUtil.validateUserIsAdmin(user)) {
-                // 관리자 -> 전체
+            boolean isAdmin = validationUtil.validateUserIsAdmin(user);
+            boolean isStaff = validationUtil.validateUserIsStaff(user);
+            if (isAdmin || isStaff) {
+                // 관리자 or 스텝 -> 전체
                 long totalCount = tripRepository.count();
                 return PaginationService.getPagedData(page, size, totalCount,
                         pageable -> tripRepository.findAll(
