@@ -6,7 +6,9 @@ import com.jandi.plan_backend.itinerary.repository.ReservationRepository;
 import com.jandi.plan_backend.trip.dto.*;
 import com.jandi.plan_backend.trip.entity.Trip;
 import com.jandi.plan_backend.trip.entity.TripLike;
+import com.jandi.plan_backend.trip.entity.TripParticipant;
 import com.jandi.plan_backend.trip.repository.TripLikeRepository;
+import com.jandi.plan_backend.trip.repository.TripParticipantRepository;
 import com.jandi.plan_backend.trip.repository.TripRepository;
 import com.jandi.plan_backend.user.entity.City;
 import com.jandi.plan_backend.user.entity.User;
@@ -39,6 +41,7 @@ public class TripService {
     private final CityRepository cityRepository;
     private final ItineraryRepository itineraryRepository;
     private final ReservationRepository reservationRepository;
+    private final TripParticipantRepository tripParticipantRepository;
 
     private final String urlPrefix = "https://storage.googleapis.com/plan-storage/";
     private final Sort sortByCreate = Sort.by(Sort.Direction.DESC, "createdAt");
@@ -49,7 +52,8 @@ public class TripService {
                        ImageService imageService,
                        CityRepository cityRepository,
                        ItineraryRepository itineraryRepository,
-                       ReservationRepository reservationRepository) {
+                       ReservationRepository reservationRepository,
+                       TripParticipantRepository tripParticipantRepository) {
         this.tripRepository = tripRepository;
         this.tripLikeRepository = tripLikeRepository;
         this.validationUtil = validationUtil;
@@ -57,6 +61,7 @@ public class TripService {
         this.cityRepository = cityRepository;
         this.itineraryRepository = itineraryRepository;
         this.reservationRepository = reservationRepository;
+        this.tripParticipantRepository = tripParticipantRepository;
     }
 
     /**
@@ -151,7 +156,12 @@ public class TripService {
                 throw new BadRequestExceptionMessage("비공개 여행 계획입니다. 로그인 필요");
             }
             User currentUser = validationUtil.validateUserExists(userEmail);
-            if (!trip.getUser().getUserId().equals(currentUser.getUserId())) {
+            boolean isMyPlan = trip.getUser().getUserId().equals(currentUser.getUserId());
+            Optional<TripParticipant> isFriendsPlan = tripParticipantRepository.findByTrip_TripIdAndParticipant_UserId(tripId, currentUser.getUserId());
+            boolean isAdmin = validationUtil.validateUserIsAdmin(currentUser);
+            boolean isStaff = validationUtil.validateUserIsStaff(currentUser);
+            if (!(isAdmin || isStaff) // 1. 관리자가 아닌 일반 유저는
+            && !isMyPlan && isFriendsPlan.isEmpty()) { // 2. 본인 것도 아니면서 친구 것도 아닌 비공개 여행 계획은 접근 불가
                 throw new BadRequestExceptionMessage("비공개 여행 계획 접근 불가");
             }
         }
