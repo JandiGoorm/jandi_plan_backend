@@ -133,14 +133,16 @@ public class TripService {
                 );
             } else {
                 // 일반 -> 타인 공개 + 본인 전체
-                long totalCount = tripRepository.countByPrivatePlan(false) + tripRepository.countByUser(user);
+                long totalCount = tripRepository.countVisibleTrips(user);
+
                 return PaginationService.getPagedData(page, size, totalCount,
-                        pageable -> tripRepository.findByPrivatePlanOrUser(
-                                false, user,
+                        pageable -> tripRepository.findVisibleTrips(
+                                user,
                                 PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort)
                         ),
                         this::convertToTripRespDTO
                 );
+
             }
         }
     }

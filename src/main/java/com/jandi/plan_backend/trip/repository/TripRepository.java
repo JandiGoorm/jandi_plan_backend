@@ -36,4 +36,15 @@ public interface TripRepository extends JpaRepository<Trip, Long> {
     List<Trip> searchByCityNameContainingIgnoreCase(String keyword);
 
     List<Trip> findByUser(User user);
+
+    // 공개 플랜이거나 본인의 플랜이거나 동반자로 등록된 플랜의 갯수 반환
+    @Query("SELECT COUNT(t) FROM Trip t WHERE t.privatePlan = false OR t.user = :user OR t.tripId IN " +
+            "(SELECT tp.trip.tripId FROM TripParticipant tp WHERE tp.participant = :user)")
+    long countVisibleTrips(User user);
+
+    // 공개 플랜이거나 본인의 플랜이거나 동반자로 등록된 플랜 목록 반환
+    @Query("SELECT t FROM Trip t WHERE t.privatePlan = false OR t.user = :user OR t.tripId IN " +
+            "(SELECT tp.trip.tripId FROM TripParticipant tp WHERE tp.participant = :user)")
+    Page<Trip> findVisibleTrips(User user, Pageable pageable);
+
 }
