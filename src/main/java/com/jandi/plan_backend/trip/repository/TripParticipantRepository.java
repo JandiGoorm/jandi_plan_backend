@@ -16,6 +16,6 @@ public interface TripParticipantRepository extends JpaRepository<TripParticipant
 
     void deleteByTrip_TripIdAndParticipant_UserName(Integer tripId, String userName);
 
-    //해당 여행계획의 동반자인지 여부를 반환
     Optional<TripParticipant> findByTrip_TripIdAndParticipant_UserId(Integer tripId, Integer userId);
+
 }

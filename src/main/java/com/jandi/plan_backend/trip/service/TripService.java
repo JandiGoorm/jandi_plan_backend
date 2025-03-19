@@ -160,6 +160,7 @@ public class TripService {
                 throw new BadRequestExceptionMessage("비공개 여행 계획입니다. 로그인 필요");
             }
             User currentUser = validationUtil.validateUserExists(userEmail);
+
             boolean isMyPlan = trip.getUser().getUserId().equals(currentUser.getUserId());
             Optional<TripParticipant> isFriendsPlan = tripParticipantRepository.findByTrip_TripIdAndParticipant_UserId(tripId, currentUser.getUserId());
             boolean isAdmin = validationUtil.validateUserIsAdmin(currentUser);
