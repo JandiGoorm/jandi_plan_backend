@@ -63,7 +63,9 @@ public class User {
         return Role.fromValue(this.role);
     }
 
-    public void setRoleEnum(Role role) {
-        this.role = role.getValue();
-    }
+    @Column(length = 20)
+    private String socialType; // "KAKAO", "NAVER", "GOOGLE"
+
+    @Column(length = 50)
+    private String socialId;   // 카카오에서 받은 id값
 }

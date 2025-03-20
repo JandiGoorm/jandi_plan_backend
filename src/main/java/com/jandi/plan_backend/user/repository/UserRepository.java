@@ -53,4 +53,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
     // 지난 7일간 신규 가입된 유저 수 반환
     long countByCreatedAtBetween(LocalDateTime today, LocalDateTime last7Days);
+
+    // 소셜 전용
+    Optional<User> findBySocialTypeAndSocialId(String socialType, String socialId);
 }

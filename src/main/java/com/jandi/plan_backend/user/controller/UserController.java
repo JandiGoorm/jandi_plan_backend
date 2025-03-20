@@ -2,11 +2,9 @@ package com.jandi.plan_backend.user.controller;
 
 import com.jandi.plan_backend.user.dto.*;
 import com.jandi.plan_backend.user.service.UserService;
-import com.jandi.plan_backend.security.JwtTokenProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,15 +20,9 @@ import java.util.Map;
 public class UserController {
 
     private final UserService userService;
-    private final AuthenticationManager authenticationManager;
-    private final JwtTokenProvider jwtTokenProvider;
 
-    public UserController(UserService userService,
-                          AuthenticationManager authenticationManager,
-                          JwtTokenProvider jwtTokenProvider) {
+    public UserController(UserService userService) {
         this.userService = userService;
-        this.authenticationManager = authenticationManager;
-        this.jwtTokenProvider = jwtTokenProvider;
     }
 
     @PostMapping("/register")
@@ -160,6 +152,37 @@ public class UserController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
+    }
+
+    /**
+     * 카카오 로그인: 프론트에서 code만 넘겨받고, 나머지 로직은 백엔드에서 처리.
+     */
+    @PostMapping("/oauth/kakao")
+    public ResponseEntity<?> kakaoLogin(@RequestBody Map<String, String> requestBody) {
+        String code = requestBody.get("code");
+        if (code == null || code.isBlank()) {
+            return ResponseEntity.badRequest().body("No code provided");
+        }
+        // 카카오 OAuth 로그인 처리
+        AuthRespDTO authResp = userService.kakaoLogin(code);
+        return ResponseEntity.ok(authResp);
+    }
+
+    @GetMapping("/kakao/callback")
+    public ResponseEntity<?> kakaoCallbackTest(@RequestParam(required = false) String code) {
+        // 1) 카카오에서 리다이렉트된 뒤 ?code=xxx 쿼리스트링이 들어옴
+        if (code == null) {
+            // code가 없다면, 오류 혹은 로그인 취소된 케이스일 수 있음
+            System.out.println("[Kakao Callback] code 파라미터가 없습니다.");
+            return ResponseEntity.badRequest().body("카카오 콜백에 code 파라미터가 없습니다.");
+        }
+
+        // 2) 인가 코드 확인 로그
+        System.out.println("[Kakao Callback] 인가 코드(code) = " + code);
+
+        // 3) 이후 백엔드에서 카카오에 토큰 요청 → 사용자 정보 확인 → 가입/로그인 처리
+        //    (테스트용이므로 여기서는 단순히 로그만 찍고 마무리)
+        return ResponseEntity.ok("카카오 콜백 완료 - code = " + code);
     }
 
 }
