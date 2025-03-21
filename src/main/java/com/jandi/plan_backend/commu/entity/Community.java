@@ -31,6 +31,9 @@ public class Community {
     @Column(length = 200, nullable = false)
     private String preview;
 
+    @Column(length = 255, nullable = false)
+    private String hashtag;
+
     @Column(nullable = false)
     private Integer likeCount;
 
