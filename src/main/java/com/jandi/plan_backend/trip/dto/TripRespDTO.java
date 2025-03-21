@@ -32,7 +32,28 @@ public class TripRespDTO {
                        String userProfileUrl,
                        Trip trip,
                        String cityImageUrl) {
-        this(user, userProfileUrl, trip, cityImageUrl, null);
+        this(user, userProfileUrl, trip, cityImageUrl, "");
+    }
+
+    public TripRespDTO(Trip trip, String cityImageUrl) {
+        // 비공개여도 넘겨줄 정보
+        this.tripId = trip.getTripId();
+        this.cityId = trip.getCity().getCityId();
+        this.cityName = trip.getCity().getName();
+        this.countryName = trip.getCity().getCountry().getName();
+        this.latitude = trip.getCity().getLatitude();
+        this.longitude = trip.getCity().getLongitude();
+        this.cityImageUrl = cityImageUrl;
+
+        // 비공개로 인한 마스킹 처리
+        this.user = new UserTripDTO(null, "", "");
+        this.title = "";
+        this.startDate = null;
+        this.endDate = null;
+        this.likeCount = null;
+        this.budget = null;
+        this.privatePlan = true;
+        tripImageUrl = "";
     }
 
     public TripRespDTO(User user,

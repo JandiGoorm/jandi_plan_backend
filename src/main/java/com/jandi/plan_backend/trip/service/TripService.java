@@ -77,7 +77,7 @@ public class TripService {
                         PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sortByCreate)
                 ),
                 trip -> {
-                    TripRespDTO baseDTO = convertToTripRespDTO(trip);
+                    TripRespDTO baseDTO = convertToPublicTripRespDTO(trip);
                     return new MyTripRespDTO(baseDTO, trip.getPrivatePlan());
                 }
         );
@@ -89,6 +89,9 @@ public class TripService {
     public Page<TripRespDTO> getLikedTrips(String userEmail, Integer page, Integer size) {
         User user = validationUtil.validateUserExists(userEmail);
         long totalCount = tripLikeRepository.countByUser(user);
+        
+        boolean isAdmin = validationUtil.validateUserIsAdmin(user);
+        boolean isStaff = validationUtil.validateUserIsStaff(user);
 
         return PaginationService.getPagedData(page, size, totalCount,
                 pageable -> tripLikeRepository.findByUser(
@@ -97,7 +100,14 @@ public class TripService {
                 ),
                 tripLikeObj -> {
                     TripLike tripLike = (TripLike) tripLikeObj;
-                    return convertToTripRespDTO(tripLike.getTrip());
+                    Trip trip = tripLike.getTrip();
+                    
+                    boolean isParticipant = tripParticipantRepository
+                            .findByTrip_TripIdAndParticipant_UserId(trip.getTripId(), user.getUserId()).isPresent();
+                    return (isAdmin || isStaff || isParticipant) ?
+                        convertToPublicTripRespDTO(trip) :
+                        convertToPrivateTripRespDTO(trip);
+                        
                 }
         );
     }
@@ -116,7 +126,7 @@ public class TripService {
                             false,
                             PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort)
                     ),
-                    this::convertToTripRespDTO
+                    this::convertToPublicTripRespDTO
             );
         } else {
             User user = validationUtil.validateUserExists(userEmail);
@@ -129,7 +139,7 @@ public class TripService {
                         pageable -> tripRepository.findAll(
                                 PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort)
                         ),
-                        this::convertToTripRespDTO
+                        this::convertToPublicTripRespDTO
                 );
             } else {
                 // 일반 -> 타인 공개 + 본인 전체
@@ -140,7 +150,7 @@ public class TripService {
                                 user,
                                 PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort)
                         ),
-                        this::convertToTripRespDTO
+                        this::convertToPublicTripRespDTO
                 );
 
             }
@@ -180,7 +190,7 @@ public class TripService {
         boolean isLiked = (userEmail != null) &&
                 tripLikeRepository.findByTripAndUser_Email(trip, userEmail).isPresent();
 
-        return new TripItemRespDTO(convertToTripRespDTO(trip), isLiked);
+        return new TripItemRespDTO(convertToPublicTripRespDTO(trip), isLiked);
     }
 
     /**
@@ -207,7 +217,7 @@ public class TripService {
         Trip trip = new Trip(user, title, isPrivate, parsedStart, parsedEnd, budget, city);
         tripRepository.save(trip);
 
-        return convertToTripRespDTO(trip);
+        return convertToPublicTripRespDTO(trip);
     }
 
     /**
@@ -238,7 +248,7 @@ public class TripService {
         tripRepository.save(trip);
 
         return new TripLikeRespDTO(
-                new MyTripRespDTO(convertToTripRespDTO(trip), trip.getPrivatePlan()),
+                new MyTripRespDTO(convertToPublicTripRespDTO(trip), trip.getPrivatePlan()),
                 tripLike.getCreatedAt()
         );
     }
@@ -275,7 +285,7 @@ public class TripService {
      */
     public List<TripRespDTO> getTop10Trips() {
         return tripRepository.findTop10ByPrivatePlanFalseOrderByLikeCountDesc().stream()
-                .map(this::convertToTripRespDTO)
+                .map(this::convertToPublicTripRespDTO)
                 .collect(Collectors.toList());
     }
 
@@ -330,7 +340,7 @@ public class TripService {
         trip.setUpdatedAt(LocalDateTime.now());
         tripRepository.save(trip);
 
-        return convertToTripRespDTO(trip);
+        return convertToPublicTripRespDTO(trip);
     }
 
     /**
@@ -363,15 +373,15 @@ public class TripService {
                     List<Trip> pagedList = searchList.subList(start, end);
                     return new PageImpl<>(pagedList, pageable, totalCount);
                 },
-                this::convertToTripRespDTO
+                this::convertToPublicTripRespDTO
         );
     }
 
     /**
-     * Trip -> TripRespDTO 변환
+     * 공개된 Trip -> TripRespDTO 변환
      * 프로필 이미지, 도시 이미지, 여행 계획 이미지 URL을 구성
      */
-    private TripRespDTO convertToTripRespDTO(Trip trip) {
+    private TripRespDTO convertToPublicTripRespDTO(Trip trip) {
         // 작성자 프로필 이미지
         String userProfileUrl = imageService.getImageByTarget("profile", trip.getUser().getUserId())
                 .map(img -> urlPrefix + img.getImageUrl())
@@ -388,5 +398,18 @@ public class TripService {
                 .orElse(null);
 
         return new TripRespDTO(trip.getUser(), userProfileUrl, trip, cityImageUrl, tripImageUrl);
+    }
+
+    /**
+     * 비공개된 Trip -> TripRespDTO 변환
+     * 프로필 이미지, 도시 이미지, 여행 계획 이미지 URL을 구성
+     */
+    private TripRespDTO convertToPrivateTripRespDTO(Trip trip) {
+        // 도시 대표 이미지
+        String cityImageUrl = imageService.getImageByTarget("city", trip.getCity().getCityId())
+                .map(img -> urlPrefix + img.getImageUrl())
+                .orElse(null);
+
+        return new TripRespDTO(trip, cityImageUrl);
     }
 }
