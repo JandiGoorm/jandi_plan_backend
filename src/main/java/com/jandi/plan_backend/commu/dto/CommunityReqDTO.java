@@ -7,8 +7,11 @@ import lombok.NonNull;
 public class CommunityReqDTO {
 
     @NonNull
-    final String title;
+    private final String title;
 
     @NonNull
     private final String content;
+
+    @NonNull
+    private final String hashtag;
 }

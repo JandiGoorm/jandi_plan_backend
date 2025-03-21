@@ -111,6 +111,7 @@ public class PostService {
     public CommunityRespDTO finalizePost(String userEmail, PostFinalizeReqDTO reqDTO) {
         User user = validationUtil.validateUserExists(userEmail);
         validationUtil.validateUserRestricted(user);
+        validationUtil.validateIsHashtagValid(reqDTO.getHashtag());
         inMemoryTempPostService.validateTempId(reqDTO.getTempPostId(), user.getUserId());
 
         Community community = new Community();
@@ -121,6 +122,7 @@ public class PostService {
         community.setLikeCount(0);
         community.setCommentCount(0);
         community.setPreview(getPreview(reqDTO.getContent())); // 미리보기 반영
+        community.setHashtag(reqDTO.getHashtag()); //해시태그 반영
         communityRepository.save(community);
 
         int realPostId = community.getPostId();
@@ -141,10 +143,13 @@ public class PostService {
         User user = validationUtil.validateUserExists(userEmail);
         validationUtil.validateUserRestricted(user);
         validationUtil.validateUserIsAuthorOfPost(user, post);
+        validationUtil.validateIsHashtagValid(postDTO.getHashtag());
+
 
         post.setTitle(postDTO.getTitle());
         post.setContents(postDTO.getContent());
         post.setPreview(getPreview(postDTO.getContent())); // 미리보기 반영
+        post.setHashtag(postDTO.getHashtag()); // 해시태그 반영
         communityRepository.save(post);
 
         // 게시글 수정 후, 사용되지 않는 이미지 삭제

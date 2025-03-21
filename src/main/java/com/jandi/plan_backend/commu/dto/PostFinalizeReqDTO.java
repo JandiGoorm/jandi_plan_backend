@@ -10,4 +10,5 @@ public class PostFinalizeReqDTO {
     private int tempPostId;  // 음수 int
     private String title;
     private String content;
+    private String hashtag;
 }
