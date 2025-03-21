@@ -8,8 +8,12 @@ import java.util.List;
 import java.util.Optional;
 
 public interface CityRepository extends JpaRepository<City, Integer> {
+
     Optional<City> findByName(String name);
+
     List<City> findByNameIn(List<String> filter); //도시 필터링
+
     List<City> findByCountry_NameIn(Collection<String> country_name); //국가 필터링
+
     List<City> findByContinent_NameIn(List<String> filter); //대륙 필터링
 }

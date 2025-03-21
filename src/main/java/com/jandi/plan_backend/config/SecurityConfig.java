@@ -83,7 +83,8 @@ public class SecurityConfig {
                                 // user - login & register 관련
                                 "/api/users/login", "/api/users/register", "/api/users/register/checkEmail",
                                 "/api/users/register/checkName", "/api/users/forgot", "/api/users/verify",
-                                "/api/users/token/refresh"
+                                "/api/users/token/refresh", "/api/users/oauth/kakao", "api/users/kakao/callback",
+                                "/api/auth/kakaoLogin"
                         ).permitAll()
                         .requestMatchers(HttpMethod.GET,
                                 // community - post 관련

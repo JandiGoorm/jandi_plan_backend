@@ -12,11 +12,7 @@ import com.jandi.plan_backend.trip.entity.Trip;
 import com.jandi.plan_backend.trip.repository.TripLikeRepository;
 import com.jandi.plan_backend.trip.repository.TripRepository;
 import com.jandi.plan_backend.trip.service.TripService;
-import com.jandi.plan_backend.user.dto.AuthRespDTO;
-import com.jandi.plan_backend.user.dto.ChangePasswordDTO;
-import com.jandi.plan_backend.user.dto.UserLoginDTO;
-import com.jandi.plan_backend.user.dto.UserRegisterDTO;
-import com.jandi.plan_backend.user.dto.UserInfoRespDTO;
+import com.jandi.plan_backend.user.dto.*;
 import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.user.repository.UserCityPreferenceRepository;
 import com.jandi.plan_backend.user.repository.UserRepository;
@@ -62,7 +58,6 @@ public class UserService {
     private final CommunityLikeRepository communityLikeRepository;
     private final CommentLikeRepository commentLikeRepository;
     private final ValidationUtil validationUtil;
-
 
     @Value("${app.verify.url}")
     private String verifyUrl;
