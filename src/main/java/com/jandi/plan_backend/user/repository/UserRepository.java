@@ -10,7 +10,9 @@ import java.util.List;
 import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Integer> {
+
     Optional<User> findByUserId(Integer userId);
+
     /**
      * 주어진 이메일을 가진 User 엔티티를 Optional로 반환.
      * 이메일은 고유하다고 가정함.
@@ -49,11 +51,11 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
     // 부적절 유저 조회용
     Integer countByReportedIsTrue();
+
     Page<User> findByReportedIsTrue(Pageable pageable);
 
     // 지난 7일간 신규 가입된 유저 수 반환
     long countByCreatedAtBetween(LocalDateTime today, LocalDateTime last7Days);
 
-    // 소셜 전용
-    Optional<User> findBySocialTypeAndSocialId(String socialType, String socialId);
+    Optional<User> findBySocialTypeAndSocialId(String kakao, String kakaoId);
 }

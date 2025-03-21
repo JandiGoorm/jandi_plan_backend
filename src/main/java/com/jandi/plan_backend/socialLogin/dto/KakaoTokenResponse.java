@@ -1,4 +1,4 @@
-package com.jandi.plan_backend.user.dto;
+package com.jandi.plan_backend.socialLogin.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

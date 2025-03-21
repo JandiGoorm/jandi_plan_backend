@@ -59,7 +59,6 @@ public class UserService {
     private final CommentLikeRepository commentLikeRepository;
     private final ValidationUtil validationUtil;
 
-
     @Value("${app.verify.url}")
     private String verifyUrl;
 
@@ -325,66 +324,5 @@ public class UserService {
     // 중복 닉네임 검증
     public boolean isExistUserName(String userName) {
         return userRepository.findByUserName(userName).isPresent();
-    }
-
-    public AuthRespDTO kakaoLogin(String code) {
-        // 1) code -> 카카오 access_token
-        KakaoTokenResponse tokenResponse = getKakaoToken(code);
-
-        // 2) access_token -> 카카오 사용자 정보 호출
-        KakaoUserInfo userInfo = getKakaoUserInfo(tokenResponse.getAccessToken());
-        String kakaoId = userInfo.getId(); // 카카오 회원번호 (문자열이라고 가정)
-
-        // 3) DB 조회
-        Optional<User> optionalUser = userRepository.findBySocialTypeAndSocialId("KAKAO", kakaoId);
-        User user;
-        if (optionalUser.isEmpty()) {
-            // 3-1) 소셜 가입 처리
-            user = new User();
-            user.setEmail(userInfo.getEmail() != null
-                    ? userInfo.getEmail()
-                    : "kakao_" + kakaoId + "@kakao"); // email이 없으면 임시로
-            user.setUserName("kakaoUser_" + kakaoId);
-            user.setSocialType("KAKAO");
-            user.setSocialId(kakaoId);
-            user.setVerified(true); // 카카오 계정은 곧바로 verified=true 로 판단
-            user.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
-            user.setCreatedAt(LocalDateTime.now());
-            user.setUpdatedAt(LocalDateTime.now());
-            userRepository.save(user);
-        } else {
-            // 3-2) 기존 유저
-            user = optionalUser.get();
-            // (추가) 혹시 user가 기존에 카카오 정보가 달라졌다면 업데이트, etc
-        }
-
-        // 4) JWT 발급
-        String accessToken = jwtTokenProvider.createToken(user.getEmail());
-        String refreshToken = jwtTokenProvider.createRefreshToken(user.getEmail());
-        return new AuthRespDTO(accessToken, refreshToken);
-    }
-
-    /**
-     * (예시) 카카오에 토큰 요청
-     */
-    private KakaoTokenResponse getKakaoToken(String code) {
-        // (1) POST https://kauth.kakao.com/oauth/token
-        //     - grant_type=authorization_code
-        //     - client_id=... (REST_API_KEY)
-        //     - redirect_uri=... (카카오에 등록된 redirect uri)
-        //     - code=...
-        // (2) 응답(JSON)을 KakaoTokenResponse 객체로 매핑
-        // 실제는 RestTemplate 혹은 WebClient 등 사용
-        return new KakaoTokenResponse("test_access_token", "test_refresh_token", 3600);
-    }
-
-    /**
-     * (예시) 카카오 사용자 정보 가져오기
-     */
-    private KakaoUserInfo getKakaoUserInfo(String accessToken) {
-        // (1) GET https://kapi.kakao.com/v2/user/me
-        //     - Authorization: Bearer {accessToken}
-        // (2) 응답(JSON)을 KakaoUserInfo 객체로 매핑
-        return new KakaoUserInfo("1234567890", "test@kakao.com");
     }
 }

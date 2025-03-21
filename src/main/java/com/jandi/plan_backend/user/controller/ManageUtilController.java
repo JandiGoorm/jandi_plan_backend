@@ -21,21 +21,15 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/manage/util")
 public class ManageUtilController {
-    private final JwtTokenProvider jwtTokenProvider;
-    private final ValidationUtil validationUtil;
     private final CommunityRepository communityRepository;
     private final TripRepository tripRepository;
     private final UserRepository userRepository;
 
     public ManageUtilController(
-            JwtTokenProvider jwtTokenProvider,
-            ValidationUtil validationUtil,
             CommunityRepository communityRepository,
             TripRepository tripRepository,
             UserRepository userRepository
     ) {
-        this.jwtTokenProvider = jwtTokenProvider;
-        this.validationUtil = validationUtil;
         this.communityRepository = communityRepository;
         this.tripRepository = tripRepository;
         this.userRepository = userRepository;

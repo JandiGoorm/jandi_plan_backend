@@ -10,8 +10,11 @@ import java.util.List;
 import java.util.Optional;
 
 public interface UserCityPreferenceRepository extends JpaRepository<UserCityPreference, UserCityPreferenceId> {
+
     Optional<UserCityPreference> findByCity_CityIdAndUser_UserId(Integer CityId, Integer UserId);
+
     Optional<Object> findByCityAndUser(City curCity, User user);
+
     List<UserCityPreference> findByUser_UserId(Integer UserId);
 
     boolean existsByCity(City city);
