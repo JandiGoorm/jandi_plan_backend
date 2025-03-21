@@ -1,5 +1,8 @@
 package com.jandi.plan_backend.commu.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jandi.plan_backend.commu.dto.*;
 import com.jandi.plan_backend.commu.entity.Comment;
 import com.jandi.plan_backend.commu.entity.Community;
@@ -44,6 +47,7 @@ public class PostService {
     private final CommentReportedRepository commentReportedRepository;
     private final CommentLikeRepository commentLikeRepository;
     String prefix = "https://storage.googleapis.com/plan-storage/";
+    int maxPreviewLength = 200;
 
     // 생성자 주입
     public PostService(
@@ -116,6 +120,7 @@ public class PostService {
         community.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
         community.setLikeCount(0);
         community.setCommentCount(0);
+        community.setPreview(getPreview(reqDTO.getContent())); // 미리보기 반영
         communityRepository.save(community);
 
         int realPostId = community.getPostId();
@@ -139,6 +144,7 @@ public class PostService {
 
         post.setTitle(postDTO.getTitle());
         post.setContents(postDTO.getContent());
+        post.setPreview(getPreview(postDTO.getContent())); // 미리보기 반영
         communityRepository.save(post);
 
         // 게시글 수정 후, 사용되지 않는 이미지 삭제
@@ -264,6 +270,49 @@ public class PostService {
                 imageService.deleteImage(image.getImageId());
             }
         }
+    }
+
+    //DEV용: 기존 게시글도 미리보기 내용을 추가하기 위해 작성한 메서드
+    public void patchPreview(){
+        communityRepository.findAll().forEach(community -> {
+            log.info("[현재 게시글] postId: {}", community.getPostId());
+            community.setPreview(getPreview(community.getContents()));
+            communityRepository.save(community);
+        });
+    }
+
+    /**
+     * 엔터는 ""로 치환 후, 최대 200자 길이의 미리보기 내용을 추출합니다.
+     */
+    private String getPreview (String contents) {
+        StringBuilder preview = new StringBuilder();
+        try {
+            // contents를 ObjectMapper로 파싱
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode node = mapper.readTree(contents);
+
+            // contents 의 구조: {"ops":[{"insert":"..."},{"attributes":{"code-block":"plain"},..}
+            // 여기서 실제 추출해야 할 부분은 insert의 값이므로, for문을 돌면서 글자수가 채워질 때까지 insert 안의 내용을 순차적으로 더해갑니다
+            for(JsonNode opsNode : node.get("ops")) {
+                // 남은 preview의 길이 계산해서 공간 없다면
+                int leftLength = maxPreviewLength - preview.length();
+                if(leftLength < 1) break;
+
+                JsonNode insertNode = opsNode.get("insert");
+                if(insertNode != null) {
+                    //원문에서 \n은 ""으로 치환
+                    String insertNodeText = insertNode.asText().replace("\n", "");
+
+                    log.info("선택된 insertNodeText: {}", insertNodeText);
+                    preview.append((insertNodeText.length() > leftLength) ? //넘치면 잘라내기
+                            insertNodeText.substring(0, leftLength) : insertNodeText);
+                }
+            }
+            log.info("최종 preview: {}", preview);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        return preview.toString();
     }
 
     public Page<CommunityListDTO> search(String category, String keyword, int page, int size) {

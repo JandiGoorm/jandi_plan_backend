@@ -167,4 +167,13 @@ public class PostController {
                 "items", postsPage.getContent()
         );
     }
+
+    //DEV용: 기존 게시글은 미리보기가 없으니 강제로 넣어줄 목적임
+    @PatchMapping("/patch/preview")
+    @GetMapping("/posts")
+    public ResponseEntity<?> patchPreview(
+    ) {
+        postService.patchPreview();
+        return ResponseEntity.ok(null);
+    }
 }
