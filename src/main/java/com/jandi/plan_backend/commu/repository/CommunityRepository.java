@@ -27,4 +27,6 @@ public interface CommunityRepository extends JpaRepository<Community, Integer> {
     List<Community> searchByTitleAndContents(String keyword);
 
     List<Community> findByUser(User user);
+
+    List<Community> searchAllByHashtagContaining(String keyword);
 }
