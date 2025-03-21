@@ -210,22 +210,24 @@ public class ValidationUtil {
         }
     }
 
-    public void validateIsHashtagValid(List<String> hashList) {
+    public void validateIsHashtagListValid(List<String> hashList) {
         log.info("hashList: {}", (Object) hashList);
-
-        // 해시 태그 갯수 검증: 5개 초과하면 에러 반환
-        if(hashList.size() > 5) {
-            throw new BadRequestExceptionMessage("해시태그는 최대 5개만 입력할 수 있습니다");
-        }
 
         // 각각의 해시태그 검증
         for (String hashtag : hashList) {
-            if(!hashtag.startsWith("#")){ // #으로 시작하지 않을 때 에러 반환
-                throw new BadRequestExceptionMessage("잘못된 해시태그 입력: " + hashtag);
-            }
-            if(hashtag.length() > 13) { // # 포함 13글자 이상일 때 에러 반환
-                throw new BadRequestExceptionMessage("잘못된 해시태그 입력: " + hashtag);
-            }
+            validateIsHashTagValid(hashtag);
+        }
+    }
+
+    public void validateIsHashTagValid(String hashtag) {
+        if(!hashtag.startsWith("#")){ // #으로 시작하지 않을 때 에러 반환
+            throw new BadRequestExceptionMessage("잘못된 해시태그 입력: #으로 시작해야 합니다: " + hashtag);
+        }
+        if(hashtag.length() > 13) { // # 포함 13글자 이상일 때 에러 반환
+            throw new BadRequestExceptionMessage("잘못된 해시태그 입력: 13글자 이내여야 합니다: " + hashtag);
+        }
+        if(hashtag.contains(" ")){
+            throw new BadRequestExceptionMessage("잘못된 해시태그 입력: 공백을 포함할 수 없습니다: " + hashtag);
         }
     }
 }
