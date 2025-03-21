@@ -4,6 +4,7 @@ import com.jandi.plan_backend.commu.entity.Community;
 import com.jandi.plan_backend.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -28,5 +29,7 @@ public interface CommunityRepository extends JpaRepository<Community, Integer> {
 
     List<Community> findByUser(User user);
 
-    List<Community> searchAllByHashtagContaining(String keyword);
+    //해시태그로 검색: JSON 형태로 검색
+    @Query(value = "SELECT * FROM community WHERE JSON_CONTAINS(hashtags, :jsonTag)", nativeQuery = true)
+    List<Community> searchByHashTag(@Param("jsonTag") String keyword);
 }

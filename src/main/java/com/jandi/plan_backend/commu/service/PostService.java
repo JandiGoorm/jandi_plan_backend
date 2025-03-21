@@ -122,7 +122,7 @@ public class PostService {
         community.setLikeCount(0);
         community.setCommentCount(0);
         community.setPreview(getPreview(reqDTO.getContent())); // 미리보기 반영
-        community.setHashtag(reqDTO.getHashtag()); //해시태그 반영
+        community.setHashtags(reqDTO.getHashtag()); //해시태그 반영
         communityRepository.save(community);
 
         int realPostId = community.getPostId();
@@ -149,7 +149,7 @@ public class PostService {
         post.setTitle(postDTO.getTitle());
         post.setContents(postDTO.getContent());
         post.setPreview(getPreview(postDTO.getContent())); // 미리보기 반영
-        post.setHashtag(postDTO.getHashtag()); // 해시태그 반영
+        post.setHashtags(postDTO.getHashtag()); // 해시태그 반영
         communityRepository.save(post);
 
         // 게시글 수정 후, 사용되지 않는 이미지 삭제
@@ -342,7 +342,7 @@ public class PostService {
             case "BOTH" -> // 제목 + 내용 검색
                 communityRepository.searchByTitleAndContents("\"" + keyword + "\""); //공백 포함하여 계산되도록 따옴표로 래핑
             case "HASHTAG" -> // 해시태그 검색
-                communityRepository.searchAllByHashtagContaining("#"+keyword+" ");
+                communityRepository.searchByHashTag("\"" + keyword + "\"");
             default ->
                 throw new IllegalStateException("카테고리 지정이 잘못되었습니다: " + category);
         };

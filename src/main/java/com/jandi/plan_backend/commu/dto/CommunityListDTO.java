@@ -21,7 +21,7 @@ public class CommunityListDTO {
     private final Integer viewCount;
     private final String thumbnail;
     private final String preview;
-    private final String hashtag;
+    private final String[] hashtag;
 
     // 프로필 사진 필요한 버전
     public CommunityListDTO(Community community, ImageService imageService, String thumbnail) {
@@ -34,7 +34,7 @@ public class CommunityListDTO {
         this.likeCount = community.getLikeCount();
         this.commentCount = community.getCommentCount();
         this.thumbnail = thumbnail;
-        this.hashtag = community.getHashtag();
+        this.hashtag = community.getHashtags().toArray(new String[0]);
     }
 
     // 프로필 사진 필요없는 버전
@@ -47,7 +47,7 @@ public class CommunityListDTO {
         this.likeCount = community.getLikeCount();
         this.commentCount = community.getCommentCount();
         this.preview = community.getPreview();
-        this.hashtag = community.getHashtag();
+        this.hashtag = community.getHashtags().toArray(new String[0]);
         this.thumbnail = "";
     }
 }

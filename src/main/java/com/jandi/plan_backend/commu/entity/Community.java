@@ -31,8 +31,9 @@ public class Community {
     @Column(length = 200, nullable = false)
     private String preview;
 
-    @Column(length = 255, nullable = false)
-    private String hashtag;
+    @Convert(converter = CommunityHashtagConverter.class)
+    @Column(columnDefinition = "JSON")
+    private List<String> hashtags;
 
     @Column(nullable = false)
     private Integer likeCount;
@@ -46,3 +47,4 @@ public class Community {
     @OneToMany(mappedBy = "community", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments;
 }
+

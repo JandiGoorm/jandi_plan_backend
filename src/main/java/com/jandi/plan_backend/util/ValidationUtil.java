@@ -210,10 +210,8 @@ public class ValidationUtil {
         }
     }
 
-    public void validateIsHashtagValid(String request) {
-        // 공백 기준으로 문자열 분할
-        List<String> hashList = Arrays.stream(request.split(" ")).toList();
-        log.info("hashList: {}", hashList.stream());
+    public void validateIsHashtagValid(List<String> hashList) {
+        log.info("hashList: {}", (Object) hashList);
 
         // 해시 태그 갯수 검증: 5개 초과하면 에러 반환
         if(hashList.size() > 5) {
