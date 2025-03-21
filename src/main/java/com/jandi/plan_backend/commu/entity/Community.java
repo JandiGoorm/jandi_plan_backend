@@ -28,6 +28,9 @@ public class Community {
     @Column(columnDefinition = "TEXT")
     private String contents;
 
+    @Column(length = 200, nullable = false)
+    private String preview;
+
     @Column(nullable = false)
     private Integer likeCount;
 
