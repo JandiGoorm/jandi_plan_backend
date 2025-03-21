@@ -9,7 +9,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@EntityListeners(UserEntityListener.class) // role 변경 감지용
+@EntityListeners(UserEntityListener.class)
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "userId")
 @Entity
 @Table(name = "users")
@@ -63,7 +63,9 @@ public class User {
         return Role.fromValue(this.role);
     }
 
-    public void setRoleEnum(Role role) {
-        this.role = role.getValue();
-    }
+    @Column(length = 20)
+    private String socialType; // "KAKAO", "NAVER", "GOOGLE"
+
+    @Column(length = 50)
+    private String socialId;   // 카카오에서 받은 id값
 }

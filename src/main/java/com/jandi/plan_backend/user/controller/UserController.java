@@ -2,11 +2,9 @@ package com.jandi.plan_backend.user.controller;
 
 import com.jandi.plan_backend.user.dto.*;
 import com.jandi.plan_backend.user.service.UserService;
-import com.jandi.plan_backend.security.JwtTokenProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,15 +20,9 @@ import java.util.Map;
 public class UserController {
 
     private final UserService userService;
-    private final AuthenticationManager authenticationManager;
-    private final JwtTokenProvider jwtTokenProvider;
 
-    public UserController(UserService userService,
-                          AuthenticationManager authenticationManager,
-                          JwtTokenProvider jwtTokenProvider) {
+    public UserController(UserService userService) {
         this.userService = userService;
-        this.authenticationManager = authenticationManager;
-        this.jwtTokenProvider = jwtTokenProvider;
     }
 
     @PostMapping("/register")
@@ -161,5 +153,4 @@ public class UserController {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
-
 }
