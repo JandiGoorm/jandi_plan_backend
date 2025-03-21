@@ -25,6 +25,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -205,6 +207,27 @@ public class ValidationUtil {
             return LocalDate.parse(date);
         } catch (Exception e) {
             throw new BadRequestExceptionMessage("날짜 형식에 문제가 있습니다. 다시 한번 확인해주세요");
+        }
+    }
+
+    public void validateIsHashtagListValid(List<String> hashList) {
+        log.info("hashList: {}", (Object) hashList);
+
+        // 각각의 해시태그 검증
+        for (String hashtag : hashList) {
+            validateIsHashTagValid(hashtag);
+        }
+    }
+
+    public void validateIsHashTagValid(String hashtag) {
+        if(!hashtag.startsWith("#")){ // #으로 시작하지 않을 때 에러 반환
+            throw new BadRequestExceptionMessage("잘못된 해시태그 입력: #으로 시작해야 합니다: " + hashtag);
+        }
+        if(hashtag.length() > 13) { // # 포함 13글자 이상일 때 에러 반환
+            throw new BadRequestExceptionMessage("잘못된 해시태그 입력: 13글자 이내여야 합니다: " + hashtag);
+        }
+        if(hashtag.contains(" ")){
+            throw new BadRequestExceptionMessage("잘못된 해시태그 입력: 공백을 포함할 수 없습니다: " + hashtag);
         }
     }
 }

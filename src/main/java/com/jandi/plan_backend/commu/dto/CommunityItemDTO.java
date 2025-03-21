@@ -5,6 +5,7 @@ import com.jandi.plan_backend.image.service.ImageService;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 특정 게시글 정보 조회 시 가져올 게시물 관련 DTO
@@ -21,6 +22,7 @@ public class CommunityItemDTO {
     private final Integer commentCount;
     private final Integer viewCount;
     private final Boolean liked;
+    private final List<String> hashtag;
 
     public CommunityItemDTO(Community community, ImageService imageService, boolean liked) {
         this.postId = community.getPostId();
@@ -32,5 +34,6 @@ public class CommunityItemDTO {
         this.likeCount = community.getLikeCount();
         this.commentCount = community.getCommentCount();
         this.liked = liked;
+        this.hashtag = community.getHashtags();
     }
 }

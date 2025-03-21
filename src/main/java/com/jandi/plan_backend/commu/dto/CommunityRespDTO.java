@@ -19,6 +19,7 @@ public class CommunityRespDTO {
     private int likeCount;
     private int commentCount;
     private int viewCount;
+    private String[] hashtag;
     private UserCommunityDTO user; // 유저 정보 중 민감 정보 제외
 
     public CommunityRespDTO(Community community, ImageService imageService) {
@@ -29,6 +30,7 @@ public class CommunityRespDTO {
         this.content = community.getContents();
         this.likeCount = community.getLikeCount();
         this.viewCount = community.getViewCount();
+        this.hashtag = community.getHashtags().toArray(new String[0]);
         this.commentCount = community.getCommentCount();
     }
 }

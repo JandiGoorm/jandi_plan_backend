@@ -111,6 +111,7 @@ public class PostService {
     public CommunityRespDTO finalizePost(String userEmail, PostFinalizeReqDTO reqDTO) {
         User user = validationUtil.validateUserExists(userEmail);
         validationUtil.validateUserRestricted(user);
+        validationUtil.validateIsHashtagListValid(reqDTO.getHashtag());
         inMemoryTempPostService.validateTempId(reqDTO.getTempPostId(), user.getUserId());
 
         Community community = new Community();
@@ -121,6 +122,7 @@ public class PostService {
         community.setLikeCount(0);
         community.setCommentCount(0);
         community.setPreview(getPreview(reqDTO.getContent())); // 미리보기 반영
+        community.setHashtags(reqDTO.getHashtag()); //해시태그 반영
         communityRepository.save(community);
 
         int realPostId = community.getPostId();
@@ -141,10 +143,13 @@ public class PostService {
         User user = validationUtil.validateUserExists(userEmail);
         validationUtil.validateUserRestricted(user);
         validationUtil.validateUserIsAuthorOfPost(user, post);
+        validationUtil.validateIsHashtagListValid(postDTO.getHashtag());
+
 
         post.setTitle(postDTO.getTitle());
         post.setContents(postDTO.getContent());
         post.setPreview(getPreview(postDTO.getContent())); // 미리보기 반영
+        post.setHashtags(postDTO.getHashtag()); // 해시태그 반영
         communityRepository.save(post);
 
         // 게시글 수정 후, 사용되지 않는 이미지 삭제
@@ -336,6 +341,10 @@ public class PostService {
                 communityRepository.searchAllByContentsContaining(keyword);
             case "BOTH" -> // 제목 + 내용 검색
                 communityRepository.searchByTitleAndContents("\"" + keyword + "\""); //공백 포함하여 계산되도록 따옴표로 래핑
+            case "HASHTAG" -> { // 해시태그 검색
+                validationUtil.validateIsHashTagValid(keyword); //키워드가 해시태그대로 들어왔는지 검증
+                yield communityRepository.searchByHashTag("\"" + keyword + "\"");
+            }
             default ->
                 throw new IllegalStateException("카테고리 지정이 잘못되었습니다: " + category);
         };
