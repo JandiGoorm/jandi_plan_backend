@@ -43,6 +43,7 @@ public class PostService {
     private final UserRepository userRepository;
     private final CommentReportedRepository commentReportedRepository;
     private final CommentLikeRepository commentLikeRepository;
+    String prefix = "https://storage.googleapis.com/plan-storage/";
 
     // 생성자 주입
     public PostService(
@@ -91,7 +92,13 @@ public class PostService {
         Sort sort = Sort.by(Sort.Direction.DESC, "postId");
         return PaginationService.getPagedData(page, size, totalCount,
                 (pageable) -> communityRepository.findAll(PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort)),
-                community -> new CommunityListDTO(community, imageService));
+                community -> {
+                    // 썸네일 찾기
+                    List<Image> thumbnails = imageRepository.findAllByTargetTypeAndTargetId("community", community.getPostId());
+                    String thumbnail = (thumbnails.isEmpty()) ? "" : prefix + thumbnails.get(0).getImageUrl();
+
+                    return new CommunityListDTO(community, imageService, thumbnail);
+                });
     }
 
     /**
@@ -294,7 +301,13 @@ public class PostService {
                     List<Community> pagedList = searchList.subList(start, end);
                     return new PageImpl<>(pagedList, pageable, totalCount);
                 },
-                community -> new CommunityListDTO(community, imageService)
+                community -> {
+                    // 썸네일 찾기
+                    List<Image> thumbnails = imageRepository.findAllByTargetTypeAndTargetId("community", community.getPostId());
+                    String thumbnail = (thumbnails.isEmpty()) ? "" : prefix + thumbnails.get(0).getImageUrl();
+
+                    return new CommunityListDTO(community, imageService, thumbnail);
+                }
         );
     }
 }
