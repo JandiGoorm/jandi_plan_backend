@@ -32,7 +32,7 @@ jobs:
           JWT_KEY: ${{ secrets.JWT_KEY }}
           OPEN_API_KEY: ${{ secrets.OPEN_API_KEY }}
           GOOGLE_MAP_KEY: ${{ secrets.GOOGLE_MAP_KEY }}
-          KAKAO_RESTAPI_KEY: ${{ KAKAO_RESTAPI_KEY }}
+          KAKAO_RESTAPI_KEY: ${{ secrets.KAKAO_RESTAPI_KEY }}
         run: |
           chmod +x gradlew
           ./gradlew clean build --stacktrace
