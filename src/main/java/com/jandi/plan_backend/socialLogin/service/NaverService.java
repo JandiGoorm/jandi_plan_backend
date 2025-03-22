@@ -5,7 +5,9 @@ import com.jandi.plan_backend.socialLogin.dto.NaverUserInfo;
 import com.jandi.plan_backend.user.dto.AuthRespDTO;
 import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.user.repository.UserRepository;
+import com.jandi.plan_backend.user.service.UserService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -21,9 +23,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class NaverService {
+    private final UserService userService;
     @Value("${naver.client-id}")
     private String clientId;
 
@@ -32,15 +36,24 @@ public class NaverService {
 
     @Value("${naver.redirect-uri}")
     private String redirectUri;
-
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
 
+    private String getUniqueUserName(){
+        while(true){
+            String randomId = String.valueOf(1_000_000_000L + (long)(Math.random() * 9_000_000_000L));
+            String userName = "NaverUser_" + randomId;
+            if(!userService.isExistUserName(userName)){
+                return userName;
+            }
+        }
+    }
+
     public AuthRespDTO naverLogin(NaverUserInfo userInfo) {
         // 이미 등록된 일반가입 유저인지 확인
         Optional<User> optionalGeneralUser = userRepository.findByEmail(userInfo.getEmail());
-        if (optionalGeneralUser.isPresent()) {
+        if (optionalGeneralUser.isPresent() && optionalGeneralUser.get().getSocialType() == null) {
             throw new RuntimeException("이미 일반 가입된 이메일입니다. 일반 회원으로 로그인해주세요");
         }
 
@@ -57,13 +70,17 @@ public class NaverService {
     }
 
     private User naverRegister(NaverUserInfo userInfo) {
-        String naverId = userInfo.getEmail();
+        String naverId = userInfo.getId();
         String userEmail = (userInfo.getEmail() != null) ?
                 userInfo.getEmail() : "naver_" + naverId + "@naver";
 
+        // naverId는 너무 길어서 UserName에 바로 넣을 수 없다 (naverId: 45자, UserName: 최대 50자)
+        // 따라서 카카오톡처럼 NaverUser_{10자리 랜덤 숫자}인 유저 이름을 생성한다
+        String userName = getUniqueUserName();
+
         // 유저 기본 정보(이메일, 이름)
         User user = new User();
-        user.setUserName("NaverUser_" + naverId); // 임시 닉네임 부여
+        user.setUserName(userName); // 임시 닉네임 부여
         user.setFirstName("Naver");
         user.setLastName("User");
         user.setEmail(userEmail);
@@ -72,12 +89,14 @@ public class NaverService {
         user.setSocialType("NAVER");
         user.setSocialId(naverId);
         user.setVerified(true); // 네이버 로그인 시 이메일 인증 대신 verified=true 처리
+        user.setReported(false);
         user.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
 
         // 기타 유저 시간 정보 처리
         user.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
         user.setUpdatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
         userRepository.save(user);
+        log.debug("회원가입 완료");
         return user;
     }
 
@@ -139,16 +158,23 @@ public class NaverService {
             Map<String, Object> body = response.getBody();
             if (!response.getStatusCode().is2xxSuccessful() || body == null)
                 throw new RuntimeException("사용자 정보 요청 실패: " + response.getStatusCode());
+            log.debug("body: {}", body);
 
             // response에 유저 정보 저장됨: email, nickname, profile_image, age, gender, id, name, birthday
             Map<String, Object> userResponse = (Map<String, Object>) body.get("response");
             if(userResponse == null)
                 throw new RuntimeException("사용자 정보 요청 실패: response가 존재하지 않습니다");
+            log.debug("userResponse: {}", userResponse);
+
+            // 유저 정보 추출
+            String id = (String) userResponse.get("id");
+            String email = (String) userResponse.get("email");
+            log.debug("id: {}, email: {}", id, email);
 
             // response의 정보를 DTO로 감싸서 리턴
             NaverUserInfo naverUserInfo = new NaverUserInfo();
-            naverUserInfo.setId(userResponse.get("id").toString());
-            naverUserInfo.setEmail(userResponse.get("email").toString());
+            naverUserInfo.setId(id);
+            naverUserInfo.setEmail(email);
             return naverUserInfo;
         }catch (Exception e){
             throw new RuntimeException("사용자 정보 요청 중 예외 발생: " + e.getMessage());
