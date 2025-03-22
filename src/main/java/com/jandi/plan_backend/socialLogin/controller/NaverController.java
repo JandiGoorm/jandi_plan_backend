@@ -28,7 +28,7 @@ public class NaverController {
         // 상태 토큰은 추후 검증을 위해 세션에 저장되어야 한다.
         String state = UUID.randomUUID().toString();
         session.setAttribute("naver_oauth_state", state);
-        log.info("state: {}", state);
+        log.debug("state: {}", state);
 
         String loginUrl = naverService.createLoginUrl(state);
         return ResponseEntity.ok(loginUrl);
@@ -42,7 +42,7 @@ public class NaverController {
     ) {
         // 세션 또는 별도의 저장 공간에서 상태 토큰을 가져옴
         String storedState = (String) session.getAttribute("naver_oauth_state");
-        log.info("storedState: {}", storedState);
+        log.debug("storedState: {}", storedState);
 
         // CSRF 방지를 위한 상태 토큰 검증 검증
         if (!state.equals(storedState)) {
@@ -51,9 +51,9 @@ public class NaverController {
 
         // 토큰 검증 성공 시 액세스 토큰 받아서 유저 정보를 얻어옴
         String accessToken = naverService.getAccessToken(code, storedState);
-        log.info("accessToken: {}", accessToken);
+        log.debug("accessToken: {}", accessToken);
         NaverUserInfo userInfo = naverService.getUserInfo(accessToken);
-        log.info("userInfo: {}", userInfo);
+        log.debug("userInfo: {}", userInfo);
 
         // 로그인 처리
         AuthRespDTO authResp = naverService.naverLogin(userInfo);

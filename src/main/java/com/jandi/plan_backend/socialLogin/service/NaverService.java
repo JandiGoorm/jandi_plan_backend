@@ -53,7 +53,7 @@ public class NaverService {
     public AuthRespDTO naverLogin(NaverUserInfo userInfo) {
         // 이미 등록된 일반가입 유저인지 확인
         Optional<User> optionalGeneralUser = userRepository.findByEmail(userInfo.getEmail());
-        if (optionalGeneralUser.isPresent()) {
+        if (optionalGeneralUser.isPresent() && optionalGeneralUser.get().getSocialType() == null) {
             throw new RuntimeException("이미 일반 가입된 이메일입니다. 일반 회원으로 로그인해주세요");
         }
 
@@ -96,6 +96,7 @@ public class NaverService {
         user.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
         user.setUpdatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
         userRepository.save(user);
+        log.debug("회원가입 완료");
         return user;
     }
 
@@ -157,18 +158,18 @@ public class NaverService {
             Map<String, Object> body = response.getBody();
             if (!response.getStatusCode().is2xxSuccessful() || body == null)
                 throw new RuntimeException("사용자 정보 요청 실패: " + response.getStatusCode());
-            log.info("body: {}", body);
+            log.debug("body: {}", body);
 
             // response에 유저 정보 저장됨: email, nickname, profile_image, age, gender, id, name, birthday
             Map<String, Object> userResponse = (Map<String, Object>) body.get("response");
             if(userResponse == null)
                 throw new RuntimeException("사용자 정보 요청 실패: response가 존재하지 않습니다");
-            log.info("userResponse: {}", userResponse);
+            log.debug("userResponse: {}", userResponse);
 
             // 유저 정보 추출
             String id = (String) userResponse.get("id");
             String email = (String) userResponse.get("email");
-            log.info("id: {}, email: {}", id, email);
+            log.debug("id: {}, email: {}", id, email);
 
             // response의 정보를 DTO로 감싸서 리턴
             NaverUserInfo naverUserInfo = new NaverUserInfo();
