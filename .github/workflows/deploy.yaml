@@ -33,6 +33,8 @@ jobs:
           OPEN_API_KEY: ${{ secrets.OPEN_API_KEY }}
           GOOGLE_MAP_KEY: ${{ secrets.GOOGLE_MAP_KEY }}
           KAKAO_RESTAPI_KEY: ${{ secrets.KAKAO_RESTAPI_KEY }}
+          NAVER_CLIENT_ID: ${{ secrets.NAVER_CLIENT_ID }}
+          NAVER_CLIENT_SECRET: ${{ secrets.NAVER_CLIENT_SECRET }}
         run: |
           chmod +x gradlew
           ./gradlew clean build --stacktrace
@@ -70,4 +72,4 @@ jobs:
             --region asia-northeast3 \
             --service-account planbackend@planbackend-450513.iam.gserviceaccount.com \
             --allow-unauthenticated \
-            --set-env-vars 'KAKAO_RESTAPI_KEY=${{ secrets.KAKAO_RESTAPI_KEY }}, DB_URL=${{ secrets.DB_URL }},DB_USERNAME=${{ secrets.DB_USERNAME }},DB_PASSWORD=${{ secrets.DB_PASSWORD }},MAIL_USERNAME=${{ secrets.MAIL_USERNAME }},MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }},GCP_SA_KEY_BASE64=${{ secrets.GCP_SA_KEY_BASE64 }},JWT_KEY=${{ secrets.JWT_KEY }},OPEN_API_KEY=${{ secrets.OPEN_API_KEY }},GOOGLE_MAP_KEY=${{ secrets.GOOGLE_MAP_KEY }}'
+            --set-env-vars 'NAVER_CLIENT_ID=${{ secrets.NAVER_CLIENT_ID }},NAVER_CLIENT_SECRET=${{ secrets.NAVER_CLIENT_SECRET }},KAKAO_RESTAPI_KEY=${{ secrets.KAKAO_RESTAPI_KEY }},DB_URL=${{ secrets.DB_URL }},DB_USERNAME=${{ secrets.DB_USERNAME }},DB_PASSWORD=${{ secrets.DB_PASSWORD }},MAIL_USERNAME=${{ secrets.MAIL_USERNAME }},MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }},GCP_SA_KEY_BASE64=${{ secrets.GCP_SA_KEY_BASE64 }},JWT_KEY=${{ secrets.JWT_KEY }},OPEN_API_KEY=${{ secrets.OPEN_API_KEY }},GOOGLE_MAP_KEY=${{ secrets.GOOGLE_MAP_KEY }}'
