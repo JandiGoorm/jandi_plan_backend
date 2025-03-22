@@ -80,11 +80,13 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         /** 미로그인 상태에서도 접근 가능 */
                         .requestMatchers(
-                                // user - login & register 관련
+                                // user - 자체 login & register 관련
                                 "/api/users/login", "/api/users/register", "/api/users/register/checkEmail",
                                 "/api/users/register/checkName", "/api/users/forgot", "/api/users/verify",
                                 "/api/users/token/refresh", "/api/users/oauth/kakao", "api/users/kakao/callback",
-                                "/api/auth/kakaoLogin"
+
+                                // 소셜 로그인 관련
+                                "/api/auth/kakaoLogin", "/api/auth/naver/loginUrl", "/api/auth/naver/callback"
                         ).permitAll()
                         .requestMatchers(HttpMethod.GET,
                                 // community - post 관련

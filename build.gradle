@@ -56,6 +56,10 @@ dependencies {
     // google maps
     implementation 'com.google.api-client:google-api-client:1.33.2'
     implementation 'com.google.maps:google-maps-services:2.2.0'
+
+    // naver login
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+
 }
 
 dependencyManagement {
