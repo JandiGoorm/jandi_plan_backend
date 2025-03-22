@@ -5,6 +5,7 @@ import com.jandi.plan_backend.socialLogin.dto.NaverUserInfo;
 import com.jandi.plan_backend.user.dto.AuthRespDTO;
 import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.user.repository.UserRepository;
+import com.jandi.plan_backend.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,6 +27,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class NaverService {
+    private final UserService userService;
     @Value("${naver.client-id}")
     private String clientId;
 
@@ -37,6 +39,16 @@ public class NaverService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
+
+    private String getUniqueUserName(){
+        while(true){
+            String randomId = String.valueOf(1_000_000_000L + (long)(Math.random() * 9_000_000_000L));
+            String userName = "NaverUser_" + randomId;
+            if(!userService.isExistUserName(userName)){
+                return userName;
+            }
+        }
+    }
 
     public AuthRespDTO naverLogin(NaverUserInfo userInfo) {
         // 이미 등록된 일반가입 유저인지 확인
@@ -62,13 +74,13 @@ public class NaverService {
         String userEmail = (userInfo.getEmail() != null) ?
                 userInfo.getEmail() : "naver_" + naverId + "@naver";
 
-        // naverId는 너무 길어서 UserName에 바로 넣을 수 없습니다. (naverId: 45자, UserName: 최대 50자)
-        // 따라서 카카오톡과 동일하게 10자리 랜덤 숫자를 부여합니다.
-        String randomId = String.valueOf(1_000_000_000L + (long)(Math.random() * 9_000_000_000L));
+        // naverId는 너무 길어서 UserName에 바로 넣을 수 없다 (naverId: 45자, UserName: 최대 50자)
+        // 따라서 카카오톡처럼 NaverUser_{10자리 랜덤 숫자}인 유저 이름을 생성한다
+        String userName = getUniqueUserName();
 
         // 유저 기본 정보(이메일, 이름)
         User user = new User();
-        user.setUserName("NaverUser_" + randomId); // 임시 닉네임 부여
+        user.setUserName(userName); // 임시 닉네임 부여
         user.setFirstName("Naver");
         user.setLastName("User");
         user.setEmail(userEmail);
