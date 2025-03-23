@@ -16,7 +16,6 @@ import java.util.Date;
 @Slf4j
 @Component
 public class JwtTokenProvider {
-
     private final Key secretKey;
 
     // 액세스 토큰 유효기간 (15분)
@@ -148,6 +147,33 @@ public class JwtTokenProvider {
             log.error("JWT 토큰 유효성 검사 실패: 빈 토큰 또는 잘못된 토큰");
         }
         return false;
+    }
+
+    // 소셜 로그인 시 state 검증을 위해 jwt 토큰을 생성합니다
+    // 기본적으로 구글 클라우드 런은 stateless 상태이므로 세션이 저장되지 않기 때문에 택한 방법
+    public String createStateToken() {
+        Date now = new Date();
+        Date expiry = new Date(now.getTime() + 5 * 60 * 1000); // 5분 유효
+        return Jwts.builder()
+                .setSubject("naver_oauth_state")
+                .setIssuedAt(now)
+                .setExpiration(expiry)
+                .signWith(secretKey)
+                .compact();
+    }
+
+    public boolean validateStateToken(String token) {
+        try {
+            Jwts.parserBuilder()
+                    .setSigningKey(secretKey)
+                    .build()
+                    .parseClaimsJws(token);
+            log.debug("JWT 토큰 유효함");
+            return true;
+        } catch (JwtException e) {
+            log.error("JWT 토큰 유효성 검사 실패: " + e.getMessage());
+            return false;
+        }
     }
 
 }
