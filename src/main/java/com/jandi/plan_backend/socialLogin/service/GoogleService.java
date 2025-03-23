@@ -2,6 +2,7 @@ package com.jandi.plan_backend.socialLogin.service;
 
 import com.jandi.plan_backend.security.JwtTokenProvider;
 import com.jandi.plan_backend.socialLogin.dto.GoogleTokenResponse;
+import com.jandi.plan_backend.socialLogin.dto.GoogleUserInfo;
 import com.jandi.plan_backend.user.dto.AuthRespDTO;
 import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.user.repository.UserRepository;
@@ -17,24 +18,29 @@ import org.springframework.web.client.RestTemplate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
 /**
- * 구글 서버와 통신(토큰/유저정보) + DB조회/가입/로그인(JWT발급) 로직
+ * 구글 OAuth2 로그인 로직:
+ *  1) 인가코드(code)로 구글 토큰 요청
+ *  2) 구글 토큰으로 사용자 정보 조회
+ *  3) DB 조회/가입
+ *  4) JWT 발급 후 반환
  */
 @Service
 @RequiredArgsConstructor
 public class GoogleService {
 
     @Value("${google.client-id}")
-    private String googleClientId;
+    private String clientId;
 
     @Value("${google.client-secret}")
-    private String googleClientSecret;
+    private String clientSecret;
 
     @Value("${google.redirect-uri}")
-    private String googleRedirectUri;
+    private String redirectUri;
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -44,62 +50,40 @@ public class GoogleService {
      * (1) code -> 구글 토큰 -> (2) 구글 유저정보 -> (3) DB 조회/가입 -> (4) JWT 발급
      */
     public AuthRespDTO googleLogin(String code) {
-        // 1) code -> 구글 access_token
-        GoogleTokenResponse tokenResponse = getGoogleToken(code);
+        // 1) code -> 구글 accessToken
+        GoogleTokenResponse tokenResponse = requestGoogleToken(code);
 
-        // 2) access_token -> 구글 사용자 정보
-        com.jandi.plan_backend.socialLogin.service.GoogleUserInfo userInfo = getGoogleUserInfo(tokenResponse.getAccessToken());
-        String googleId = userInfo.getSub(); // 구글에서 userinfo 응답의 "id" 또는 "sub" 사용
+        // 2) accessToken -> 구글 사용자 정보
+        GoogleUserInfo googleUser = requestGoogleUserInfo(tokenResponse.getAccessToken());
+        String googleId = googleUser.getSub();
 
-        // 3) DB 조회 (socialType="GOOGLE", socialId=googleId)
-        Optional<User> optionalUser = userRepository.findBySocialTypeAndSocialId("GOOGLE", googleId);
-        User user;
-        if (optionalUser.isEmpty()) {
-            // (A) 소셜 가입
-            user = new User();
+        // 구글 계정에 이메일 동의가 없으면 "google_{id}@google" 사용
+        String email = (googleUser.getEmail() != null)
+                ? googleUser.getEmail()
+                : ("google_" + googleId + "@google");
 
-            // 구글 계정에 이메일 동의 항목이 꺼져있으면 email이 null일 수 있음
-            String email = (userInfo.getEmail() != null) ? userInfo.getEmail() : ("google_" + googleId + "@google");
-            user.setEmail(email);
-
-            // userName, firstName, lastName 등 필수 컬럼
-            user.setUserName("googleUser_" + googleId);
-            user.setFirstName("Google");
-            user.setLastName("User");
-
-            user.setSocialType("GOOGLE");
-            user.setSocialId(googleId);
-            user.setVerified(true);  // 소셜로그인 시 별도의 이메일 인증 없이 verified=true
-            // 비밀번호는 임의로 생성
-            user.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
-            user.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
-            user.setUpdatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
-            userRepository.save(user);
-        } else {
-            // (B) 기존 유저
-            user = optionalUser.get();
-            // 필요 시 이메일/닉네임 업데이트 등
-        }
+        // 3) DB에서 이메일로 User 조회 → 없으면 신규 생성 / 있으면 소셜 정보 갱신
+        User user = findOrCreateUserByGoogle(email, googleId);
 
         // 4) JWT 발급
         String accessToken = jwtTokenProvider.createToken(user.getEmail());
         String refreshToken = jwtTokenProvider.createRefreshToken(user.getEmail());
+
         return new AuthRespDTO(accessToken, refreshToken);
     }
 
-    /**
-     * (실제 구현) 구글에 토큰 요청
-     * - endpoint: https://oauth2.googleapis.com/token
-     */
-    private GoogleTokenResponse getGoogleToken(String code) {
+    /* =================================================================
+       1) 구글 토큰 요청
+     ================================================================= */
+    private GoogleTokenResponse requestGoogleToken(String code) {
         String tokenUrl = "https://oauth2.googleapis.com/token";
 
         // 파라미터
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("grant_type", "authorization_code");
-        params.add("client_id", googleClientId);
-        params.add("client_secret", googleClientSecret);
-        params.add("redirect_uri", googleRedirectUri);
+        params.add("client_id", clientId);
+        params.add("client_secret", clientSecret);
+        params.add("redirect_uri", redirectUri);
         params.add("code", code);
 
         // 요청 헤더
@@ -108,39 +92,39 @@ public class GoogleService {
 
         // 요청
         RestTemplate restTemplate = new RestTemplate();
+        HttpEntity<MultiValueMap<String, String>> requestEntity =
+                new HttpEntity<>(params, headers);
+
         ResponseEntity<Map> response = restTemplate.postForEntity(
-                tokenUrl,
-                new HttpEntity<>(params, headers),
-                Map.class
+                tokenUrl, requestEntity, Map.class
         );
 
         // 응답 파싱
-        if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-            Map body = response.getBody();
-            String accessToken = (String) body.get("access_token");
-            String refreshToken = (String) body.get("refresh_token");
-            Integer expiresIn = (Integer) body.get("expires_in");
-
-            return new GoogleTokenResponse(
-                    accessToken,
-                    refreshToken,
-                    (expiresIn != null) ? expiresIn : 0
-            );
-        } else {
+        if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
             throw new RuntimeException("구글 토큰 발급 실패: " + response.getStatusCode());
         }
+
+        Map body = response.getBody();
+        String accessToken = (String) body.get("access_token");
+        String refreshToken = (String) body.get("refresh_token");
+        Integer expiresIn = (Integer) body.get("expires_in");
+
+        return new GoogleTokenResponse(
+                accessToken,
+                refreshToken,
+                (expiresIn != null) ? expiresIn : 0
+        );
     }
 
-    /**
-     * (실제 구현) 구글 사용자 정보 가져오기
-     * - endpoint: https://www.googleapis.com/oauth2/v2/userinfo
-     *   (또는 https://www.googleapis.com/oauth2/v3/userinfo)
-     */
-    private com.jandi.plan_backend.socialLogin.service.GoogleUserInfo getGoogleUserInfo(String accessToken) {
+    /* =================================================================
+       2) 구글 사용자 정보 조회
+     ================================================================= */
+    private GoogleUserInfo requestGoogleUserInfo(String accessToken) {
         String userInfoUrl = "https://www.googleapis.com/oauth2/v2/userinfo";
 
+        // 헤더에 accessToken 추가
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "Bearer " + accessToken);
+        headers.setBearerAuth(accessToken);
 
         RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<Map> response = restTemplate.exchange(
@@ -150,15 +134,59 @@ public class GoogleService {
                 Map.class
         );
 
-        if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-            Map body = response.getBody();
-            // 구글에서는 v2/userinfo에서 "id" 키를 사용, OIDC 기반이면 "sub" 키를 쓸 수도 있음
-            String sub = (String) body.get("id");
-            String email = (String) body.get("email");
-
-            return new com.jandi.plan_backend.socialLogin.service.GoogleUserInfo(sub, email);
-        } else {
+        if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
             throw new RuntimeException("구글 사용자 정보 조회 실패: " + response.getStatusCode());
         }
+
+        Map body = response.getBody();
+        // 구글 OAuth2 v2: "id" 필드 / v3: "sub" 필드
+        String sub = (String) body.get("id");
+        String email = (String) body.get("email");
+
+        return new GoogleUserInfo(sub, email);
+    }
+
+    /* =================================================================
+       3) DB 조회/가입 로직
+     ================================================================= */
+    private User findOrCreateUserByGoogle(String email, String googleId) {
+        Optional<User> optionalUser = userRepository.findByEmail(email);
+        if (optionalUser.isPresent()) {
+            // 이미 해당 이메일이 존재
+            User user = optionalUser.get();
+            if (user.getSocialType() == null) {
+                // 일반가입 + 아직 소셜연동 X
+                user.setSocialType("GOOGLE");
+                user.setSocialId(googleId);
+                userRepository.save(user);
+            } else if (!"GOOGLE".equals(user.getSocialType())) {
+                // 이미 다른 소셜로 가입
+                throw new RuntimeException("이미 다른 소셜("
+                        + user.getSocialType() + ")로 가입된 이메일입니다.");
+            } else {
+                // 소셜타입이 GOOGLE인데, ID가 다르면 충돌
+                if (!Objects.equals(user.getSocialId(), googleId)) {
+                    throw new RuntimeException("이미 GOOGLE로 가입된 이메일이지만, ID가 달라 충돌합니다.");
+                }
+                // 같다면 -> 그대로 사용
+            }
+            return user;
+        }
+
+        // 해당 이메일이 전혀 없으면 새로 가입
+        User newUser = new User();
+        newUser.setEmail(email);
+        newUser.setUserName("googleUser_" + googleId);
+        newUser.setFirstName("Google");
+        newUser.setLastName("User");
+        newUser.setSocialType("GOOGLE");
+        newUser.setSocialId(googleId);
+        newUser.setVerified(true);
+        newUser.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
+        newUser.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
+        newUser.setUpdatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
+
+        userRepository.save(newUser);
+        return newUser;
     }
 }

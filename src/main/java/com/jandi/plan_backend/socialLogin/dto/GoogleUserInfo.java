@@ -1,13 +1,18 @@
-package com.jandi.plan_backend.socialLogin.service;
+package com.jandi.plan_backend.socialLogin.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * 구글에서 가져온 사용자 정보(간소화)
+ * - sub : 구글의 사용자 식별자 (v2/userinfo에선 id, v3/userinfo에선 sub)
+ * - email : 사용자의 이메일
+ */
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 public class GoogleUserInfo {
-    private String sub;    // 구글 유저 고유 ID (v2/userinfo는 "id" 키)
-    private String email;  // 구글 계정 이메일
+    private String sub;
+    private String email;
 }
