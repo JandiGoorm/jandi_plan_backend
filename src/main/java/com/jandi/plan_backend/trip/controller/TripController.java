@@ -211,9 +211,19 @@ public class TripController {
             @RequestParam String category,
             @RequestParam String keyword,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "10") int size,
+            @RequestHeader(value = "Authorization", required = false) String token
     ) {
-        Page<TripRespDTO> tripsPage = tripService.searchTrips(category, keyword, page, size);
+        // (1) userEmail 추출 (토큰이 없거나 비어 있으면 null)
+        String userEmail = null;
+        if (token != null && !token.isBlank()) {
+            userEmail = jwtTokenProvider.getEmail(token.replace("Bearer ", ""));
+        }
+
+        // (2) 검색
+        Page<TripRespDTO> tripsPage = tripService.searchTrips(category, keyword, page, size, userEmail);
+
+        // (3) 응답
         return ResponseEntity.ok(Map.of(
                 "pageInfo", Map.of(
                         "currentPage", tripsPage.getNumber(),
