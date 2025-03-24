@@ -1,5 +1,6 @@
 package com.jandi.plan_backend.user.controller;
 
+import com.jandi.plan_backend.security.CustomUserDetails;
 import com.jandi.plan_backend.user.dto.*;
 import com.jandi.plan_backend.user.service.UserService;
 import lombok.extern.slf4j.Slf4j;
@@ -149,6 +150,32 @@ public class UserController {
         try {
             userService.deleteUser(email);
             return ResponseEntity.ok(Map.of("message", "회원 탈퇴가 완료되었습니다."));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * 닉네임 변경 API
+     * PATCH /api/users/change-username
+     * Body: { "newUserName": "원하는 닉네임" }
+     */
+    @PatchMapping("/change-username")
+    public ResponseEntity<?> changeUserName(
+            @AuthenticationPrincipal CustomUserDetails customUserDetails,
+            @RequestBody UserNameUpdateDTO dto
+    ) {
+        // 1) 인증 확인
+        if (customUserDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "로그인이 필요합니다."));
+        }
+
+        // 2) 서비스 로직 호출
+        String email = customUserDetails.getUsername();
+        try {
+            userService.changeUserName(email, dto.getNewUserName());
+            return ResponseEntity.ok(Map.of("message", "닉네임 변경이 완료되었습니다."));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
