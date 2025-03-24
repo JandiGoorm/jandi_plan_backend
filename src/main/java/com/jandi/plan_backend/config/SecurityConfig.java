@@ -86,9 +86,9 @@ public class SecurityConfig {
                                 "/api/users/token/refresh",
 
                                 // 소셜 로그인 관련
-                                "/api/auth/kakaoLogin", "/api/users/kakao/callback",
+                                "/api/auth/kakaoLogin",
                                 "/api/auth/naver/loginUrl", "/api/auth/naver/callback",
-                                "/api/auth/googleLogin", "/api/auth/googleLogin/callback"
+                                "/api/auth/googleLogin"
                         ).permitAll()
                         .requestMatchers(HttpMethod.GET,
                                 // community - post 관련
