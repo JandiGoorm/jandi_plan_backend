@@ -18,6 +18,7 @@ import com.jandi.plan_backend.user.repository.UserCityPreferenceRepository;
 import com.jandi.plan_backend.user.repository.UserRepository;
 import com.jandi.plan_backend.security.JwtTokenProvider;
 import com.jandi.plan_backend.util.ValidationUtil;
+import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -324,5 +325,30 @@ public class UserService {
     // 중복 닉네임 검증
     public boolean isExistUserName(String userName) {
         return userRepository.findByUserName(userName).isPresent();
+    }
+
+    /**
+     * 사용자 닉네임(userName) 변경
+     */
+    public void changeUserName(String email, String newUserName) {
+        // 1) 사용자 조회
+        User user = validationUtil.validateUserExists(email);
+
+        // 2) 부적절 유저(제재)인지 확인
+        validationUtil.validateUserRestricted(user);
+
+        // 3) 빈 문자열인지, 중복 닉네임인지 검사
+        if (newUserName == null || newUserName.trim().isEmpty()) {
+            throw new BadRequestExceptionMessage("새 닉네임이 비어있습니다.");
+        }
+        Optional<User> existing = userRepository.findByUserName(newUserName);
+        if (existing.isPresent() && !existing.get().getUserId().equals(user.getUserId())) {
+            throw new BadRequestExceptionMessage("이미 사용중인 닉네임입니다.");
+        }
+
+        // 4) 변경 후 저장
+        user.setUserName(newUserName);
+        user.setUpdatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
+        userRepository.save(user);
     }
 }
