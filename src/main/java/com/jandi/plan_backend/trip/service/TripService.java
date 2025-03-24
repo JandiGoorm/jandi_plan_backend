@@ -343,38 +343,127 @@ public class TripService {
         return convertToPublicTripRespDTO(trip);
     }
 
-    /**
-     * 검색 (제목, 도시명, 둘 다)
-     */
-    public Page<TripRespDTO> searchTrips(String category, String keyword, Integer page, Integer size) {
+    // 검색 메서드 시그니처 수정: userEmail을 추가로 받는다.
+    public Page<TripRespDTO> searchTrips(String category, String keyword,
+                                         Integer page, Integer size,
+                                         String userEmail)
+    {
+        // (1) 검색어 검증
         if (keyword == null || keyword.trim().length() < 2) {
             throw new BadRequestExceptionMessage("검색어는 2글자 이상 입력");
         }
         String lowerKeyword = keyword.trim().toLowerCase();
-        List<Trip> searchList;
+
+        // (2) DB에서 keyword로 Trip 목록 조회
+        List<Trip> rawList;
         switch (category.toUpperCase()) {
-            case "TITLE" -> searchList = tripRepository.searchByTitleContainingIgnoreCase(lowerKeyword);
-            case "CITY" -> searchList = tripRepository.searchByCityNameContainingIgnoreCase(lowerKeyword);
-            case "BOTH" -> {
+            case "TITLE" -> rawList = tripRepository.searchByTitleContainingIgnoreCase(lowerKeyword);
+            case "CITY"  -> rawList = tripRepository.searchByCityNameContainingIgnoreCase(lowerKeyword);
+            case "BOTH"  -> {
                 Set<Trip> set = new HashSet<>();
                 set.addAll(tripRepository.searchByTitleContainingIgnoreCase(lowerKeyword));
                 set.addAll(tripRepository.searchByCityNameContainingIgnoreCase(lowerKeyword));
-                searchList = new ArrayList<>(set);
+                rawList = new ArrayList<>(set);
             }
             default -> throw new BadRequestExceptionMessage("카테고리는 TITLE, CITY, BOTH 중 하나");
         }
-        searchList.sort(Comparator.comparing(Trip::getTripId).reversed());
-        long totalCount = searchList.size();
 
-        return PaginationService.getPagedData(page, size, totalCount,
+        // (3) 정렬(내림차순)
+        rawList.sort(Comparator.comparing(Trip::getTripId).reversed());
+        long totalCount = rawList.size();
+
+        // (4) userEmail -> User (null 가능)
+        User currentUser = (userEmail == null) ? null
+                : validationUtil.validateUserExists(userEmail);
+
+        // (5) 검색된 Trip 중, '접근 권한이 있는' 것만 필터링
+        List<Trip> filteredList = rawList.stream()
+                .filter(trip -> canViewTrip(trip, currentUser)) // 접근 가능?
+                .collect(Collectors.toList());
+
+        // (6) 필터링된 결과를 다시 정렬 (이미 rawList.sort 했으므로 생략 가능)
+        // filteredList.sort(Comparator.comparing(Trip::getTripId).reversed());
+        long filteredCount = filteredList.size();
+
+        // (7) 페이지네이션
+        return PaginationService.getPagedData(
+                page, size, filteredCount,
                 pageable -> {
                     int start = (int) pageable.getOffset();
-                    int end = Math.min(start + pageable.getPageSize(), searchList.size());
-                    List<Trip> pagedList = searchList.subList(start, end);
-                    return new PageImpl<>(pagedList, pageable, totalCount);
+                    int end = Math.min(start + pageable.getPageSize(), filteredList.size());
+                    List<Trip> subList = filteredList.subList(start, end);
+                    return new PageImpl<>(subList, pageable, filteredCount);
                 },
-                this::convertToPublicTripRespDTO
+                trip -> toAppropriateDTO(trip, currentUser) // Trip -> TripRespDTO 변환
         );
+    }
+
+    /**
+     * "이 사용자(currentUser)가 이 Trip을 볼 수 있는가?" 판단
+     * - 공개( privatePlan=false )면 누구나
+     * - 비공개면 (본인 or 동반자 or 관리자/스태프)만 가능
+     */
+    private boolean canViewTrip(Trip trip, User currentUser) {
+        // 1) 공개 여행 계획이면 누구나 가능
+        if (!trip.getPrivatePlan()) {
+            return true;
+        }
+        // 2) 비공개인데 로그인 안 됨 -> 접근 불가
+        if (currentUser == null) {
+            return false;
+        }
+        // 3) 관리자 or 스태프 -> 접근 가능
+        if (validationUtil.validateUserIsAdmin(currentUser)
+                || validationUtil.validateUserIsStaff(currentUser)) {
+            return true;
+        }
+        // 4) 작성자 본인 -> 접근 가능
+        if (trip.getUser().getUserId().equals(currentUser.getUserId())) {
+            return true;
+        }
+        // 5) 동반자로 등록되어 있으면 접근 가능
+        return tripParticipantRepository
+                .findByTrip_TripIdAndParticipant_UserId(trip.getTripId(), currentUser.getUserId())
+                .isPresent();
+    }
+
+    /**
+     * "이 사용자(currentUser)가 이 Trip을 '공개 정보'로 볼 수 있는가?"에 따라
+     * - public(세부정보) or private(마스킹) DTO를 반환
+     *
+     * (검색 결과에서 "비공개 + 권한 없음"인 Trip은 이미 제외했으므로,
+     *  실제로 여기서 private DTO가 반환될 일은
+     *  '좋아요 목록' 등에서 마스킹이 필요한 경우에만 가능)
+     */
+    private TripRespDTO toAppropriateDTO(Trip trip, User currentUser) {
+        // 1) 공개 플랜이면 무조건 public
+        if (!trip.getPrivatePlan()) {
+            return convertToPublicTripRespDTO(trip);
+        }
+
+        // 2) 비공개지만 사용자 없는 경우 -> private
+        if (currentUser == null) {
+            return convertToPrivateTripRespDTO(trip);
+        }
+
+        // 3) 관리자 or 스태프
+        if (validationUtil.validateUserIsAdmin(currentUser)
+                || validationUtil.validateUserIsStaff(currentUser)) {
+            return convertToPublicTripRespDTO(trip);
+        }
+
+        // 4) 본인 or 동반자
+        boolean isOwner = trip.getUser().getUserId().equals(currentUser.getUserId());
+        boolean isParticipant = tripParticipantRepository
+                .findByTrip_TripIdAndParticipant_UserId(trip.getTripId(), currentUser.getUserId())
+                .isPresent();
+
+        if (isOwner || isParticipant) {
+            return convertToPublicTripRespDTO(trip);
+        }
+
+        // 5) 그 외 -> private
+        return convertToPrivateTripRespDTO(trip);
     }
 
     /**
