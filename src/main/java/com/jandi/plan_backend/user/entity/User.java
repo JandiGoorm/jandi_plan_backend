@@ -51,7 +51,7 @@ public class User {
     private LocalDateTime tokenExpires;
 
     @Column
-    private Boolean reported;
+    private Boolean reported = false;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Community> communities;
