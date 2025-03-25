@@ -1,10 +1,13 @@
 package com.jandi.plan_backend.user.service;
 
-import com.jandi.plan_backend.commu.entity.Comment;
-import com.jandi.plan_backend.commu.entity.Community;
-import com.jandi.plan_backend.commu.repository.*;
-import com.jandi.plan_backend.commu.service.CommentService;
-import com.jandi.plan_backend.commu.service.PostService;
+import com.jandi.plan_backend.commu.comment.entity.Comment;
+import com.jandi.plan_backend.commu.comment.repository.CommentLikeRepository;
+import com.jandi.plan_backend.commu.comment.repository.CommentReportedRepository;
+import com.jandi.plan_backend.commu.comment.repository.CommentRepository;
+import com.jandi.plan_backend.commu.community.entity.Community;
+import com.jandi.plan_backend.commu.community.repository.*;
+import com.jandi.plan_backend.commu.comment.service.CommentService;
+import com.jandi.plan_backend.commu.community.service.PostService;
 import com.jandi.plan_backend.image.entity.Image;
 import com.jandi.plan_backend.image.repository.ImageRepository;
 import com.jandi.plan_backend.image.service.ImageService;

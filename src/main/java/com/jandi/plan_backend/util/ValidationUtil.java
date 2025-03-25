@@ -1,12 +1,12 @@
 package com.jandi.plan_backend.util;
 
-import com.jandi.plan_backend.commu.entity.Comment;
-import com.jandi.plan_backend.commu.entity.Community;
+import com.jandi.plan_backend.commu.comment.entity.Comment;
+import com.jandi.plan_backend.commu.community.entity.Community;
 import com.jandi.plan_backend.itinerary.entity.Reservation;
 import com.jandi.plan_backend.itinerary.repository.ReservationRepository;
 import com.jandi.plan_backend.resource.repository.BannerRepository;
-import com.jandi.plan_backend.commu.repository.CommentRepository;
-import com.jandi.plan_backend.commu.repository.CommunityRepository;
+import com.jandi.plan_backend.commu.comment.repository.CommentRepository;
+import com.jandi.plan_backend.commu.community.repository.CommunityRepository;
 import com.jandi.plan_backend.resource.entity.Banner;
 import com.jandi.plan_backend.resource.entity.Notice;
 import com.jandi.plan_backend.resource.repository.NoticeRepository;
@@ -25,7 +25,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
