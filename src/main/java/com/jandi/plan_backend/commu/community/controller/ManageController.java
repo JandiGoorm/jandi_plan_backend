@@ -14,10 +14,10 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/manage/community")
-public class ManageCommunityController {
+public class ManageController {
     private final ManageCommunityService manageCommunityService;
 
-    public ManageCommunityController(ManageCommunityService manageCommunityService) {
+    public ManageController(ManageCommunityService manageCommunityService) {
         this.manageCommunityService = manageCommunityService;
     }
 
@@ -94,7 +94,7 @@ public class ManageCommunityController {
         }
     }
 
-    // 부적절 게시글 삭제
+    // 부적절 댓글 삭제
     @DeleteMapping("/delete/comments/{commentId}")
     public ResponseEntity<?> deleteComments(
             @AuthenticationPrincipal UserDetails userDetails,

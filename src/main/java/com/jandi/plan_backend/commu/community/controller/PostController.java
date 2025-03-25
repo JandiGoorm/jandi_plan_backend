@@ -1,7 +1,7 @@
 package com.jandi.plan_backend.commu.community.controller;
 
 import com.jandi.plan_backend.commu.community.dto.*;
-import com.jandi.plan_backend.commu.community.service.PostService;
+import com.jandi.plan_backend.commu.community.service.*;
 import com.jandi.plan_backend.security.JwtTokenProvider;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -17,11 +17,26 @@ import java.util.Map;
 public class PostController {
 
     private final JwtTokenProvider jwtTokenProvider;
-    private final PostService postService;
+    private final CommunityLikeService communityLikeService;
+    private final CommunityQueryService communityQueryService;
+    private final CommunityReportService communityReportService;
+    private final CommunitySearchService communitySearchService;
+    private final CommunityUpdateService communityUpdateService;
 
-    public PostController(PostService postService, JwtTokenProvider jwtTokenProvider) {
+    public PostController(
+            JwtTokenProvider jwtTokenProvider,
+            CommunityLikeService communityLikeService,
+            CommunityQueryService communityQueryService,
+            CommunityReportService communityReportService,
+            CommunitySearchService communitySearchService,
+            CommunityUpdateService communityUpdateService
+    ) {
         this.jwtTokenProvider = jwtTokenProvider;
-        this.postService = postService;
+        this.communityLikeService = communityLikeService;
+        this.communityQueryService = communityQueryService;
+        this.communityReportService = communityReportService;
+        this.communitySearchService = communitySearchService;
+        this.communityUpdateService = communityUpdateService;
     }
 
     /** 게시물 목록 조회 API */
@@ -30,7 +45,7 @@ public class PostController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        Page<CommunityListDTO> postsPage = postService.getAllPosts(page, size);
+        Page<CommunityListDTO> postsPage = communityQueryService.getAllPosts(page, size);
         return Map.of(
                 "pageInfo", Map.of(
                         "currentPage", postsPage.getNumber(),
@@ -50,7 +65,7 @@ public class PostController {
     ) {
         String userEmail = (userDetails != null) ? userDetails.getUsername() : null;
 
-        return Map.of("items", postService.getSpecPost(postId, userEmail));
+        return Map.of("items", communityQueryService.getSpecPost(postId, userEmail));
     }
 
     /** 게시물 수정 API */
@@ -66,7 +81,7 @@ public class PostController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
 
-        CommunityRespDTO updatedPost = postService.updatePost(postDTO, postId, userEmail);
+        CommunityRespDTO updatedPost = communityUpdateService.updatePost(postDTO, postId, userEmail);
         return ResponseEntity.ok(updatedPost);
     }
 
@@ -86,7 +101,7 @@ public class PostController {
         // 1. 하위 댓글 삭제
         // 2. imageRepository.findAllByTargetTypeAndTargetId("community", postId)를 통해 모든 연결된 이미지를 조회하고,
         //    imageService.deleteImage(imageId)를 반복 호출하여 모두 삭제하도록 구현되어 있어야 합니다.
-        int deleteCommentCount = postService.deletePost(postId, userEmail);
+        int deleteCommentCount = communityUpdateService.deletePost(postId, userEmail);
         String returnMsg = (deleteCommentCount == 0) ?
                 "게시물이 삭제되었습니다" : "선택된 게시물과 하위 댓글 " + deleteCommentCount + "개가 삭제되었습니다";
         return ResponseEntity.ok(returnMsg);
@@ -100,7 +115,7 @@ public class PostController {
     ) {
         String jwtToken = token.replace("Bearer ", "");
         String userEmail = jwtTokenProvider.getEmail(jwtToken);
-        postService.likePost(userEmail, postId);
+        communityLikeService.likePost(userEmail, postId);
         return ResponseEntity.ok("좋아요 성공");
     }
 
@@ -112,7 +127,7 @@ public class PostController {
     ) {
         String jwtToken = token.replace("Bearer ", "");
         String userEmail = jwtTokenProvider.getEmail(jwtToken);
-        postService.deleteLikePost(userEmail, postId);
+        communityLikeService.deleteLikePost(userEmail, postId);
         return ResponseEntity.ok("좋아요 취소되었습니다.");
     }
 
@@ -126,7 +141,7 @@ public class PostController {
         String jwtToken = token.replace("Bearer ", "");
         String userEmail = jwtTokenProvider.getEmail(jwtToken);
 
-        PostReportRespDTO reported = postService.reportPost(userEmail, postId, reportDTO);
+        PostReportRespDTO reported = communityReportService.reportPost(userEmail, postId, reportDTO);
         return ResponseEntity.ok(reported);
     }
 
@@ -144,7 +159,7 @@ public class PostController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
 
-        CommunityRespDTO respDTO = postService.finalizePost(userEmail, finalizeReqDTO);
+        CommunityRespDTO respDTO = communityUpdateService.finalizePost(userEmail, finalizeReqDTO);
         return ResponseEntity.ok(respDTO);
     }
 
@@ -156,7 +171,7 @@ public class PostController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ){
-        Page<CommunityListDTO> postsPage = postService.search(category, keyword, page, size);
+        Page<CommunityListDTO> postsPage = communitySearchService.search(category, keyword, page, size);
         return Map.of(
                 "pageInfo", Map.of(
                         "currentPage", postsPage.getNumber(),
@@ -166,14 +181,5 @@ public class PostController {
                 ),
                 "items", postsPage.getContent()
         );
-    }
-
-    //DEV용: 기존 게시글은 미리보기가 없으니 강제로 넣어줄 목적임
-    @PatchMapping("/patch/preview")
-    @GetMapping("/posts")
-    public ResponseEntity<?> patchPreview(
-    ) {
-        postService.patchPreview();
-        return ResponseEntity.ok(null);
     }
 }

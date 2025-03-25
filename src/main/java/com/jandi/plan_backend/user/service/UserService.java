@@ -7,7 +7,7 @@ import com.jandi.plan_backend.commu.comment.repository.CommentRepository;
 import com.jandi.plan_backend.commu.community.entity.Community;
 import com.jandi.plan_backend.commu.community.repository.*;
 import com.jandi.plan_backend.commu.comment.service.CommentService;
-import com.jandi.plan_backend.commu.community.service.PostService;
+import com.jandi.plan_backend.commu.community.service.CommunityUpdateService;
 import com.jandi.plan_backend.image.entity.Image;
 import com.jandi.plan_backend.image.repository.ImageRepository;
 import com.jandi.plan_backend.image.service.ImageService;
@@ -49,7 +49,6 @@ public class UserService {
     private final JwtTokenProvider jwtTokenProvider;
     private final ImageService imageService;
     private final CommunityRepository communityRepository;
-    private final PostService postService;
     private final CommentRepository commentRepository;
     private final CommentService commentService;
     private final TripRepository tripRepository;
@@ -62,6 +61,7 @@ public class UserService {
     private final CommunityLikeRepository communityLikeRepository;
     private final CommentLikeRepository commentLikeRepository;
     private final ValidationUtil validationUtil;
+    private final CommunityUpdateService communityUpdateService;
 
     @Value("${app.verify.url}")
     private String verifyUrl;
@@ -72,7 +72,6 @@ public class UserService {
                        JwtTokenProvider jwtTokenProvider,
                        ImageService imageService,
                        ValidationUtil validationUtil,
-                       PostService postService,
                        CommentRepository commentRepository,
                        CommentService commentService,
                        CommunityRepository communityRepository,
@@ -84,14 +83,13 @@ public class UserService {
                        CommentReportedRepository commentReportedRepository,
                        TripLikeRepository tripLikeRepository,
                        CommunityLikeRepository communityLikeRepository,
-                       CommentLikeRepository commentLikeRepository
-        ) {
+                       CommentLikeRepository commentLikeRepository,
+                       CommunityUpdateService communityUpdateService) {
         this.userRepository = userRepository;
         this.emailService = emailService;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
         this.imageService = imageService;
-        this.postService = postService;
         this.commentRepository = commentRepository;
         this.commentService = commentService;
         this.communityRepository = communityRepository;
@@ -105,6 +103,7 @@ public class UserService {
         this.communityLikeRepository = communityLikeRepository;
         this.commentLikeRepository = commentLikeRepository;
         this.validationUtil = validationUtil;
+        this.communityUpdateService = communityUpdateService;
     }
 
     public User registerUser(UserRegisterDTO dto) {
@@ -284,7 +283,7 @@ public class UserService {
         }
         for(Community community : communityRepository.findByUser(user)) {
             // 유저가 작성한 게시글 삭제
-            postService.deletePost(community.getPostId(), user.getEmail());
+            communityUpdateService.deletePost(community.getPostId(), user.getEmail());
         }
         // 유저가 신고한 게시글 정보 삭제
         communityReportedRepository.

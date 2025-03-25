@@ -18,18 +18,18 @@ public class ManageCommunityService {
     private final ValidationUtil validationUtil;
     private final CommunityReportedRepository communityReportedRepository;
     private final CommentReportedRepository commentReportedRepository;
-    private final PostService postService;
     private final CommentService commentService;
+    private final CommunityUpdateService communityUpdateService;
 
     public ManageCommunityService(
             ValidationUtil validationUtil,
             CommunityReportedRepository communityReportedRepository,
-            CommentReportedRepository commentReportedRepository, PostService postService, CommentService commentService) {
+            CommentReportedRepository commentReportedRepository, CommentService commentService, CommunityUpdateService communityUpdateService) {
         this.validationUtil = validationUtil;
         this.communityReportedRepository = communityReportedRepository;
         this.commentReportedRepository = commentReportedRepository;
-        this.postService = postService;
         this.commentService = commentService;
+        this.communityUpdateService = communityUpdateService;
     }
 
     public Page<CommunityReportedListDTO> getReportedPosts(String userEmail, int page, int size) {
@@ -66,7 +66,7 @@ public class ManageCommunityService {
     // 게시글 강제 삭제
     public void deletePosts(Integer postId) {
         Community post = validationUtil.validatePostExists(postId);
-        postService.deletePost(postId, post.getUser().getEmail());
+        communityUpdateService.deletePost(postId, post.getUser().getEmail());
     }
 
     // 댓글 강제 삭제
