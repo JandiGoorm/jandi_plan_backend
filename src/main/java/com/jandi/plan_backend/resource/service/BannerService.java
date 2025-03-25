@@ -8,6 +8,7 @@ import com.jandi.plan_backend.image.dto.ImageRespDto;
 import com.jandi.plan_backend.image.repository.ImageRepository;
 import com.jandi.plan_backend.image.service.ImageService;
 import com.jandi.plan_backend.user.entity.User;
+import com.jandi.plan_backend.user.entity.Role;
 import com.jandi.plan_backend.util.ValidationUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -62,7 +63,7 @@ public class BannerService {
                                      String title,
                                      String subtitle,
                                      String link) {
-        // 1) 유저 검증 (관리자 권한인지 확인 로직은 ValidationUtil 등에서 처리)
+        // 1) 유저 검증 (관리자 권한 여부는 ValidationUtil 등에서 처리)
         User user = validationUtil.validateUserExists(email);
 
         // 2) 배너글 생성
@@ -77,10 +78,7 @@ public class BannerService {
         ImageRespDto imageResp = imageService.uploadImage(file, user.getEmail(), banner.getBannerId(), "banner");
 
         // 4) 배너 응답 DTO 생성
-        return new BannerRespDTO(
-                banner,
-                imageResp.getImageUrl() // public URL
-        );
+        return new BannerRespDTO(banner, imageResp.getImageUrl());
     }
 
     /** 배너글 수정 */
@@ -111,10 +109,8 @@ public class BannerService {
 
         // 4) 새 파일이 있으면 기존 이미지 삭제 후 재업로드
         if (file != null && !file.isEmpty()) {
-            // 기존 이미지 삭제
             imageRepository.findByTargetTypeAndTargetId("banner", bannerId)
                     .ifPresent(img -> imageService.deleteImage(img.getImageId()));
-            // 새 이미지 업로드
             imageService.uploadImage(file, user.getEmail(), bannerId, "banner");
         }
 
@@ -123,21 +119,27 @@ public class BannerService {
                 .map(img -> urlPrefix + img.getImageUrl())
                 .orElse(null);
 
-        // 6) 수정된 배너 반환
         return new BannerRespDTO(banner, finalImageUrl);
     }
 
-    /** 배너글 삭제 */
+    /**
+     * 배너글 삭제
+     * 서비스 계층에서 사용자 이메일을 기반으로 관리자 권한을 검증한 후 삭제를 진행합니다.
+     */
     @Transactional
-    public boolean deleteBanner(Integer bannerId) {
+    public boolean deleteBanner(String userEmail, Integer bannerId) {
+        // 사용자 검증
+        User user = validationUtil.validateUserExists(userEmail);
+        // 관리자 권한 검증
+        if (user.getRoleEnum() != Role.ADMIN) {
+            throw new RuntimeException("권한이 없습니다.");
+        }
+        // 배너 검증 및 삭제
         Banner banner = validationUtil.validateBannerExists(bannerId);
-
-        // 배너 이미지 삭제
         imageRepository.findByTargetTypeAndTargetId("banner", bannerId)
                 .ifPresent(img -> imageService.deleteImage(img.getImageId()));
-
-        // 배너 엔티티 삭제
         bannerRepository.delete(banner);
         return true;
     }
+
 }

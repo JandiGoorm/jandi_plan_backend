@@ -3,8 +3,11 @@ package com.jandi.plan_backend.resource.controller;
 import com.jandi.plan_backend.resource.dto.BannerListDTO;
 import com.jandi.plan_backend.resource.dto.BannerRespDTO;
 import com.jandi.plan_backend.resource.service.BannerService;
+import com.jandi.plan_backend.security.CustomUserDetails;
 import com.jandi.plan_backend.security.JwtTokenProvider;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -26,7 +29,6 @@ public class BannerController {
     @GetMapping("/lists")
     public Map<String, Object> getAllBannersFormatted() {
         List<BannerListDTO> banners = bannerService.getAllBanners();
-
         return Map.of(
                 "bannerInfo", Map.of("size", banners.size()),
                 "items", banners
@@ -39,17 +41,16 @@ public class BannerController {
             @RequestHeader("Authorization") String token,
             @RequestPart MultipartFile file,
             @RequestParam String title,
-            @RequestParam(required = false) String subtitle,  // 추가
+            @RequestParam(required = false) String subtitle,
             @RequestParam String linkUrl
     ) {
         String jwtToken = token.replace("Bearer ", "");
         String userEmail = jwtTokenProvider.getEmail(jwtToken);
-
         BannerRespDTO savedBanner = bannerService.writeBanner(
                 userEmail,
                 file,
                 title,
-                subtitle, // 소제목
+                subtitle,
                 linkUrl
         );
         return ResponseEntity.ok(savedBanner);
@@ -62,18 +63,17 @@ public class BannerController {
             @RequestHeader("Authorization") String token,
             @RequestParam(value = "file", required = false) MultipartFile file,
             @RequestParam(value = "title", required = false) String title,
-            @RequestParam(value = "subtitle", required = false) String subtitle, // 추가
+            @RequestParam(value = "subtitle", required = false) String subtitle,
             @RequestParam(value = "linkUrl", required = false) String linkUrl
     ) {
         String jwtToken = token.replace("Bearer ", "");
         String userEmail = jwtTokenProvider.getEmail(jwtToken);
-
         BannerRespDTO updatedBanner = bannerService.updateBanner(
                 userEmail,
                 bannerId,
                 file,
                 title,
-                subtitle, // 소제목
+                subtitle,
                 linkUrl
         );
         return ResponseEntity.ok(updatedBanner);
@@ -84,11 +84,19 @@ public class BannerController {
     public ResponseEntity<?> deleteBanner(
             @PathVariable Integer bannerId,
             @RequestHeader("Authorization") String token
-    ){
-        boolean isDeleted = bannerService.deleteBanner(bannerId);
-        String returnMsg = isDeleted
-                ? "삭제되었습니다"
-                : "삭제 과정에서 문제가 발생했습니다. 다시 한번 시도해주세요";
-        return ResponseEntity.ok(returnMsg);
+    ) {
+        String jwtToken = token.replace("Bearer ", "");
+        String userEmail = jwtTokenProvider.getEmail(jwtToken);
+        try {
+            boolean isDeleted = bannerService.deleteBanner(userEmail, bannerId);
+            String returnMsg = isDeleted
+                    ? "삭제되었습니다"
+                    : "삭제 과정에서 문제가 발생했습니다. 다시 한번 시도해주세요";
+            return ResponseEntity.ok(returnMsg);
+        } catch (RuntimeException e) {
+            // 서비스 계층에서 관리자 권한 검증 실패 시 RuntimeException 발생
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+        }
     }
+
 }
