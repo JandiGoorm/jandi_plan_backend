@@ -11,6 +11,7 @@ import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.util.ValidationUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
@@ -39,6 +40,7 @@ public class BannerService {
     }
 
     /** 전체 배너 목록 조회 */
+    @Transactional(readOnly = true)
     public List<BannerListDTO> getAllBanners() {
         return bannerRepository.findAll().stream()
                 .map(banner -> {
@@ -54,10 +56,11 @@ public class BannerService {
     }
 
     /** 배너글 작성 */
+    @Transactional
     public BannerRespDTO writeBanner(String email,
                                      MultipartFile file,
                                      String title,
-                                     String subtitle,  // 추가
+                                     String subtitle,
                                      String link) {
         // 1) 유저 검증 (관리자 권한인지 확인 로직은 ValidationUtil 등에서 처리)
         User user = validationUtil.validateUserExists(email);
@@ -66,7 +69,7 @@ public class BannerService {
         Banner banner = new Banner();
         banner.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
         banner.setTitle(title);
-        banner.setSubtitle(subtitle); // 소제목 추가
+        banner.setSubtitle(subtitle);
         banner.setLinkUrl(link);
         bannerRepository.save(banner);
 
@@ -81,11 +84,12 @@ public class BannerService {
     }
 
     /** 배너글 수정 */
+    @Transactional
     public BannerRespDTO updateBanner(String email,
                                       Integer bannerId,
                                       MultipartFile file,
                                       String title,
-                                      String subtitle, // 추가
+                                      String subtitle,
                                       String link) {
         // 1) 유저 검증
         User user = validationUtil.validateUserExists(email);
@@ -124,6 +128,7 @@ public class BannerService {
     }
 
     /** 배너글 삭제 */
+    @Transactional
     public boolean deleteBanner(Integer bannerId) {
         Banner banner = validationUtil.validateBannerExists(bannerId);
 
