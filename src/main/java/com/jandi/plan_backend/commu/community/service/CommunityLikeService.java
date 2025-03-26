@@ -7,12 +7,16 @@ import com.jandi.plan_backend.commu.community.repository.CommunityRepository;
 import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.util.ValidationUtil;
 import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Optional;
 
+@Slf4j
 @Service
 public class CommunityLikeService {
     private final ValidationUtil validationUtil;
@@ -29,6 +33,7 @@ public class CommunityLikeService {
     }
 
     /** 게시물 좋아요 */
+    @Transactional
     public void likePost(String userEmail, Integer postId) {
         User user = validationUtil.validateUserExists(userEmail);
         validationUtil.validateUserRestricted(user);
@@ -45,13 +50,13 @@ public class CommunityLikeService {
         communityLike.setCommunity(post);
         communityLike.setUser(user);
         communityLike.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
-        communityLikeRepository.save(communityLike);
 
-        post.setLikeCount(post.getLikeCount() + 1);
-        communityRepository.save(post);
+        communityLikeRepository.save(communityLike);
+        communityRepository.incrementLikeCount(postId);
     }
 
     /** 게시물 좋아요 취소 */
+    @Transactional
     public void deleteLikePost(String userEmail, Integer postId) {
         User user = validationUtil.validateUserExists(userEmail);
         validationUtil.validateUserRestricted(user);
@@ -62,7 +67,6 @@ public class CommunityLikeService {
             throw new BadRequestExceptionMessage("좋아요한 적 없는 게시물입니다.");
         }
         communityLikeRepository.delete(communityLike.get());
-        post.setLikeCount(post.getLikeCount() - 1);
-        communityRepository.save(post);
+        communityRepository.decrementLikeCount(postId);
     }
 }

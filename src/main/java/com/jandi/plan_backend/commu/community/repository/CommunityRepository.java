@@ -3,6 +3,7 @@ package com.jandi.plan_backend.commu.community.repository;
 import com.jandi.plan_backend.commu.community.entity.Community;
 import com.jandi.plan_backend.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -32,4 +33,14 @@ public interface CommunityRepository extends JpaRepository<Community, Integer> {
     //해시태그로 검색: JSON 형태로 검색
     @Query(value = "SELECT * FROM community WHERE JSON_CONTAINS(hashtags, :jsonTag)", nativeQuery = true)
     List<Community> searchByHashTag(@Param("jsonTag") String keyword);
+
+    // 증감 쿼리
+    @Modifying
+    @Query("update Community c set c.likeCount = c.likeCount + 1 where c.postId = :id")
+    void incrementLikeCount(@Param("id") Integer id);
+
+    @Modifying
+    @Query("update Community c set c.likeCount = c.likeCount - 1 where c.postId = :id")
+    void decrementLikeCount(@Param("id") Integer id);
+
 }
