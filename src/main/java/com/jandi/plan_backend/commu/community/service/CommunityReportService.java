@@ -9,6 +9,7 @@ import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.util.ValidationUtil;
 import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -27,6 +28,7 @@ public class CommunityReportService {
     }
 
     /** 게시물 신고 */
+    @Transactional
     public PostReportRespDTO reportPost(String userEmail, Integer postId, ReportReqDTO reportDTO) {
         //게시글 검증
         Community post = validationUtil.validatePostExists(postId);
@@ -34,7 +36,7 @@ public class CommunityReportService {
         validationUtil.validateUserRestricted(user);
 
         // 중복 신고 방지
-        if(communityReportedRepository.findByUser_userIdAndCommunity_postId(user.getUserId(), postId).isPresent()){
+        if(communityReportedRepository.existsByUserAndCommunity(user, post)){
             throw new BadRequestExceptionMessage("이미 신고한 게시글입니다.");
         }
 
