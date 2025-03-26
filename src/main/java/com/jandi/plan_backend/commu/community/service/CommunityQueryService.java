@@ -12,6 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -35,21 +36,21 @@ public class CommunityQueryService {
     }
 
     /** 특정 게시글 조회 */
-    public Optional<CommunityItemDTO> getSpecPost(Integer postId, String userEmail) {
+    @Transactional
+    public CommunityItemDTO getSpecPost(Integer postId, String userEmail) {
         //게시글의 존재 여부 검증
+        communityRepository.incrementViewCount(postId);
         Community community = validationUtil.validatePostExists(postId);
-        community.setViewCount(community.getViewCount() + 1);
-        communityRepository.save(community);
 
         //게시글 좋아요 여부
         boolean isLike = communityUtil.isLikedCommunity(userEmail, community);
 
         //게시글 반환
-        Optional<Community> post = communityRepository.findByPostId(postId);
-        return post.map(p -> new CommunityItemDTO(p, imageService, isLike)); // imageService 포함
+        return new CommunityItemDTO(community, imageService, isLike); // imageService 포함
     }
 
     /** 게시글 목록 전체 조회 */
+    @Transactional(readOnly = true)
     public Page<CommunityListDTO> getAllPosts(int page, int size) {
         long totalCount = communityRepository.count();
         Sort sort = Sort.by(Sort.Direction.DESC, "postId");

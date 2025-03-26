@@ -43,4 +43,8 @@ public interface CommunityRepository extends JpaRepository<Community, Integer> {
     @Query("update Community c set c.likeCount = c.likeCount - 1 where c.postId = :id")
     void decrementLikeCount(@Param("id") Integer id);
 
+    @Modifying
+    @Query("update Community c set c.viewCount = c.viewCount + 1 where c.postId = :id")
+    void incrementViewCount(@Param("id") Integer id);
+
 }
