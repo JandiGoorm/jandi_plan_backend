@@ -43,7 +43,7 @@ public class CommunityUtil {
 
     public boolean isLikedCommunity(String userEmail, Community community) {
         User user = userRepository.findByEmail(userEmail).orElse(null);
-        return user != null && communityLikeRepository.findByCommunityAndUser(community, user).isPresent();
+        return user != null && communityLikeRepository.existsByUserAndCommunity(user, community);
     }
 
     public String getThumbnailUrl(Community community) {

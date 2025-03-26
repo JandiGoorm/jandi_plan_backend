@@ -42,7 +42,7 @@ public class CommunityLikeService {
         if(user.getUserId().equals(post.getUser().getUserId())){
             throw new BadRequestExceptionMessage("본인의 게시글에 좋아요할 수 없습니다.");
         }
-        if(communityLikeRepository.findByCommunityAndUser(post, user).isPresent()){
+        if(communityLikeRepository.existsByUserAndCommunity(user, post)){
             throw new BadRequestExceptionMessage("이미 좋아요한 게시물입니다.");
         }
 
@@ -62,7 +62,7 @@ public class CommunityLikeService {
         validationUtil.validateUserRestricted(user);
         Community post = validationUtil.validatePostExists(postId);
 
-        Optional<CommunityLike> communityLike = communityLikeRepository.findByCommunityAndUser(post, user);
+        Optional<CommunityLike> communityLike = communityLikeRepository.findByUserAndCommunity(user, post);
         if(communityLike.isEmpty()){
             throw new BadRequestExceptionMessage("좋아요한 적 없는 게시물입니다.");
         }
