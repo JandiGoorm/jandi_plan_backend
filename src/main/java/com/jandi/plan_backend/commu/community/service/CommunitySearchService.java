@@ -13,6 +13,7 @@ import com.jandi.plan_backend.util.service.PaginationService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Comparator;
 import java.util.List;
@@ -36,6 +37,7 @@ public class CommunitySearchService {
         this.communityUtil = communityUtil;
     }
 
+    @Transactional(readOnly = true)
     public Page<CommunityListDTO> search(String category, String keyword, int page, int size) {
         //category 예외 처리
         if(category == null || category.isEmpty()) {
