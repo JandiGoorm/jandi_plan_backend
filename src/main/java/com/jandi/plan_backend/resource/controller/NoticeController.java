@@ -6,6 +6,7 @@ import com.jandi.plan_backend.resource.dto.NoticeReqDTO;
 import com.jandi.plan_backend.resource.dto.NoticeRespDTO;
 import com.jandi.plan_backend.resource.service.NoticeService;
 import com.jandi.plan_backend.security.JwtTokenProvider;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,7 +17,7 @@ import java.util.Map;
 @RequestMapping("/api/notice")
 public class NoticeController {
     private final NoticeService noticeService;
-    private final JwtTokenProvider jwtTokenProvider; // JWT 토큰 관련
+    private final JwtTokenProvider jwtTokenProvider;
 
     public NoticeController(NoticeService noticeService, JwtTokenProvider jwtTokenProvider) {
         this.noticeService = noticeService;
@@ -27,9 +28,7 @@ public class NoticeController {
     @GetMapping("/lists")
     public Map<String, Object> getAllNotices() {
         List<NoticeListDTO> noticeList = noticeService.getAllNotices();
-        return Map.of(
-                "items", noticeList   // 현재 페이지의 게시물 데이터 (DTO로 변환되어 반환됨)
-        );
+        return Map.of("items", noticeList);
     }
 
     /**
@@ -50,26 +49,32 @@ public class NoticeController {
     /** 공지사항 수정 API */
     @PatchMapping("/{noticeId}")
     public ResponseEntity<?> updateNotice(
-            @PathVariable Integer noticeId, // 링크에서 noticeId 받기
-            @RequestHeader("Authorization") String token, // 헤더의 Authorization에서 JWT 토큰 받기
-            @RequestBody NoticeReqDTO noticeDTO // JSON 형식으로 공지글 작성 정보 받기
+            @PathVariable Integer noticeId,
+            @RequestHeader("Authorization") String token,
+            @RequestBody NoticeReqDTO noticeDTO
     ) {
         String jwtToken = token.replace("Bearer ", "");
         String userEmail = jwtTokenProvider.getEmail(jwtToken);
-        NoticeRespDTO savedNotice = noticeService.updateNotice(noticeDTO, noticeId);
+        // 관리자 권한 검증은 서비스에서 수행
+        NoticeRespDTO savedNotice = noticeService.updateNotice(userEmail, noticeDTO, noticeId);
         return ResponseEntity.ok(savedNotice);
     }
 
     /** 공지사항 삭제 API */
     @DeleteMapping("/{noticeId}")
     public ResponseEntity<?> deleteNotice(
-            @PathVariable Integer noticeId, // 삭제할 공지사항 ID
-            @RequestHeader("Authorization") String token // 헤더의 Authorization에서 JWT 토큰 받기
+            @PathVariable Integer noticeId,
+            @RequestHeader("Authorization") String token
     ) {
         String jwtToken = token.replace("Bearer ", "");
         String userEmail = jwtTokenProvider.getEmail(jwtToken);
-        String returnMsg = (noticeService.deleteNotice(noticeId)) ?
-                "삭제되었습니다" : "삭제 과정에서 문제가 발생했습니다. 다시 한번 시도해주세요";
-        return ResponseEntity.ok(returnMsg);
+        try {
+            boolean deleted = noticeService.deleteNotice(userEmail, noticeId);
+            String returnMsg = deleted ? "삭제되었습니다" : "삭제 과정에서 문제가 발생했습니다. 다시 한번 시도해주세요";
+            return ResponseEntity.ok(returnMsg);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+        }
     }
 }
+

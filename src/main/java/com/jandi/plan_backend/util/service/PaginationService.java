@@ -9,6 +9,7 @@ import java.util.function.Function;
 public class PaginationService {
 
     public static <T, R> Page<R> getPagedData(int page, int size, long totalCount, Function<Pageable, Page<T>> fetchFunction, Function<T, R> mapper) {
+
         //page 관련 오류 처리
         int totalPages = (int) Math.ceil((double) totalCount / size); //전체 페이지 수
         if (page < 0 || page > totalPages) {
