@@ -4,9 +4,6 @@ import com.jandi.plan_backend.tripPlan.itinerary.dto.ItineraryReqDTO;
 import com.jandi.plan_backend.tripPlan.itinerary.dto.ItineraryRespDTO;
 import com.jandi.plan_backend.tripPlan.itinerary.entity.Itinerary;
 import com.jandi.plan_backend.tripPlan.itinerary.repository.ItineraryRepository;
-import com.jandi.plan_backend.tripPlan.place.dto.PlaceRespDTO;
-import com.jandi.plan_backend.tripPlan.place.entity.Place;
-import com.jandi.plan_backend.tripPlan.place.repository.PlaceRepository;
 import com.jandi.plan_backend.tripPlan.trip.entity.Trip;
 import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.util.PlaceUtil;
@@ -14,6 +11,7 @@ import com.jandi.plan_backend.util.TripUtil;
 import com.jandi.plan_backend.util.ValidationUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -26,6 +24,7 @@ public class ItineraryUpdateService {
     private final TripUtil tripUtil;
     private final PlaceUtil placeUtil;
 
+    @Transactional
     public ItineraryRespDTO createItinerary(String userEmail, Integer tripId, ItineraryReqDTO reqDTO) {
         User user = validationUtil.validateUserExists(userEmail);
         Trip trip = validationUtil.validateTripExists(tripId);
@@ -38,6 +37,7 @@ public class ItineraryUpdateService {
         return placeUtil.convertPlaceToDto(itinerary.getPlaceId(), itinerary);
     }
 
+    @Transactional
     public ItineraryRespDTO updateItinerary(String userEmail, Long itineraryId, ItineraryReqDTO reqDTO) {
         User user = validationUtil.validateUserExists(userEmail);
         Itinerary itinerary = validationUtil.validateItineraryExists(itineraryId);
@@ -51,6 +51,7 @@ public class ItineraryUpdateService {
         return placeUtil.convertPlaceToDto(itinerary.getPlaceId(), itinerary);
     }
 
+    @Transactional
     public boolean deleteItinerary(String userEmail, Long itineraryId) {
         User user = validationUtil.validateUserExists(userEmail);
         Itinerary itinerary = validationUtil.validateItineraryExists(itineraryId);
@@ -95,7 +96,6 @@ public class ItineraryUpdateService {
         if (reqDTO.getCost() != null) { // 비용 변경
             itinerary.setCost(reqDTO.getCost());
         }
-        itineraryRepository.save(itinerary);
     }
 
 }

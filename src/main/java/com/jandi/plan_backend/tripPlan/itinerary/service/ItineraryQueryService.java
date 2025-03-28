@@ -3,12 +3,7 @@ package com.jandi.plan_backend.tripPlan.itinerary.service;
 import com.jandi.plan_backend.tripPlan.itinerary.dto.ItineraryRespDTO;
 import com.jandi.plan_backend.tripPlan.itinerary.entity.Itinerary;
 import com.jandi.plan_backend.tripPlan.itinerary.repository.ItineraryRepository;
-import com.jandi.plan_backend.tripPlan.place.dto.PlaceRespDTO;
-import com.jandi.plan_backend.tripPlan.place.entity.Place;
-import com.jandi.plan_backend.tripPlan.place.repository.PlaceRepository;
 import com.jandi.plan_backend.tripPlan.trip.entity.Trip;
-import com.jandi.plan_backend.tripPlan.trip.entity.TripParticipant;
-import com.jandi.plan_backend.tripPlan.trip.repository.TripParticipantRepository;
 import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.user.repository.UserRepository;
 import com.jandi.plan_backend.util.PlaceUtil;
@@ -17,14 +12,14 @@ import com.jandi.plan_backend.util.ValidationUtil;
 import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class ItineraryQueryService {
     private final ValidationUtil validationUtil;
     private final TripUtil tripUtil;

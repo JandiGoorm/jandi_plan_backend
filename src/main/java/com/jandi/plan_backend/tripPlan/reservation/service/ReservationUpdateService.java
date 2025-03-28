@@ -12,6 +12,7 @@ import com.jandi.plan_backend.util.ValidationUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -22,6 +23,7 @@ public class ReservationUpdateService {
     private final TripUtil tripUtil;
     private final ReservationRepository reservationRepository;
 
+    @Transactional
     public ReservationRespDTO createReservation(String userEmail, Integer tripId, ReservationReqDTO reservedDTO) {
         User user = validationUtil.validateUserExists(userEmail);
         validationUtil.validateUserRestricted(user);
@@ -35,6 +37,7 @@ public class ReservationUpdateService {
         return new ReservationRespDTO(reservation, false);
     }
 
+    @Transactional
     public ReservationRespDTO updateReservation(String userEmail, Integer reservationId, ReservationReqDTO reservedDTO) {
         User user = validationUtil.validateUserExists(userEmail);
         validationUtil.validateUserRestricted(user);
@@ -49,6 +52,7 @@ public class ReservationUpdateService {
         return new ReservationRespDTO(reservation, false);
     }
 
+    @Transactional
     public boolean deleteReservation(String userEmail, Integer reservationId) {
         User user = validationUtil.validateUserExists(userEmail);
         Reservation reservation = validationUtil.validateReservationExists(reservationId.longValue());
@@ -75,15 +79,17 @@ public class ReservationUpdateService {
     }
 
     private void updateReservation(Reservation reservation, ReservationReqDTO reservedDTO) {
-        if (reservedDTO.getCategory() != null)  // 카테고리 수정
+        if (reservedDTO.getCategory() != null) {  // 카테고리 수정
             reservation.setCategory(reservedDTO.getCategoryEnum());
-        if (reservedDTO.getTitle() != null) // 제목 수정
+        }
+        if (reservedDTO.getTitle() != null) { // 제목 수정
             reservation.setTitle(reservedDTO.getTitle());
-        if (reservedDTO.getDescription() != null) // 설명 수정
+        }
+        if (reservedDTO.getDescription() != null) { // 설명 수정
             reservation.setDescription(reservedDTO.getDescription());
-        if (reservedDTO.getCost() != null) // 비용 수정
+        }
+        if (reservedDTO.getCost() != null) { // 비용 수정
             reservation.setCost(reservedDTO.getCost());
-
-        reservationRepository.save(reservation);
+        }
     }
 }
