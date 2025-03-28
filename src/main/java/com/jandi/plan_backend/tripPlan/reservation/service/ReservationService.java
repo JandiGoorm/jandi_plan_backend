@@ -8,8 +8,11 @@ import com.jandi.plan_backend.tripPlan.trip.entity.Trip;
 import com.jandi.plan_backend.tripPlan.trip.entity.TripParticipant;
 import com.jandi.plan_backend.tripPlan.trip.repository.TripParticipantRepository;
 import com.jandi.plan_backend.user.entity.User;
+import com.jandi.plan_backend.user.repository.UserRepository;
+import com.jandi.plan_backend.util.TripUtil;
 import com.jandi.plan_backend.util.ValidationUtil;
 import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -20,39 +23,25 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class ReservationService {
 
     private final ValidationUtil validationUtil;
+    private final TripUtil tripUtil;
     private final ReservationRepository reservationRepository;
-    private final TripParticipantRepository tripParticipantRepository;
-
-    public ReservationService(ValidationUtil validationUtil, ReservationRepository reservationRepository, TripParticipantRepository tripParticipantRepository) {
-        this.validationUtil = validationUtil;
-        this.reservationRepository = reservationRepository;
-        this.tripParticipantRepository = tripParticipantRepository;
-    }
+    private final UserRepository userRepository;
 
     public Map<String, Object> getReservation(String userEmail, Integer tripId) {
+        User user = userRepository.findByEmail(userEmail).orElse(null);
         Trip trip = validationUtil.validateTripExists(tripId);
 
-        // 비공개 접근 권한 체크
-        if (trip.getPrivatePlan()) {
-            if (userEmail == null) {
-                throw new BadRequestExceptionMessage("비공개 여행 계획입니다. 로그인 필요");
-            }
-            User currentUser = validationUtil.validateUserExists(userEmail);
-
-            boolean isMyPlan = trip.getUser().getUserId().equals(currentUser.getUserId());
-            Optional<TripParticipant> isFriendsPlan = tripParticipantRepository.findByTrip_TripIdAndParticipant_UserId(tripId, currentUser.getUserId());
-            boolean isAdmin = validationUtil.validateUserIsAdmin(currentUser);
-            boolean isStaff = validationUtil.validateUserIsStaff(currentUser);
-            if (!(isAdmin || isStaff) // 1. 관리자가 아닌 일반 유저는
-                    && !isMyPlan && isFriendsPlan.isEmpty()) { // 2. 본인 것도 아니면서 친구 것도 아닌 비공개 여행 계획은 접근 불가
-                throw new BadRequestExceptionMessage("비공개 여행 계획 접근 불가");
-            }
+        // 접근 권한 검증
+        boolean canViewTrip = tripUtil.isCanViewTrip(trip, user);
+        if (!canViewTrip) {
+            throw new BadRequestExceptionMessage("비공개 여행 계획입니다");
         }
 
-        // 공개 여행인 경우, 로그인 여부와 관계없이 예약 정보를 조회
+        // 예약 정보 가져오기
         List<Reservation> allReservations = reservationRepository.findByTrip_TripId(tripId);
 
         // 예약 정보를 카테고리별 그룹핑
@@ -81,8 +70,9 @@ public class ReservationService {
         User user = validationUtil.validateUserExists(userEmail);
         validationUtil.validateUserRestricted(user);
         Trip trip = validationUtil.validateTripExists(tripId);
-        // 작성자 또는 동반자 권한 검증
-        validationUtil.validateUserHasEditPermission(user, trip);
+
+        // 변경 권한 검증
+        tripUtil.isCanEditTrip(trip, user);
 
         Reservation reservation = new Reservation();
         reservation.setTrip(trip);
@@ -100,8 +90,9 @@ public class ReservationService {
         validationUtil.validateUserRestricted(user);
         Reservation reservation = validationUtil.validateReservationExists(reservationId.longValue());
         Trip trip = reservation.getTrip();
-        // 작성자 또는 동반자 권한 검증
-        validationUtil.validateUserHasEditPermission(user, trip);
+
+        // 변경 권한 검증
+        tripUtil.isCanEditTrip(trip, user);
 
         if (reservedDTO.getCategory() != null) reservation.setCategory(reservedDTO.getCategoryEnum());
         if (reservedDTO.getTitle() != null) reservation.setTitle(reservedDTO.getTitle());
@@ -116,8 +107,10 @@ public class ReservationService {
         User user = validationUtil.validateUserExists(userEmail);
         Reservation reservation = validationUtil.validateReservationExists(reservationId.longValue());
         Trip trip = reservation.getTrip();
-        // 작성자 또는 동반자 권한 검증
-        validationUtil.validateUserHasEditPermission(user, trip);
+
+        // 변경 권한 검증
+        tripUtil.isCanEditTrip(trip, user);
+
         reservationRepository.delete(reservation);
         return true;
     }
