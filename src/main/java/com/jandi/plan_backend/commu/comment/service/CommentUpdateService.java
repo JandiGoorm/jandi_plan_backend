@@ -14,6 +14,7 @@ import com.jandi.plan_backend.util.ValidationUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -31,24 +32,76 @@ public class CommentUpdateService {
     private final CommentReportedRepository commentReportedRepository;
 
     /** 댓글 작성 */
+    @Transactional
     public CommentRespDTO writeComment(CommentReqDTO commentDTO, Integer postId, String userEmail) {
-        User user = validationUtil.validateUserExists(userEmail);
-        validationUtil.validateUserRestricted(user);
+        User user = validateUser(userEmail);
         Community post = validationUtil.validatePostExists(postId);
-        return saveComment(user, null, post, commentDTO.getContents());
+
+        // 댓글 추가
+        Comment newComment = saveCommentData(user, null, post, commentDTO.getContents());
+
+        // 댓글 수 증가 처리
+        commentRepository.increaseCommentCount(post.getPostId(), 1);
+
+        return new CommentRespDTO(newComment, imageService);
     }
 
     /** 답글 작성 */
+    @Transactional
     public CommentRespDTO writeReplies(CommentReqDTO commentDTO, Integer commentId, String userEmail) {
-        User user = validationUtil.validateUserExists(userEmail);
-        validationUtil.validateUserRestricted(user);
+        User user = validateUser(userEmail);
+
         Comment parentComment = validationUtil.validateCommentExists(commentId);
         Community post = parentComment.getCommunity();
-        return saveComment(user, parentComment, post, commentDTO.getContents());
+
+        // 답글 추가
+        Comment newComment = saveCommentData(user, parentComment, post, commentDTO.getContents());
+
+        // 댓글 수, 답글 수 증가 처리
+        commentRepository.increaseCommentCount(post.getPostId(), 1);
+        commentRepository.increaseRepliesCount(commentId);
+
+        return new CommentRespDTO(newComment, imageService);
+    }
+
+    /** 댓글 수정 */
+    @Transactional
+    public CommentRespDTO updateComment(CommentReqDTO commentDTO, Integer commentId, String userEmail) {
+        User user = validateUser(userEmail);
+        Comment comment = validateUsersComment(user, commentId);
+
+        // 댓글 수정
+        updateCommentData(comment, commentDTO.getContents());
+        return new CommentRespDTO(comment, imageService);
+    }
+
+    /** 댓글 및 답글 삭제 */
+    @Transactional
+    public int deleteComments(Integer commentId, String userEmail) {
+        User user = validationUtil.validateUserExists(userEmail);
+        Comment comment = validateUsersComment(user, commentId);
+
+        // getParentComment()가 null이면 댓글로 추가, null이 아니면 답글로 추가
+        return (comment.getParentComment() == null) ?
+                deleteCommentData(comment) : deleteReplyData(comment);
+    }
+
+    // 유저의 존재 여부와 작성 가능 여부 한번에 검증
+    private User validateUser(String userEmail){
+        User user = validationUtil.validateUserExists(userEmail);
+        validationUtil.validateUserRestricted(user);
+        return user;
+    }
+
+    // 댓글의 존재 여부와 본인 댓글인지를 한번에 검증
+    private Comment validateUsersComment(User user, Integer commentId){
+        Comment comment = validationUtil.validateCommentExists(commentId);
+        validationUtil.validateUserIsAuthorOfComment(user, comment);
+        return comment;
     }
 
     // 댓글 저장 메서드 (댓글 또는 답글)
-    private CommentRespDTO saveComment(User user, Comment parentComment, Community post, String content) {
+    private Comment saveCommentData(User user, Comment parentComment, Community post, String content) {
         Comment comment = new Comment();
         comment.setCommunity(post);
         comment.setParentComment(parentComment);
@@ -58,63 +111,56 @@ public class CommentUpdateService {
         comment.setLikeCount(0);
         comment.setRepliesCount(0);
         commentRepository.save(comment);
-
-        if (parentComment != null) {
-            parentComment.setRepliesCount(parentComment.getRepliesCount() + 1);
-            commentRepository.save(parentComment);
-        }
-        post.setCommentCount(post.getCommentCount() + 1);
-        communityRepository.save(post);
-
-        return new CommentRespDTO(comment, imageService);
+        return comment;
     }
 
-    /** 댓글 수정 */
-    public CommentRespDTO updateComment(CommentReqDTO commentDTO, Integer commentId, String userEmail) {
-        Comment comment = validationUtil.validateCommentExists(commentId);
-        User user = validationUtil.validateUserExists(userEmail);
-        validationUtil.validateUserRestricted(user);
-        validationUtil.validateUserIsAuthorOfComment(user, comment);
-        comment.setContents(commentDTO.getContents());
+    // 댓글 수정 메서드
+    private void updateCommentData (Comment comment, String contents){
+        comment.setContents(contents);
         commentRepository.save(comment);
-        return new CommentRespDTO(comment, imageService);
     }
 
-    /**
-     * 댓글 및 답글 삭제
-     */
-    public int deleteComments(Integer commentId, String userEmail) {
-        Comment comment = validationUtil.validateCommentExists(commentId);
-        User user = validationUtil.validateUserExists(userEmail);
-        validationUtil.validateUserIsAuthorOfComment(user, comment);
+    // 댓글 삭제 메서드
+    private Integer deleteCommentData(Comment comment) {
+        Integer commentId = comment.getCommentId();
 
-        int repliesCount = 0;
-        if (comment.getParentComment() == null) {
-            log.info("댓글 삭제: {}", commentId);
-
-            // 답글의 좋아요 및 신고 정보 삭제 후 답글 삭제
-            List<Comment> replies = commentRepository.findByParentCommentCommentId(commentId);
-            repliesCount = replies.size();
-            for(Comment reply : replies) {
-                log.info("하위 댓글 삭제: {}", reply.getCommentId());
-                commentLikeRepository.deleteAll(commentLikeRepository.findByComment_CommentId(reply.getCommentId()));
-                commentReportedRepository.deleteAll(commentReportedRepository.findByComment_CommentId(reply.getCommentId()));
-            }
-            commentRepository.deleteAll(replies);
-        } else {
-            log.info("답글 삭제: {}", commentId);
-            Comment parentComment = comment.getParentComment();
-            parentComment.setRepliesCount(parentComment.getRepliesCount() - 1);
-            commentRepository.save(parentComment);
+        // 본인 하위의 답글 삭제
+        List<Comment> replies = commentRepository.findByParentCommentCommentId(commentId);
+        int repliesCount = replies.size();
+        for(Comment reply : replies) {
+            deleteCommentAssociations(reply);
         }
-        Community post = comment.getCommunity();
-        post.setCommentCount(post.getCommentCount() - 1 - repliesCount);
-        communityRepository.save(post);
+        commentRepository.deleteAll(replies);
 
-        // 자신의 좋아요 및 신고 정보 삭제 후 자신 삭제
-        commentLikeRepository.deleteAll(commentLikeRepository.findByComment(comment));
-        commentReportedRepository.deleteAll(commentReportedRepository.findByComment(comment));
+        // 댓글 수 감소 처리
+        Integer postId = comment.getCommunity().getPostId();
+        commentRepository.decreaseCommentCount(postId, 1 + repliesCount);
+
+        // 자신 삭제
+        deleteCommentAssociations(comment);
         commentRepository.delete(comment);
         return repliesCount;
+    }
+
+    // 답글 삭제 메서드
+    private Integer deleteReplyData(Comment comment){
+        // 댓글 수 감소 처리
+        Integer postId = comment.getCommunity().getPostId();
+        commentRepository.decreaseCommentCount(postId, 1);
+
+        // 답글 수 감소 처리
+        Integer parentCommentId = comment.getParentComment().getCommentId();
+        commentRepository.decreaseRepliesCount(parentCommentId);
+
+        // 자신 삭제
+        deleteCommentAssociations(comment);
+        commentRepository.delete(comment);
+        return 0;
+    }
+
+    // 댓글의 좋아요 및 신고 정보 삭제
+    private void deleteCommentAssociations(Comment comment) {
+        commentLikeRepository.deleteAll(commentLikeRepository.findByComment(comment));
+        commentReportedRepository.deleteAll(commentReportedRepository.findByComment(comment));
     }
 }
