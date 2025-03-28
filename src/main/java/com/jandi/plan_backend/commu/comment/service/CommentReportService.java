@@ -10,6 +10,7 @@ import com.jandi.plan_backend.util.ValidationUtil;
 import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -21,13 +22,16 @@ public class CommentReportService {
     private final CommentReportedRepository commentReportedRepository;
 
     /** 댓글 신고 */
+    @Transactional
     public CommentReportRespDTO reportComment(String userEmail, Integer commentId, ReportReqDTO reportDTO) {
         User user = validationUtil.validateUserExists(userEmail);
         validationUtil.validateUserRestricted(user);
         Comment comment = validationUtil.validateCommentExists(commentId);
+
         if (commentReportedRepository.findByUser_userIdAndComment_CommentId(user.getUserId(), commentId).isPresent()) {
             throw new BadRequestExceptionMessage("이미 신고한 댓글입니다");
         }
+
         CommentReported commentReported = new CommentReported();
         commentReported.setComment(comment);
         commentReported.setUser(user);
