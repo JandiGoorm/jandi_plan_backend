@@ -62,14 +62,11 @@ public class BannerUpdateService {
 
     /**
      * 배너글 삭제
-     * 서비스 계층에서 사용자 이메일을 기반으로 관리자 권한을 검증한 후 삭제를 진행합니다.
+     * 스프링 시큐리티가 사용자 역할을 기반으로 권한을 검증하므로 서비스 계층에서는 삭제만 담당합니다.
      */
     @Transactional
     public boolean deleteBanner(String userEmail, Integer bannerId) {
-        // 1) 유저 검증
-        User user = validationUtil.validateUserExists(userEmail);
-
-        // 2) 배너 검증 및 삭제
+        // 배너 검증 및 삭제
         Banner banner = validationUtil.validateBannerExists(bannerId);
         deleteBannerData(banner);
 
