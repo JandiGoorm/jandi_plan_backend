@@ -3,7 +3,7 @@ package com.jandi.plan_backend.image.controller;
 import com.jandi.plan_backend.image.dto.ImageRespDto;
 import com.jandi.plan_backend.image.service.ImageService;
 import com.jandi.plan_backend.security.CustomUserDetails;
-import com.jandi.plan_backend.trip.service.TripService;
+import com.jandi.plan_backend.tripPlan.trip.service.TripService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

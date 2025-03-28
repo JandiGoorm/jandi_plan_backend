@@ -1,7 +1,7 @@
 package com.jandi.plan_backend.user.controller;
 
 import com.jandi.plan_backend.commu.community.repository.CommunityRepository;
-import com.jandi.plan_backend.trip.repository.TripRepository;
+import com.jandi.plan_backend.tripPlan.trip.repository.TripRepository;
 import com.jandi.plan_backend.user.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
