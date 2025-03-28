@@ -39,9 +39,21 @@ public class GoogleCloudStorageService {
      */
     public String uploadFile(MultipartFile file) {
         try {
+            // bucketName이 null 또는 빈 문자열인지 확인
+            if (bucketName == null || bucketName.isBlank()) {
+                throw new IllegalArgumentException("Bucket name이 유효하지 않습니다: " + bucketName);
+            }
+
             log.info("파일 업로드 시작 - 원본 파일명: {}", file.getOriginalFilename());
+
+            // 파일 이름 검증
+            String originalFileName = file.getOriginalFilename();
+            if (originalFileName == null || originalFileName.isBlank()) {
+                throw new IllegalArgumentException("파일의 이름이 유효하지 않습니다.");
+            }
+
             // UUID를 파일명 앞에 붙여 고유 파일명 생성
-            String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+            String fileName = UUID.randomUUID() + "_" + originalFileName;
             log.debug("생성된 고유 파일명: {}", fileName);
 
             BlobId blobId = BlobId.of(bucketName, fileName);
@@ -70,8 +82,6 @@ public class GoogleCloudStorageService {
         try {
             // DB에 인코딩된 형태로 저장된 파일명을 디코딩
             String decodedFileName = URLDecoder.decode(fileName, StandardCharsets.UTF_8);
-            // 예: "0831bfc8-c9c8-452c-b8e3-854307f5a1bc_%EC%8A%A4..."
-            //  -> "0831bfc8-c9c8-452c-b8e3-854307f5a1bc_스크린샷 2025-01-06 095410.png"
 
             log.info("디코딩된 파일명: {}", decodedFileName);
 

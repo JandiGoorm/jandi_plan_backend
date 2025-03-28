@@ -210,7 +210,7 @@ public class ValidationUtil {
     }
 
     public void validateIsHashtagListValid(List<String> hashList) {
-        log.info("hashList: {}", (Object) hashList);
+        log.info("hashList: {}", hashList);
 
         // 각각의 해시태그 검증
         for (String hashtag : hashList) {
