@@ -52,15 +52,18 @@ public class CommunityUpdateService {
     @Transactional
     public CommunityRespDTO finalizePost(String userEmail, PostFinalizeReqDTO reqDTO) {
         User user = validateUserAndHashtag(userEmail, reqDTO.getHashtag());
-        inMemoryTempPostService.validateTempId(reqDTO.getTempPostId(), user.getUserId());
+
+        // 임시 tempId 검증
+        int tempPostId = reqDTO.getTempPostId();
+        inMemoryTempPostService.validateTempId(tempPostId, user.getUserId());
 
         // 게시글 생성
         Community community = createCommunity(reqDTO, user);
 
-        // 임시 postId를 실제 postId로 업데이트
+        // 이미지의 임시 postId를 실제 postId로 업데이트
         int realPostId = community.getPostId();
-        imageService.updateTargetId("community", reqDTO.getTempPostId(), realPostId);
-        inMemoryTempPostService.removeTempId(reqDTO.getTempPostId());
+        imageService.updateTargetId("community", tempPostId, realPostId);
+        inMemoryTempPostService.removeTempId(tempPostId);
 
         // 최종 게시글 생성 후, 사용되지 않는 이미지 삭제
         runAfterCommit("finalizePost 이미지 정리", () -> imageCleanupService.cleanupUnusedImages(community));
@@ -125,7 +128,6 @@ public class CommunityUpdateService {
         community.setContents(postDTO.getContent());
         community.setPreview(communityUtil.getPreview(postDTO.getContent())); // 미리보기 반영
         community.setHashtags(postDTO.getHashtag()); // 해시태그 반영
-        communityRepository.save(community);
     }
 
     // 게시글 삭제
