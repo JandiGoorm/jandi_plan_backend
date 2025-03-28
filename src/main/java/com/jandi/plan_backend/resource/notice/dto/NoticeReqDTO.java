@@ -1,4 +1,4 @@
-package com.jandi.plan_backend.resource.dto;
+package com.jandi.plan_backend.resource.notice.dto;
 
 import lombok.Getter;
 

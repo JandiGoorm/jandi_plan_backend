@@ -1,10 +1,10 @@
-package com.jandi.plan_backend.resource.controller;
+package com.jandi.plan_backend.resource.notice.controller;
 
-import com.jandi.plan_backend.resource.dto.NoticeFinalizeReqDTO;
-import com.jandi.plan_backend.resource.dto.NoticeListDTO;
-import com.jandi.plan_backend.resource.dto.NoticeReqDTO;
-import com.jandi.plan_backend.resource.dto.NoticeRespDTO;
-import com.jandi.plan_backend.resource.service.NoticeService;
+import com.jandi.plan_backend.resource.notice.dto.NoticeFinalizeReqDTO;
+import com.jandi.plan_backend.resource.notice.dto.NoticeListDTO;
+import com.jandi.plan_backend.resource.notice.dto.NoticeReqDTO;
+import com.jandi.plan_backend.resource.notice.dto.NoticeRespDTO;
+import com.jandi.plan_backend.resource.notice.service.NoticeService;
 import com.jandi.plan_backend.security.JwtTokenProvider;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

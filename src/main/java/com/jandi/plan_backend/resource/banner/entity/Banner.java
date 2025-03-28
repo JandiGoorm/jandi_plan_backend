@@ -1,4 +1,4 @@
-package com.jandi.plan_backend.resource.entity;
+package com.jandi.plan_backend.resource.banner.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -6,13 +6,13 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "notice")
+@Table(name = "Banner")
 @Data
-public class Notice {
+public class Banner {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer noticeId;
+    private Integer bannerId;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
@@ -20,6 +20,9 @@ public class Notice {
     @Column(length = 255)
     private String title;
 
-    @Column(columnDefinition = "TEXT")
-    private String contents;
+    @Column(length = 255)
+    private String subtitle;
+
+    @Column(length = 255)
+    private String linkUrl;
 }

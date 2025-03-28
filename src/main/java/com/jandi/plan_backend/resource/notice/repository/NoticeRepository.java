@@ -1,6 +1,6 @@
-package com.jandi.plan_backend.resource.repository;
+package com.jandi.plan_backend.resource.notice.repository;
 
-import com.jandi.plan_backend.resource.entity.Notice;
+import com.jandi.plan_backend.resource.notice.entity.Notice;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

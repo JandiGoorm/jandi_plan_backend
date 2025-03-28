@@ -1,12 +1,12 @@
-package com.jandi.plan_backend.resource.dto;
+package com.jandi.plan_backend.resource.banner.dto;
 
-import com.jandi.plan_backend.resource.entity.Banner;
+import com.jandi.plan_backend.resource.banner.entity.Banner;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
 
 @Getter
-public class BannerListDTO {
+public class BannerRespDTO {
     private final Integer bannerId;
     private final LocalDateTime createdAt;
     private final String title;
@@ -14,7 +14,7 @@ public class BannerListDTO {
     private final String linkUrl;
     private final String imageUrl;
 
-    public BannerListDTO(Banner banner, String imageUrl) {
+    public BannerRespDTO(Banner banner, String imageUrl) {
         this.bannerId = banner.getBannerId();
         this.createdAt = banner.getCreatedAt();
         this.title = banner.getTitle();

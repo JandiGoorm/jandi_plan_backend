@@ -1,18 +1,18 @@
-package com.jandi.plan_backend.resource.dto;
+package com.jandi.plan_backend.resource.notice.dto;
 
-import com.jandi.plan_backend.resource.entity.Notice;
+import com.jandi.plan_backend.resource.notice.entity.Notice;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
 
 @Getter
-public class NoticeListDTO {
+public class NoticeRespDTO {
     private final Integer noticeId;
     private final LocalDateTime createdAt;
     private final String title;
     private final String content;
 
-    public NoticeListDTO(Notice notice) {
+    public NoticeRespDTO(Notice notice) {
         this.noticeId = notice.getNoticeId();
         this.createdAt = notice.getCreatedAt();
         this.title = notice.getTitle();

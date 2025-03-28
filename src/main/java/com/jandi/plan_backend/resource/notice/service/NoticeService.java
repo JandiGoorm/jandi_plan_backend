@@ -1,15 +1,15 @@
-package com.jandi.plan_backend.resource.service;
+package com.jandi.plan_backend.resource.notice.service;
 
 import com.jandi.plan_backend.image.entity.Image;
 import com.jandi.plan_backend.image.repository.ImageRepository;
 import com.jandi.plan_backend.image.service.ImageService;
 import com.jandi.plan_backend.image.service.InMemoryTempPostService;
-import com.jandi.plan_backend.resource.dto.NoticeFinalizeReqDTO;
-import com.jandi.plan_backend.resource.dto.NoticeListDTO;
-import com.jandi.plan_backend.resource.dto.NoticeReqDTO;
-import com.jandi.plan_backend.resource.dto.NoticeRespDTO;
-import com.jandi.plan_backend.resource.entity.Notice;
-import com.jandi.plan_backend.resource.repository.NoticeRepository;
+import com.jandi.plan_backend.resource.notice.dto.NoticeFinalizeReqDTO;
+import com.jandi.plan_backend.resource.notice.dto.NoticeListDTO;
+import com.jandi.plan_backend.resource.notice.dto.NoticeReqDTO;
+import com.jandi.plan_backend.resource.notice.dto.NoticeRespDTO;
+import com.jandi.plan_backend.resource.notice.entity.Notice;
+import com.jandi.plan_backend.resource.notice.repository.NoticeRepository;
 import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.util.ValidationUtil;
 import org.springframework.stereotype.Service;

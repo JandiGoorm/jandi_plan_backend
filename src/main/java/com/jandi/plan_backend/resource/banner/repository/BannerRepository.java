@@ -1,6 +1,6 @@
-package com.jandi.plan_backend.resource.repository;
+package com.jandi.plan_backend.resource.banner.repository;
 
-import com.jandi.plan_backend.resource.entity.Banner;
+import com.jandi.plan_backend.resource.banner.entity.Banner;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

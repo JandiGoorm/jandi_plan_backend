@@ -1,13 +1,11 @@
-package com.jandi.plan_backend.resource.controller;
+package com.jandi.plan_backend.resource.banner.controller;
 
-import com.jandi.plan_backend.resource.dto.BannerListDTO;
-import com.jandi.plan_backend.resource.dto.BannerRespDTO;
-import com.jandi.plan_backend.resource.service.BannerService;
-import com.jandi.plan_backend.security.CustomUserDetails;
+import com.jandi.plan_backend.resource.banner.dto.BannerListDTO;
+import com.jandi.plan_backend.resource.banner.dto.BannerRespDTO;
+import com.jandi.plan_backend.resource.banner.service.BannerService;
 import com.jandi.plan_backend.security.JwtTokenProvider;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 

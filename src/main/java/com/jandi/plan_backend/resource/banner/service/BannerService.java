@@ -1,9 +1,9 @@
-package com.jandi.plan_backend.resource.service;
+package com.jandi.plan_backend.resource.banner.service;
 
-import com.jandi.plan_backend.resource.dto.BannerListDTO;
-import com.jandi.plan_backend.resource.dto.BannerRespDTO;
-import com.jandi.plan_backend.resource.entity.Banner;
-import com.jandi.plan_backend.resource.repository.BannerRepository;
+import com.jandi.plan_backend.resource.banner.dto.BannerListDTO;
+import com.jandi.plan_backend.resource.banner.dto.BannerRespDTO;
+import com.jandi.plan_backend.resource.banner.entity.Banner;
+import com.jandi.plan_backend.resource.banner.repository.BannerRepository;
 import com.jandi.plan_backend.image.dto.ImageRespDto;
 import com.jandi.plan_backend.image.repository.ImageRepository;
 import com.jandi.plan_backend.image.service.ImageService;
