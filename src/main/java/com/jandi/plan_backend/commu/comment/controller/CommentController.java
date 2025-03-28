@@ -4,9 +4,13 @@ import com.jandi.plan_backend.commu.comment.dto.CommentReportRespDTO;
 import com.jandi.plan_backend.commu.comment.dto.CommentReqDTO;
 import com.jandi.plan_backend.commu.comment.dto.CommentRespDTO;
 import com.jandi.plan_backend.commu.comment.dto.ParentCommentDTO;
+import com.jandi.plan_backend.commu.comment.service.CommentLikeService;
+import com.jandi.plan_backend.commu.comment.service.CommentReportService;
+import com.jandi.plan_backend.commu.comment.service.CommentUpdateService;
 import com.jandi.plan_backend.commu.community.dto.*;
-import com.jandi.plan_backend.commu.comment.service.CommentService;
+import com.jandi.plan_backend.commu.comment.service.CommentQueryService;
 import com.jandi.plan_backend.security.JwtTokenProvider;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,15 +21,14 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/community")
 public class CommentController {
-    private final CommentService commentService;
+    private final CommentLikeService commentLikeService;
+    private final CommentQueryService commentQueryService;
+    private final CommentReportService commentReportService;
+    private final CommentUpdateService commentUpdateService;
     private final JwtTokenProvider jwtTokenProvider;
-
-    public CommentController(CommentService commentService, JwtTokenProvider jwtTokenProvider) {
-        this.commentService = commentService;
-        this.jwtTokenProvider = jwtTokenProvider;
-    }
 
     /** 댓글 조회 API */
     @GetMapping("/comments/{postId}")
@@ -37,7 +40,7 @@ public class CommentController {
 
     ){
         String userEmail = (userDetails != null) ? userDetails.getUsername() : null;
-        Page<ParentCommentDTO> parentCommentsPage = commentService.getAllComments(postId, page, size, userEmail);
+        Page<ParentCommentDTO> parentCommentsPage = commentQueryService.getAllComments(postId, page, size, userEmail);
 
         return Map.of(
                 "pageInfo", Map.of(
@@ -60,7 +63,7 @@ public class CommentController {
 
     ){
         String userEmail = (userDetails != null) ? userDetails.getUsername() : null;
-        Page<RepliesDTO> repliesPage = commentService.getAllReplies(commentId, page, size, userEmail);
+        Page<RepliesDTO> repliesPage = commentQueryService.getAllReplies(commentId, page, size, userEmail);
 
         return Map.of(
                 "pageInfo", Map.of(
@@ -88,7 +91,7 @@ public class CommentController {
         }
 
         // 댓글 저장 및 반환
-        CommentRespDTO savedComment = commentService.writeComment(commentDTO, postId, userEmail);
+        CommentRespDTO savedComment = commentUpdateService.writeComment(commentDTO, postId, userEmail);
         return ResponseEntity.ok(savedComment);
     }
 
@@ -107,7 +110,7 @@ public class CommentController {
         }
 
         // 댓글 저장 및 반환
-        CommentRespDTO savedComment = commentService.writeReplies(commentDTO, commentId, userEmail);
+        CommentRespDTO savedComment = commentUpdateService.writeReplies(commentDTO, commentId, userEmail);
         return ResponseEntity.ok(savedComment);
     }
 
@@ -126,7 +129,7 @@ public class CommentController {
         }
 
         // 게시물 수정 및 반환
-        CommentRespDTO updatedPost = commentService.updateComment(commentDTO, commentId, userEmail);
+        CommentRespDTO updatedPost = commentUpdateService.updateComment(commentDTO, commentId, userEmail);
         return ResponseEntity.ok(updatedPost);
     }
 
@@ -144,7 +147,7 @@ public class CommentController {
         }
 
         // 답글 삭제 및 반환
-        int deletedRepliesCount = (commentService.deleteComments(commentId, userEmail));
+        int deletedRepliesCount = (commentUpdateService.deleteComments(commentId, userEmail));
         String returnMsg = (deletedRepliesCount == 0) ?
                 "댓글이 삭제되었습니다": "선택된 댓글과 하위 답글 " + deletedRepliesCount +"개가 삭제되었습니다";
         return ResponseEntity.ok(returnMsg);
@@ -161,7 +164,7 @@ public class CommentController {
         String jwtToken = token.replace("Bearer ", "");
         String userEmail = jwtTokenProvider.getEmail(jwtToken);
 
-        commentService.likeComment(userEmail, commentId);
+        commentLikeService.likeComment(userEmail, commentId);
         return ResponseEntity.ok("좋아요 성공");
     }
 
@@ -175,7 +178,7 @@ public class CommentController {
         String jwtToken = token.replace("Bearer ", "");
         String userEmail = jwtTokenProvider.getEmail(jwtToken);
 
-        commentService.deleteLikeComment(userEmail, commentId);
+        commentLikeService.deleteLikeComment(userEmail, commentId);
         return ResponseEntity.ok("좋아요 취소되었습니다.");
     }
 
@@ -190,7 +193,7 @@ public class CommentController {
         String jwtToken = token.replace("Bearer ", "");
         String userEmail = jwtTokenProvider.getEmail(jwtToken);
 
-        CommentReportRespDTO reported = commentService.reportComment(userEmail, commentId, reportDTO);
+        CommentReportRespDTO reported = commentReportService.reportComment(userEmail, commentId, reportDTO);
         return ResponseEntity.ok(reported);
     }
 

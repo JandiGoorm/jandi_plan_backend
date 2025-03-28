@@ -1,7 +1,7 @@
 package com.jandi.plan_backend.commu.community.service;
 
 import com.jandi.plan_backend.commu.comment.dto.CommentReportedListDTO;
-import com.jandi.plan_backend.commu.comment.service.CommentService;
+import com.jandi.plan_backend.commu.comment.service.CommentUpdateService;
 import com.jandi.plan_backend.commu.community.dto.CommunityReportedListDTO;
 import com.jandi.plan_backend.commu.comment.entity.Comment;
 import com.jandi.plan_backend.commu.community.entity.Community;
@@ -18,17 +18,17 @@ public class ManageCommunityService {
     private final ValidationUtil validationUtil;
     private final CommunityReportedRepository communityReportedRepository;
     private final CommentReportedRepository commentReportedRepository;
-    private final CommentService commentService;
+    private final CommentUpdateService commentUpdateService;
     private final CommunityUpdateService communityUpdateService;
 
     public ManageCommunityService(
             ValidationUtil validationUtil,
             CommunityReportedRepository communityReportedRepository,
-            CommentReportedRepository commentReportedRepository, CommentService commentService, CommunityUpdateService communityUpdateService) {
+            CommentReportedRepository commentReportedRepository, CommentUpdateService commentUpdateService, CommunityUpdateService communityUpdateService) {
         this.validationUtil = validationUtil;
         this.communityReportedRepository = communityReportedRepository;
         this.commentReportedRepository = commentReportedRepository;
-        this.commentService = commentService;
+        this.commentUpdateService = commentUpdateService;
         this.communityUpdateService = communityUpdateService;
     }
 
@@ -73,6 +73,6 @@ public class ManageCommunityService {
     public void deleteComments(Integer commentId) {
         Comment comment = validationUtil.validateCommentExists(commentId);
         User user = validationUtil.validateUserExists(comment.getUserId());
-        commentService.deleteComments(commentId, user.getEmail());
+        commentUpdateService.deleteComments(commentId, user.getEmail());
     }
 }

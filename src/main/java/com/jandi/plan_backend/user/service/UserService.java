@@ -6,7 +6,7 @@ import com.jandi.plan_backend.commu.comment.repository.CommentReportedRepository
 import com.jandi.plan_backend.commu.comment.repository.CommentRepository;
 import com.jandi.plan_backend.commu.community.entity.Community;
 import com.jandi.plan_backend.commu.community.repository.*;
-import com.jandi.plan_backend.commu.comment.service.CommentService;
+import com.jandi.plan_backend.commu.comment.service.CommentUpdateService;
 import com.jandi.plan_backend.commu.community.service.CommunityUpdateService;
 import com.jandi.plan_backend.image.entity.Image;
 import com.jandi.plan_backend.image.repository.ImageRepository;
@@ -50,7 +50,7 @@ public class UserService {
     private final ImageService imageService;
     private final CommunityRepository communityRepository;
     private final CommentRepository commentRepository;
-    private final CommentService commentService;
+    private final CommentUpdateService commentUpdateService;
     private final TripRepository tripRepository;
     private final TripService tripService;
     private final ImageRepository imageRepository;
@@ -73,7 +73,7 @@ public class UserService {
                        ImageService imageService,
                        ValidationUtil validationUtil,
                        CommentRepository commentRepository,
-                       CommentService commentService,
+                       CommentUpdateService commentUpdateService,
                        CommunityRepository communityRepository,
                        TripRepository tripRepository,
                        TripService tripService,
@@ -91,7 +91,7 @@ public class UserService {
         this.jwtTokenProvider = jwtTokenProvider;
         this.imageService = imageService;
         this.commentRepository = commentRepository;
-        this.commentService = commentService;
+        this.commentUpdateService = commentUpdateService;
         this.communityRepository = communityRepository;
         this.tripRepository = tripRepository;
         this.tripService = tripService;
@@ -275,11 +275,11 @@ public class UserService {
         /// 유저의 커뮤니티 활동 삭제
         for(Comment reply : commentRepository.findByUserIdAndParentCommentIsNotNull(user.getUserId())) {
             // 유저가 작성한 답글 삭제
-            commentService.deleteComments(reply.getCommentId(), user.getEmail());
+            commentUpdateService.deleteComments(reply.getCommentId(), user.getEmail());
         }
         for(Comment comment : commentRepository.findByUserIdAndParentCommentIsNull(user.getUserId())) {
             // 유저가 작성한 댓글 삭제
-            commentService.deleteComments(comment.getCommentId(), user.getEmail());
+            commentUpdateService.deleteComments(comment.getCommentId(), user.getEmail());
         }
         for(Community community : communityRepository.findByUser(user)) {
             // 유저가 작성한 게시글 삭제
