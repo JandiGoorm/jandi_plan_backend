@@ -13,6 +13,7 @@ import com.jandi.plan_backend.resource.repository.NoticeRepository;
 import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.util.ValidationUtil;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -41,76 +42,17 @@ public class NoticeService {
     }
 
     /**
-     * 공지사항 목록 조회 - 엔티티를 DTO로 변환하여 반환
-     */
-    public List<NoticeListDTO> getAllNotices() {
-        List<Notice> notices = noticeRepository.findAll();
-        return notices.stream()
-                .map(NoticeListDTO::new)
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * 공지사항 작성 (임시 ID 없이 바로 저장)
-     */
-    public NoticeRespDTO writeNotice(NoticeReqDTO noticeDTO) {
-        // 공지사항 생성
-        Notice notice = new Notice();
-        notice.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
-        notice.setTitle(noticeDTO.getTitle());
-        notice.setContents(noticeDTO.getContent());
-
-        // DB 저장 및 반환
-        noticeRepository.save(notice);
-        return new NoticeRespDTO(notice);
-    }
-
-    /**
-     * 공지사항 수정
-     */
-    public NoticeRespDTO updateNotice(NoticeReqDTO noticeDTO, Integer noticeId) {
-        // 공지사항 검증
-        Notice notice = validationUtil.validateNoticeExists(noticeId);
-
-        if (noticeDTO.getTitle() != null) {
-            notice.setTitle(noticeDTO.getTitle());
-        }
-        if (noticeDTO.getContent() != null) {
-            notice.setContents(noticeDTO.getContent());
-        }
-
-        // 수정 후 저장
-        noticeRepository.save(notice);
-        return new NoticeRespDTO(notice);
-    }
-
-    /**
-     * 공지사항 삭제
-     * 공지사항에 연결된 모든 이미지도 함께 삭제
-     */
-    public boolean deleteNotice(Integer noticeId) {
-        // 공지사항 검증
-        Notice notice = validationUtil.validateNoticeExists(noticeId);
-
-        // 연결된 모든 이미지 삭제
-        List<Image> images = imageRepository.findAllByTargetTypeAndTargetId("notice", noticeId);
-        for (Image img : images) {
-            imageService.deleteImage(img.getImageId());
-        }
-
-        // 공지사항 삭제
-        noticeRepository.delete(notice);
-        return true;
-    }
-
-    /**
      * 공지사항 최종 작성 API
      * 임시 Notice ID(음수)를 실제 Notice ID로 전환하며,
      * 이미지의 targetId를 임시에서 실제 Notice ID로 업데이트합니다.
      */
+    @Transactional
     public NoticeRespDTO finalizeNotice(String userEmail, NoticeFinalizeReqDTO finalizeReqDTO) {
         // 관리자 검증
         User user = validationUtil.validateUserExists(userEmail);
+        if(user.getRoleEnum() != com.jandi.plan_backend.user.entity.Role.ADMIN) {
+            throw new RuntimeException("권한이 없습니다.");
+        }
 
         // 임시 Notice ID 검증
         int tempNoticeId = finalizeReqDTO.getTempNoticeId();
@@ -131,5 +73,64 @@ public class NoticeService {
         inMemoryTempPostService.removeTempId(tempNoticeId);
 
         return new NoticeRespDTO(notice);
+    }
+
+    /**
+     * 공지사항 수정
+     */
+    @Transactional
+    public NoticeRespDTO updateNotice(String userEmail, NoticeReqDTO noticeDTO, Integer noticeId) {
+        // 관리자 검증
+        User user = validationUtil.validateUserExists(userEmail);
+        if(user.getRoleEnum() != com.jandi.plan_backend.user.entity.Role.ADMIN) {
+            throw new RuntimeException("권한이 없습니다.");
+        }
+
+        // 공지사항 검증 및 수정
+        Notice notice = validationUtil.validateNoticeExists(noticeId);
+        if (noticeDTO.getTitle() != null) {
+            notice.setTitle(noticeDTO.getTitle());
+        }
+        if (noticeDTO.getContent() != null) {
+            notice.setContents(noticeDTO.getContent());
+        }
+        noticeRepository.save(notice);
+        return new NoticeRespDTO(notice);
+    }
+
+    /**
+     * 공지사항 삭제
+     * 공지사항에 연결된 모든 이미지도 함께 삭제
+     */
+    @Transactional
+    public boolean deleteNotice(String userEmail, Integer noticeId) {
+        // 관리자 검증
+        User user = validationUtil.validateUserExists(userEmail);
+        if(user.getRoleEnum() != com.jandi.plan_backend.user.entity.Role.ADMIN) {
+            throw new RuntimeException("권한이 없습니다.");
+        }
+
+        // 공지사항 검증
+        Notice notice = validationUtil.validateNoticeExists(noticeId);
+
+        // 연결된 모든 이미지 삭제
+        List<Image> images = imageRepository.findAllByTargetTypeAndTargetId("notice", noticeId);
+        for (Image img : images) {
+            imageService.deleteImage(img.getImageId());
+        }
+        // 공지사항 삭제
+        noticeRepository.delete(notice);
+        return true;
+    }
+
+    /**
+     * 공지사항 목록 조회
+     */
+    @Transactional(readOnly = true)
+    public List<NoticeListDTO> getAllNotices() {
+        List<Notice> notices = noticeRepository.findAll();
+        return notices.stream()
+                .map(NoticeListDTO::new)
+                .collect(Collectors.toList());
     }
 }
