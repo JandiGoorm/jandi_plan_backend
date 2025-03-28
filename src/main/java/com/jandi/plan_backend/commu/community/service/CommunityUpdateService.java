@@ -19,13 +19,17 @@ import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.util.CommunityUtil;
 import com.jandi.plan_backend.util.ValidationUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CommunityUpdateService {
@@ -40,6 +44,7 @@ public class CommunityUpdateService {
     private final CommentRepository commentRepository;
     private final CommentReportedRepository commentReportedRepository;
     private final CommentLikeRepository commentLikeRepository;
+    private final ImageCleanupService imageCleanupService;
 
     private static final ZoneId KST = ZoneId.of("Asia/Seoul");
 
@@ -58,8 +63,7 @@ public class CommunityUpdateService {
         inMemoryTempPostService.removeTempId(reqDTO.getTempPostId());
 
         // 최종 게시글 생성 후, 사용되지 않는 이미지 삭제
-        communityUtil.cleanupUnusedImages(community);
-
+        runAfterCommit("finalizePost 이미지 정리", () -> imageCleanupService.cleanupUnusedImages(community));
         return new CommunityRespDTO(community, imageService);
     }
 
@@ -74,8 +78,7 @@ public class CommunityUpdateService {
         updateCommunity(post, postDTO);
 
         // 게시글 수정 후, 사용되지 않는 이미지 삭제
-        communityUtil.cleanupUnusedImages(post);
-
+        runAfterCommit("updatePost 이미지 정리", () -> imageCleanupService.cleanupUnusedImages(post));
         return new CommunityRespDTO(post, imageService);
     }
 
@@ -138,8 +141,29 @@ public class CommunityUpdateService {
         commentRepository.deleteAll(comments);
 
         List<Image> images = imageRepository.findAllByTargetTypeAndTargetId("community", postId);
-        for (Image image : images) {
-            imageService.deleteImage(image.getImageId());
-        }
+        runAfterCommit("deletePost 이미지 삭제", () -> {
+            for (Image image : images) {
+                try {
+                    imageService.deleteImage(image.getImageId());
+                } catch (Exception e) {
+                    log.warn("이미지 삭제 실패 - ID: {}, 에러: {}", image.getImageId(), e.getMessage());
+                }
+            }
+        });
+    }
+
+    // 트랜잭션 작업이 성공적으로 커밋된 이후에 실행될 작업을 지정
+    // 이미지 삭제는 외부 클라우드이므로 트랜잭션과 분리하여 이미지 삭제 실패가 불완전한 롤백(이미지는 삭제되었는데 게시글은 롤백되는 상황)으로 이어지지 않도록 함
+    private void runAfterCommit(String methodName, Runnable task) {
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                try {
+                    task.run();
+                } catch (Exception e) {
+                    log.warn("{} 작업 중 예외 발생: {}", methodName, e.getMessage());
+                }
+            }
+        });
     }
 }

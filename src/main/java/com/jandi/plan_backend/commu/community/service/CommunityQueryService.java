@@ -39,8 +39,8 @@ public class CommunityQueryService {
     @Transactional
     public CommunityItemDTO getSpecPost(Integer postId, String userEmail) {
         //게시글의 존재 여부 검증
-        communityRepository.incrementViewCount(postId);
         Community community = validationUtil.validatePostExists(postId);
+        communityRepository.incrementViewCount(postId);
 
         //게시글 좋아요 여부
         boolean isLike = communityUtil.isLikedCommunity(userEmail, community);
