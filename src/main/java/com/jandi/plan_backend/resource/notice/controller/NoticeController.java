@@ -4,8 +4,10 @@ import com.jandi.plan_backend.resource.notice.dto.NoticeFinalizeReqDTO;
 import com.jandi.plan_backend.resource.notice.dto.NoticeListDTO;
 import com.jandi.plan_backend.resource.notice.dto.NoticeReqDTO;
 import com.jandi.plan_backend.resource.notice.dto.NoticeRespDTO;
-import com.jandi.plan_backend.resource.notice.service.NoticeService;
+import com.jandi.plan_backend.resource.notice.service.NoticeQueryService;
+import com.jandi.plan_backend.resource.notice.service.NoticeUpdateService;
 import com.jandi.plan_backend.security.JwtTokenProvider;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,20 +16,17 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/notice")
 public class NoticeController {
-    private final NoticeService noticeService;
+    private final NoticeUpdateService noticeUpdateService;
+    private final NoticeQueryService noticeQueryService;
     private final JwtTokenProvider jwtTokenProvider;
-
-    public NoticeController(NoticeService noticeService, JwtTokenProvider jwtTokenProvider) {
-        this.noticeService = noticeService;
-        this.jwtTokenProvider = jwtTokenProvider;
-    }
 
     /** 공지글 전체 목록 조회 API */
     @GetMapping("/lists")
     public Map<String, Object> getAllNotices() {
-        List<NoticeListDTO> noticeList = noticeService.getAllNotices();
+        List<NoticeListDTO> noticeList = noticeQueryService.getAllNotices();
         return Map.of("items", noticeList);
     }
 
@@ -42,7 +41,7 @@ public class NoticeController {
     ) {
         String jwtToken = token.replace("Bearer ", "");
         String userEmail = jwtTokenProvider.getEmail(jwtToken);
-        NoticeRespDTO finalizedNotice = noticeService.finalizeNotice(userEmail, finalizeReqDTO);
+        NoticeRespDTO finalizedNotice = noticeUpdateService.finalizeNotice(userEmail, finalizeReqDTO);
         return ResponseEntity.ok(finalizedNotice);
     }
 
@@ -53,10 +52,7 @@ public class NoticeController {
             @RequestHeader("Authorization") String token,
             @RequestBody NoticeReqDTO noticeDTO
     ) {
-        String jwtToken = token.replace("Bearer ", "");
-        String userEmail = jwtTokenProvider.getEmail(jwtToken);
-        // 관리자 권한 검증은 서비스에서 수행
-        NoticeRespDTO savedNotice = noticeService.updateNotice(userEmail, noticeDTO, noticeId);
+        NoticeRespDTO savedNotice = noticeUpdateService.updateNotice(noticeDTO, noticeId);
         return ResponseEntity.ok(savedNotice);
     }
 
@@ -66,10 +62,8 @@ public class NoticeController {
             @PathVariable Integer noticeId,
             @RequestHeader("Authorization") String token
     ) {
-        String jwtToken = token.replace("Bearer ", "");
-        String userEmail = jwtTokenProvider.getEmail(jwtToken);
         try {
-            boolean deleted = noticeService.deleteNotice(userEmail, noticeId);
+            boolean deleted = noticeUpdateService.deleteNotice(noticeId);
             String returnMsg = deleted ? "삭제되었습니다" : "삭제 과정에서 문제가 발생했습니다. 다시 한번 시도해주세요";
             return ResponseEntity.ok(returnMsg);
         } catch (RuntimeException e) {
