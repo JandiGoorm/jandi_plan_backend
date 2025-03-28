@@ -46,7 +46,7 @@ public class TripUtil {
         if(isTripParticipant(trip, user)) return;
 
         // 그 외: 수정 불가
-        throw new BadRequestExceptionMessage("비공개 여행 계획입니다");
+        throw new BadRequestExceptionMessage("해당 작업을 수행할 권한이 없습니다");
     }
 
     public boolean isTripOwner(Trip trip, User user) {
