@@ -8,6 +8,8 @@ import com.jandi.plan_backend.itinerary.entity.Place;
 import com.jandi.plan_backend.itinerary.repository.ItineraryRepository;
 import com.jandi.plan_backend.itinerary.repository.PlaceRepository;
 import com.jandi.plan_backend.trip.entity.Trip;
+import com.jandi.plan_backend.trip.entity.TripParticipant;
+import com.jandi.plan_backend.trip.repository.TripParticipantRepository;
 import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.util.ValidationUtil;
 import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
@@ -25,22 +27,34 @@ public class ItineraryService {
     private final ItineraryRepository itineraryRepository;
     private final ValidationUtil validationUtil;
     private final PlaceRepository placeRepository;
+    private final TripParticipantRepository tripParticipantRepository;
 
-    public ItineraryService(ItineraryRepository itineraryRepository, ValidationUtil validationUtil, PlaceRepository placeRepository) {
+    public ItineraryService(ItineraryRepository itineraryRepository, ValidationUtil validationUtil, PlaceRepository placeRepository, TripParticipantRepository tripParticipantRepository) {
         this.itineraryRepository = itineraryRepository;
         this.validationUtil = validationUtil;
         this.placeRepository = placeRepository;
+        this.tripParticipantRepository = tripParticipantRepository;
     }
 
     public List<ItineraryRespDTO> getItineraries(String userEmail, Integer tripId) {
         Trip trip = validationUtil.validateTripExists(tripId);
-        // 비공개 여행은 작성자만 조회 가능하도록 함
+        // 비공개 접근 권한 체크
         if (trip.getPrivatePlan()) {
-            User user = validationUtil.validateUserExists(userEmail);
-            if (!trip.getUser().getUserId().equals(user.getUserId())) {
-                throw new BadRequestExceptionMessage("비공개 여행 계획은 작성자만 조회할 수 있습니다.");
+            if (userEmail == null) {
+                throw new BadRequestExceptionMessage("비공개 여행 계획입니다. 로그인 필요");
+            }
+            User currentUser = validationUtil.validateUserExists(userEmail);
+
+            boolean isMyPlan = trip.getUser().getUserId().equals(currentUser.getUserId());
+            Optional<TripParticipant> isFriendsPlan = tripParticipantRepository.findByTrip_TripIdAndParticipant_UserId(tripId, currentUser.getUserId());
+            boolean isAdmin = validationUtil.validateUserIsAdmin(currentUser);
+            boolean isStaff = validationUtil.validateUserIsStaff(currentUser);
+            if (!(isAdmin || isStaff) // 1. 관리자가 아닌 일반 유저는
+                    && !isMyPlan && isFriendsPlan.isEmpty()) { // 2. 본인 것도 아니면서 친구 것도 아닌 비공개 여행 계획은 접근 불가
+                throw new BadRequestExceptionMessage("비공개 여행 계획 접근 불가");
             }
         }
+
         List<Itinerary> itineraries = itineraryRepository.findByTrip_TripId(tripId);
         return itineraries.stream().map(itinerary -> {
             Optional<Place> placeOpt = placeRepository.findById(itinerary.getPlaceId());
