@@ -61,4 +61,14 @@ public interface CommentRepository extends JpaRepository<Comment, Integer> {
     @Modifying
     @Query("update Comment c set c.repliesCount = c.repliesCount - 1 where c.commentId = :commentId")
     void decreaseRepliesCount(@Param("commentId") Integer commentId);
+
+    // 댓글(답글)의 좋아요 수 증가
+    @Modifying
+    @Query("update Comment c set c.likeCount = c.likeCount + 1 where c.commentId = :commentId")
+    void increaseLikeCount(@Param("commentId") Integer commentId);
+
+    // 댓글(답글)의 좋아요 수 감소
+    @Modifying
+    @Query("update Comment c set c.likeCount = c.likeCount - 1 where c.commentId = :commentId")
+    void decreaseLikeCount(@Param("commentId") Integer commentId);
 }
