@@ -89,7 +89,7 @@ public class TripService {
     public Page<TripRespDTO> getLikedTrips(String userEmail, Integer page, Integer size) {
         User user = validationUtil.validateUserExists(userEmail);
         long totalCount = tripLikeRepository.countByUser(user);
-        
+
         boolean isAdmin = validationUtil.validateUserIsAdmin(user);
         boolean isStaff = validationUtil.validateUserIsStaff(user);
 
@@ -101,13 +101,22 @@ public class TripService {
                 tripLikeObj -> {
                     TripLike tripLike = (TripLike) tripLikeObj;
                     Trip trip = tripLike.getTrip();
-                    
+
+                    // 1) 만약 여행 계획이 "공개(false)"라면 -> 누구든 공개 DTO
+                    if (!trip.getPrivatePlan()) {
+                        return convertToPublicTripRespDTO(trip);
+                    }
+
+                    // 2) 비공개(true)인 경우 -> (관리자/스태프/동반자/작성자)면 공개 DTO, 아니면 private DTO
                     boolean isParticipant = tripParticipantRepository
                             .findByTrip_TripIdAndParticipant_UserId(trip.getTripId(), user.getUserId()).isPresent();
-                    return (isAdmin || isStaff || isParticipant) ?
-                        convertToPublicTripRespDTO(trip) :
-                        convertToPrivateTripRespDTO(trip);
-                        
+
+                    if (isAdmin || isStaff || isParticipant
+                            || trip.getUser().getUserId().equals(user.getUserId())) {
+                        return convertToPublicTripRespDTO(trip);
+                    } else {
+                        return convertToPrivateTripRespDTO(trip);
+                    }
                 }
         );
     }
