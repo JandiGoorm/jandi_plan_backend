@@ -28,13 +28,6 @@ public class TripRespDTO {
     private final String cityImageUrl;
     private final String tripImageUrl;
 
-    public TripRespDTO(User user,
-                       String userProfileUrl,
-                       Trip trip,
-                       String cityImageUrl) {
-        this(user, userProfileUrl, trip, cityImageUrl, "");
-    }
-
     public TripRespDTO(Trip trip, String cityImageUrl) {
         // 비공개여도 넘겨줄 정보
         this.tripId = trip.getTripId();
