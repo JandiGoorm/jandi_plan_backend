@@ -45,7 +45,7 @@ public class TripRespDTO {
         this.endDate = null;
         this.likeCount = null;
         this.budget = null;
-        this.privatePlan = true;
+        this.privatePlan = trip.getPrivatePlan();
         tripImageUrl = "";
     }
 
