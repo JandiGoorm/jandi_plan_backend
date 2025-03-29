@@ -23,7 +23,7 @@ public class UserCommunityDTO {
         // 프로필 이미지 URL을 가져옴 (예: imageService에서 최신 URL 반환)
         this.profileImageUrl = imageService.getImageByTarget("profile", user.getUserId())
                 .map(img -> "https://storage.googleapis.com/plan-storage/" + img.getImageUrl())
-                .orElse(null);
+                .orElseGet(() -> imageService.getPublicUrlByImageId(1));
     }
 
     // 프로필 이미지 없이 넘겨주는 버전 (단일 인자 생성자)
