@@ -7,7 +7,6 @@ import com.jandi.plan_backend.commu.comment.repository.CommentLikeRepository;
 import com.jandi.plan_backend.commu.comment.repository.CommentReportedRepository;
 import com.jandi.plan_backend.commu.comment.repository.CommentRepository;
 import com.jandi.plan_backend.commu.community.entity.Community;
-import com.jandi.plan_backend.commu.community.repository.CommunityRepository;
 import com.jandi.plan_backend.image.service.ImageService;
 import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.util.ValidationUtil;
@@ -26,7 +25,6 @@ import java.util.List;
 public class CommentUpdateService {
     private final ValidationUtil validationUtil;
     private final CommentRepository commentRepository;
-    private final CommunityRepository communityRepository;
     private final ImageService imageService;
     private final CommentLikeRepository commentLikeRepository;
     private final CommentReportedRepository commentReportedRepository;
