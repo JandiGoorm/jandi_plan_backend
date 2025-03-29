@@ -1,17 +1,19 @@
 package com.jandi.plan_backend.util;
 
-import com.jandi.plan_backend.commu.entity.Comment;
-import com.jandi.plan_backend.commu.entity.Community;
-import com.jandi.plan_backend.itinerary.entity.Reservation;
-import com.jandi.plan_backend.itinerary.repository.ReservationRepository;
-import com.jandi.plan_backend.resource.repository.BannerRepository;
-import com.jandi.plan_backend.commu.repository.CommentRepository;
-import com.jandi.plan_backend.commu.repository.CommunityRepository;
-import com.jandi.plan_backend.resource.entity.Banner;
-import com.jandi.plan_backend.resource.entity.Notice;
-import com.jandi.plan_backend.resource.repository.NoticeRepository;
-import com.jandi.plan_backend.trip.entity.Trip;
-import com.jandi.plan_backend.trip.repository.TripRepository;
+import com.jandi.plan_backend.commu.comment.entity.Comment;
+import com.jandi.plan_backend.commu.community.entity.Community;
+import com.jandi.plan_backend.tripPlan.itinerary.entity.Itinerary;
+import com.jandi.plan_backend.tripPlan.itinerary.repository.ItineraryRepository;
+import com.jandi.plan_backend.tripPlan.reservation.entitiy.Reservation;
+import com.jandi.plan_backend.tripPlan.reservation.repository.ReservationRepository;
+import com.jandi.plan_backend.resource.banner.repository.BannerRepository;
+import com.jandi.plan_backend.commu.comment.repository.CommentRepository;
+import com.jandi.plan_backend.commu.community.repository.CommunityRepository;
+import com.jandi.plan_backend.resource.banner.entity.Banner;
+import com.jandi.plan_backend.resource.notice.entity.Notice;
+import com.jandi.plan_backend.resource.notice.repository.NoticeRepository;
+import com.jandi.plan_backend.tripPlan.trip.entity.Trip;
+import com.jandi.plan_backend.tripPlan.trip.repository.TripRepository;
 import com.jandi.plan_backend.user.entity.City;
 import com.jandi.plan_backend.user.entity.Continent;
 import com.jandi.plan_backend.user.entity.Country;
@@ -21,6 +23,7 @@ import com.jandi.plan_backend.user.repository.ContinentRepository;
 import com.jandi.plan_backend.user.repository.CountryRepository;
 import com.jandi.plan_backend.user.repository.UserRepository;
 import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -33,6 +36,7 @@ import java.util.Objects;
  */
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class ValidationUtil {
     private final UserRepository userRepository;
     private final CommunityRepository communityRepository;
@@ -44,29 +48,7 @@ public class ValidationUtil {
     private final CityRepository cityRepository;
     private final TripRepository tripRepository;
     private final ReservationRepository reservationRepository;
-
-    public ValidationUtil(UserRepository userRepository,
-                          CommunityRepository communityRepository,
-                          CommentRepository commentRepository,
-                          BannerRepository bannerRepository,
-                          NoticeRepository noticeRepository,
-                          ContinentRepository continentRepository,
-                          CountryRepository countryRepository,
-                          CityRepository cityRepository,
-                          TripRepository tripRepository,
-                          ReservationRepository reservationRepository) {
-
-        this.userRepository = userRepository;
-        this.communityRepository = communityRepository;
-        this.commentRepository = commentRepository;
-        this.bannerRepository = bannerRepository;
-        this.noticeRepository = noticeRepository;
-        this.continentRepository = continentRepository;
-        this.countryRepository = countryRepository;
-        this.cityRepository = cityRepository;
-        this.tripRepository = tripRepository;
-        this.reservationRepository = reservationRepository;
-    }
+    private final ItineraryRepository itineraryRepository;
 
     /* ==========================
        1) 사용자 관련 검증
@@ -189,13 +171,9 @@ public class ValidationUtil {
                 .orElseThrow(() -> new BadRequestExceptionMessage("존재하지 않는 예약 일정입니다."));
     }
 
-    public void validateUserHasEditPermission(User user, Trip trip) {
-        boolean isOwner = trip.getUser().getUserId().equals(user.getUserId());
-        boolean isParticipant = trip.getParticipants() != null && trip.getParticipants().stream()
-                .anyMatch(tp -> tp.getParticipant().getUserId().equals(user.getUserId()));
-        if (!isOwner && !isParticipant) {
-            throw new BadRequestExceptionMessage("여행 계획에 참여한 사용자만 해당 작업을 수행할 수 있습니다.");
-        }
+    public Itinerary validateItineraryExists(Long itineraryId) {
+        return itineraryRepository.findById(itineraryId)
+                .orElseThrow(() -> new BadRequestExceptionMessage("존재하지 않는 일정입니다."));
     }
 
     /* ==========================

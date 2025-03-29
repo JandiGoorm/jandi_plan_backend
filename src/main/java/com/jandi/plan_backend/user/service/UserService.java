@@ -1,17 +1,20 @@
 package com.jandi.plan_backend.user.service;
 
-import com.jandi.plan_backend.commu.entity.Comment;
-import com.jandi.plan_backend.commu.entity.Community;
-import com.jandi.plan_backend.commu.repository.*;
-import com.jandi.plan_backend.commu.service.CommentService;
-import com.jandi.plan_backend.commu.service.PostService;
+import com.jandi.plan_backend.commu.comment.entity.Comment;
+import com.jandi.plan_backend.commu.comment.repository.CommentLikeRepository;
+import com.jandi.plan_backend.commu.comment.repository.CommentReportedRepository;
+import com.jandi.plan_backend.commu.comment.repository.CommentRepository;
+import com.jandi.plan_backend.commu.community.entity.Community;
+import com.jandi.plan_backend.commu.community.repository.*;
+import com.jandi.plan_backend.commu.comment.service.CommentUpdateService;
+import com.jandi.plan_backend.commu.community.service.CommunityUpdateService;
 import com.jandi.plan_backend.image.entity.Image;
 import com.jandi.plan_backend.image.repository.ImageRepository;
 import com.jandi.plan_backend.image.service.ImageService;
-import com.jandi.plan_backend.trip.entity.Trip;
-import com.jandi.plan_backend.trip.repository.TripLikeRepository;
-import com.jandi.plan_backend.trip.repository.TripRepository;
-import com.jandi.plan_backend.trip.service.TripService;
+import com.jandi.plan_backend.tripPlan.trip.entity.Trip;
+import com.jandi.plan_backend.tripPlan.trip.repository.TripLikeRepository;
+import com.jandi.plan_backend.tripPlan.trip.repository.TripRepository;
+import com.jandi.plan_backend.tripPlan.trip.service.TripService;
 import com.jandi.plan_backend.user.dto.*;
 import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.user.repository.UserCityPreferenceRepository;
@@ -46,9 +49,8 @@ public class UserService {
     private final JwtTokenProvider jwtTokenProvider;
     private final ImageService imageService;
     private final CommunityRepository communityRepository;
-    private final PostService postService;
     private final CommentRepository commentRepository;
-    private final CommentService commentService;
+    private final CommentUpdateService commentUpdateService;
     private final TripRepository tripRepository;
     private final TripService tripService;
     private final ImageRepository imageRepository;
@@ -59,6 +61,7 @@ public class UserService {
     private final CommunityLikeRepository communityLikeRepository;
     private final CommentLikeRepository commentLikeRepository;
     private final ValidationUtil validationUtil;
+    private final CommunityUpdateService communityUpdateService;
 
     @Value("${app.verify.url}")
     private String verifyUrl;
@@ -69,9 +72,8 @@ public class UserService {
                        JwtTokenProvider jwtTokenProvider,
                        ImageService imageService,
                        ValidationUtil validationUtil,
-                       PostService postService,
                        CommentRepository commentRepository,
-                       CommentService commentService,
+                       CommentUpdateService commentUpdateService,
                        CommunityRepository communityRepository,
                        TripRepository tripRepository,
                        TripService tripService,
@@ -81,16 +83,15 @@ public class UserService {
                        CommentReportedRepository commentReportedRepository,
                        TripLikeRepository tripLikeRepository,
                        CommunityLikeRepository communityLikeRepository,
-                       CommentLikeRepository commentLikeRepository
-        ) {
+                       CommentLikeRepository commentLikeRepository,
+                       CommunityUpdateService communityUpdateService) {
         this.userRepository = userRepository;
         this.emailService = emailService;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
         this.imageService = imageService;
-        this.postService = postService;
         this.commentRepository = commentRepository;
-        this.commentService = commentService;
+        this.commentUpdateService = commentUpdateService;
         this.communityRepository = communityRepository;
         this.tripRepository = tripRepository;
         this.tripService = tripService;
@@ -102,6 +103,7 @@ public class UserService {
         this.communityLikeRepository = communityLikeRepository;
         this.commentLikeRepository = commentLikeRepository;
         this.validationUtil = validationUtil;
+        this.communityUpdateService = communityUpdateService;
     }
 
     public User registerUser(UserRegisterDTO dto) {
@@ -273,15 +275,15 @@ public class UserService {
         /// 유저의 커뮤니티 활동 삭제
         for(Comment reply : commentRepository.findByUserIdAndParentCommentIsNotNull(user.getUserId())) {
             // 유저가 작성한 답글 삭제
-            commentService.deleteComments(reply.getCommentId(), user.getEmail());
+            commentUpdateService.deleteComments(reply.getCommentId(), user.getEmail());
         }
         for(Comment comment : commentRepository.findByUserIdAndParentCommentIsNull(user.getUserId())) {
             // 유저가 작성한 댓글 삭제
-            commentService.deleteComments(comment.getCommentId(), user.getEmail());
+            commentUpdateService.deleteComments(comment.getCommentId(), user.getEmail());
         }
         for(Community community : communityRepository.findByUser(user)) {
             // 유저가 작성한 게시글 삭제
-            postService.deletePost(community.getPostId(), user.getEmail());
+            communityUpdateService.deletePost(community.getPostId(), user.getEmail());
         }
         // 유저가 신고한 게시글 정보 삭제
         communityReportedRepository.

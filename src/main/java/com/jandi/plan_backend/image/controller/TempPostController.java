@@ -1,6 +1,6 @@
 package com.jandi.plan_backend.image.controller;
 
-import com.jandi.plan_backend.commu.dto.TempPostRespDTO;
+import com.jandi.plan_backend.commu.community.dto.TempPostRespDTO;
 import com.jandi.plan_backend.image.TempPostIdGenerator;
 import com.jandi.plan_backend.util.ValidationUtil;
 import com.jandi.plan_backend.image.service.InMemoryTempPostService;

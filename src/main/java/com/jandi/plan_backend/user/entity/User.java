@@ -2,7 +2,7 @@ package com.jandi.plan_backend.user.entity;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
-import com.jandi.plan_backend.commu.entity.Community;
+import com.jandi.plan_backend.commu.community.entity.Community;
 import jakarta.persistence.*;
 import lombok.Data;
 
