@@ -34,7 +34,7 @@ public class TripParticipantService {
         // 1) Trip, User 검증
         Trip trip = validationUtil.validateTripExists(tripId);
         User participant = userRepository.findByUserName(participantUserName)
-                .orElseThrow(() -> new RuntimeException("User not found: " + participantUserName));
+                .orElseThrow(() -> new RuntimeException(participantUserName + "사용자를 찾을 수 없습니다."));
 
         // 2) 이미 동반자로 등록되어 있는지 확인
         boolean alreadyParticipant = tripParticipantRepository

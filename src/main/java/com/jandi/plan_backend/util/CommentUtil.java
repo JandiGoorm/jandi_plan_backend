@@ -20,6 +20,6 @@ public class CommentUtil {
     public User getCommentUser(Comment comment) {
         Integer userId = comment.getUserId();
         return userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
+                .orElseThrow(() -> new RuntimeException("아이디를 찾을 수 없습니다: " + userId));
     }
 }
