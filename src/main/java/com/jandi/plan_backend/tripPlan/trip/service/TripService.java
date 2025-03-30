@@ -483,7 +483,7 @@ public class TripService {
         // 작성자 프로필 이미지
         String userProfileUrl = imageService.getImageByTarget("profile", trip.getUser().getUserId())
                 .map(img -> urlPrefix + img.getImageUrl())
-                .orElse(null);
+                .orElseGet(() -> imageService.getPublicUrlByImageId(1)); // <- 기본 이미지 처리 추가
 
         // 도시 대표 이미지
         String cityImageUrl = imageService.getImageByTarget("city", trip.getCity().getCityId())
