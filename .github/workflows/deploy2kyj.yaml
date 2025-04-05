@@ -52,14 +52,12 @@ jobs:
             docker load < ~/my-spring-app.tar.gz
             docker stop my-spring-app || true
             docker rm my-spring-app || true
-            docker run -d --name my-spring-app \
-              -p 8080:8080 \
+            docker run -d --name my-spring-app -p 8080:8080 \
               -e DB_URL=${{ secrets.DB_URL }} \
               -e DB_USERNAME=${{ secrets.DB_USERNAME }} \
               -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
               -e MAIL_USERNAME=${{ secrets.MAIL_USERNAME }} \
               -e MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }} \
-              -e GCP_SA_KEY_BASE64=${{ secrets.GCP_SA_KEY_BASE64 }} \
               -e JWT_KEY=${{ secrets.JWT_KEY }} \
               -e OPEN_API_KEY=${{ secrets.OPEN_API_KEY }} \
               -e GOOGLE_MAP_KEY=${{ secrets.GOOGLE_MAP_KEY }} \
