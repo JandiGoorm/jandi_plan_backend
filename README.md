@@ -1,3 +1,11 @@
+# Architecture
+![jandi_plan_architecture](https://github.com/JandiGoorm/jandi_plan_backend/blob/master/jandi_plan_architecture.png)
+
+# ERD
+![jandi_plan_erd](https://github.com/JandiGoorm/jandi_plan_backend/blob/master/jandi_plan_erd.png)
+
+---
+
 요구 사항
 
 https://www.notion.so/185be199511b8117b480cbf822f84280
