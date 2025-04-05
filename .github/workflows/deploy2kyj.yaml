@@ -19,9 +19,24 @@ jobs:
           distribution: 'temurin'
 
       - name: Gradle 실행 권한 부여 및 빌드
+        env:
+          DB_URL: ${{ secrets.DB_URL }}
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+          GCP_SA_KEY_BASE64: ${{ secrets.GCP_SA_KEY_BASE64 }}
+          JWT_KEY: ${{ secrets.JWT_KEY }}
+          OPEN_API_KEY: ${{ secrets.OPEN_API_KEY }}
+          GOOGLE_MAP_KEY: ${{ secrets.GOOGLE_MAP_KEY }}
+          KAKAO_RESTAPI_KEY: ${{ secrets.KAKAO_RESTAPI_KEY }}
+          NAVER_CLIENT_ID: ${{ secrets.NAVER_CLIENT_ID }}
+          NAVER_CLIENT_SECRET: ${{ secrets.NAVER_CLIENT_SECRET }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
         run: |
           chmod +x gradlew
-          ./gradlew clean build -x test
+          ./gradlew clean build
 
       - name: Docker 이미지 빌드
         run: |
@@ -62,9 +77,9 @@ jobs:
             echo "NAVER_CLIENT_SECRET=${{ secrets.NAVER_CLIENT_SECRET }}" >> ~/spring_env
             echo "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" >> ~/spring_env
             echo "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" >> ~/spring_env
-
+            echo "GCP_SA_KEY_BASE64=${{ secrets.GCP_SA_KEY_BASE64 }}" >> ~/spring_env   # ← 이 줄 추가!!
+      
             docker load < ~/my-spring-app.tar.gz
             docker stop my-spring-app || true
             docker rm my-spring-app || true
             docker run --env-file ~/spring_env -d --name my-spring-app -p 8080:8080 my-spring-app
-
