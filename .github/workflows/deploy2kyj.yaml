@@ -49,21 +49,22 @@ jobs:
           port: ${{ secrets.KYJ_LOCAL_SERVER_PORT }}
           key: ${{ secrets.KYJ_SSH_PRIVATE_KEY }}
           script: |
+            echo "DB_URL=${{ secrets.DB_URL }}" > ~/spring_env
+            echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> ~/spring_env
+            echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> ~/spring_env
+            echo "MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}" >> ~/spring_env
+            echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}" >> ~/spring_env
+            echo "JWT_KEY=${{ secrets.JWT_KEY }}" >> ~/spring_env
+            echo "OPEN_API_KEY=${{ secrets.OPEN_API_KEY }}" >> ~/spring_env
+            echo "GOOGLE_MAP_KEY=${{ secrets.GOOGLE_MAP_KEY }}" >> ~/spring_env
+            echo "KAKAO_RESTAPI_KEY=${{ secrets.KAKAO_RESTAPI_KEY }}" >> ~/spring_env
+            echo "NAVER_CLIENT_ID=${{ secrets.NAVER_CLIENT_ID }}" >> ~/spring_env
+            echo "NAVER_CLIENT_SECRET=${{ secrets.NAVER_CLIENT_SECRET }}" >> ~/spring_env
+            echo "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" >> ~/spring_env
+            echo "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" >> ~/spring_env
+
             docker load < ~/my-spring-app.tar.gz
             docker stop my-spring-app || true
             docker rm my-spring-app || true
-            docker run -d --name my-spring-app -p 8080:8080 \
-              -e DB_URL=${{ secrets.DB_URL }} \
-              -e DB_USERNAME=${{ secrets.DB_USERNAME }} \
-              -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
-              -e MAIL_USERNAME=${{ secrets.MAIL_USERNAME }} \
-              -e MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }} \
-              -e JWT_KEY=${{ secrets.JWT_KEY }} \
-              -e OPEN_API_KEY=${{ secrets.OPEN_API_KEY }} \
-              -e GOOGLE_MAP_KEY=${{ secrets.GOOGLE_MAP_KEY }} \
-              -e KAKAO_RESTAPI_KEY=${{ secrets.KAKAO_RESTAPI_KEY }} \
-              -e NAVER_CLIENT_ID=${{ secrets.NAVER_CLIENT_ID }} \
-              -e NAVER_CLIENT_SECRET=${{ secrets.NAVER_CLIENT_SECRET }} \
-              -e GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }} \
-              -e GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }} \
-              my-spring-app
+            docker run --env-file ~/spring_env -d --name my-spring-app -p 8080:8080 my-spring-app
+
