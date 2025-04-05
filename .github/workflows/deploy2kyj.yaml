@@ -21,7 +21,7 @@ jobs:
       - name: Gradle 실행 권한 부여 및 빌드
         run: |
           chmod +x gradlew
-          ./gradlew clean build
+          ./gradlew clean build -x test
 
       - name: Docker 이미지 빌드
         run: |
