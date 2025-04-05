@@ -1,58 +1,37 @@
-name: CI-CD for Spring Boot (Local + Cloud)
+name: Deploy to Local Server
 
 on:
   push:
-    branches: [ "master" ]
+    branches:
+      - master
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
-
     steps:
-      # 1. 저장소 코드 가져오기
-      - name: Check out code
+      - name: 코드 체크아웃
         uses: actions/checkout@v3
 
-      # 2. JDK 설정 (Java 17 사용)
-      - name: Set up JDK
+      - name: JDK 17 설정
         uses: actions/setup-java@v3
         with:
+          java-version: '17'
           distribution: 'temurin'
-          java-version: 17
 
-      # 3. Gradle 빌드
-      - name: Build with Gradle
-        env:
-          DB_URL: ${{ secrets.DB_URL }}
-          DB_USERNAME: ${{ secrets.DB_USERNAME }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
-          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
-          GCP_SA_KEY_BASE64: ${{ secrets.GCP_SA_KEY_BASE64 }}
-          JWT_KEY: ${{ secrets.JWT_KEY }}
-          OPEN_API_KEY: ${{ secrets.OPEN_API_KEY }}
-          GOOGLE_MAP_KEY: ${{ secrets.GOOGLE_MAP_KEY }}
-          KAKAO_RESTAPI_KEY: ${{ secrets.KAKAO_RESTAPI_KEY }}
-          NAVER_CLIENT_ID: ${{ secrets.NAVER_CLIENT_ID }}
-          NAVER_CLIENT_SECRET: ${{ secrets.NAVER_CLIENT_SECRET }}
-          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
-          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+      - name: Gradle 실행 권한 부여 및 빌드
         run: |
           chmod +x gradlew
-          ./gradlew clean build --exclude-task test
+          ./gradlew clean build
 
-      # 4. Docker 이미지 빌드
-      - name: Build Docker image
+      - name: Docker 이미지 빌드
         run: |
           docker build -t my-spring-app .
 
-      # 5. Docker 이미지 압축
-      - name: Save Docker image
+      - name: Docker 이미지 압축
         run: |
           docker save my-spring-app | gzip > my-spring-app.tar.gz
 
-      # 6. 로컬 서버에 Docker 이미지 전송
-      - name: SCP to Local Server
+      - name: 로컬 서버에 Docker 이미지 전송
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.KYJ_LOCAL_SERVER_HOST }}
@@ -62,8 +41,7 @@ jobs:
           source: "my-spring-app.tar.gz"
           target: "~/"
 
-      # 7. 로컬 서버에서 Docker 컨테이너 실행
-      - name: SSH into Local Server and Deploy
+      - name: 로컬 서버에서 Docker 컨테이너 실행
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.KYJ_LOCAL_SERVER_HOST }}
@@ -74,4 +52,20 @@ jobs:
             docker load < ~/my-spring-app.tar.gz
             docker stop my-spring-app || true
             docker rm my-spring-app || true
-            docker run -d --name my-spring-app -p 8080:8080 my-spring-app
+            docker run -d --name my-spring-app \
+              -p 8080:8080 \
+              -e DB_URL=${{ secrets.DB_URL }} \
+              -e DB_USERNAME=${{ secrets.DB_USERNAME }} \
+              -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
+              -e MAIL_USERNAME=${{ secrets.MAIL_USERNAME }} \
+              -e MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }} \
+              -e GCP_SA_KEY_BASE64=${{ secrets.GCP_SA_KEY_BASE64 }} \
+              -e JWT_KEY=${{ secrets.JWT_KEY }} \
+              -e OPEN_API_KEY=${{ secrets.OPEN_API_KEY }} \
+              -e GOOGLE_MAP_KEY=${{ secrets.GOOGLE_MAP_KEY }} \
+              -e KAKAO_RESTAPI_KEY=${{ secrets.KAKAO_RESTAPI_KEY }} \
+              -e NAVER_CLIENT_ID=${{ secrets.NAVER_CLIENT_ID }} \
+              -e NAVER_CLIENT_SECRET=${{ secrets.NAVER_CLIENT_SECRET }} \
+              -e GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }} \
+              -e GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }} \
+              my-spring-app
