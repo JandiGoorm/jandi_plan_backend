@@ -1,8 +1,8 @@
-name: CI-CD for Spring Boot
+name: Deploy to GCP
 
-on:
-  push:
-    branches: [ "master" ]
+#on:
+#  push:
+#    branches: [ "master" ]
 
 jobs:
   build-and-deploy:
