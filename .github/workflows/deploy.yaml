@@ -40,11 +40,11 @@ jobs:
 
       - name: Docker 이미지 빌드
         run: |
-          docker build -t my-spring-app .
+          docker build -t jandi-plan-backend .
 
       - name: Docker 이미지 압축
         run: |
-          docker save my-spring-app | gzip > my-spring-app.tar.gz
+          docker save jandi-plan-backend | gzip > jandi-plan-backend.tar.gz
 
       - name: 로컬 서버에 Docker 이미지 전송
         uses: appleboy/scp-action@master
@@ -53,7 +53,7 @@ jobs:
           username: ${{ secrets.KYJ_LOCAL_SERVER_USER }}
           port: ${{ secrets.KYJ_LOCAL_SERVER_PORT }}
           key: ${{ secrets.KYJ_SSH_PRIVATE_KEY }}
-          source: "my-spring-app.tar.gz"
+          source: "jandi-plan-backend.tar.gz"
           target: "~/"
 
       - name: 로컬 서버에서 Docker 컨테이너 실행
@@ -77,9 +77,9 @@ jobs:
             echo "NAVER_CLIENT_SECRET=${{ secrets.NAVER_CLIENT_SECRET }}" >> ~/spring_env
             echo "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" >> ~/spring_env
             echo "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" >> ~/spring_env
-            echo "GCP_SA_KEY_BASE64=${{ secrets.GCP_SA_KEY_BASE64 }}" >> ~/spring_env   # ← 이 줄 추가!!
+            echo "GCP_SA_KEY_BASE64=${{ secrets.GCP_SA_KEY_BASE64 }}" >> ~/spring_env
       
-            docker load < ~/my-spring-app.tar.gz
-            docker stop my-spring-app || true
-            docker rm my-spring-app || true
-            docker run --env-file ~/spring_env -d --name my-spring-app -p 8080:8080 my-spring-app
+            docker load < ~/jandi-plan-backend.tar.gz
+            docker stop jandi-plan-backend || true
+            docker rm jandi-plan-backend || true
+            docker run --env-file ~/spring_env -d --name jandi-plan-backend -p 8080:8080 jandi-plan-backend
