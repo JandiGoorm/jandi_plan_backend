@@ -41,7 +41,7 @@ jobs:
 
       - name: Deploy Application to Server
         run: |
-          cd /home/kyj/jandi/apps/justplanit
+          cd /apps/justplanit
           
           export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
           export IMAGE_TAG=$(git rev-parse --short HEAD)
