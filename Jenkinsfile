@@ -5,7 +5,7 @@ pipeline {
     
     environment {
         GHCR_OWNER = 'kyj0503'
-        EC2_HOST = 'ide-be.yeonjae.kr'
+        EC2_HOST = 'plan-be.yeonjae.kr'
         EC2_USER = 'ubuntu'
         IMAGE_NAME = 'justplanit'
     }
@@ -39,7 +39,7 @@ pipeline {
                     withCredentials([sshUserPrivateKey(credentialsId: 'ec2-ssh-key', keyFileVariable: 'EC2_PRIVATE_KEY')]) {
                         sh """
                             ssh -o StrictHostKeyChecking=no -i \${EC2_PRIVATE_KEY} ${env.EC2_USER}@${env.EC2_HOST} \
-                            "bash /home/ubuntu/justplanit-app/deploy-justplanit.sh ${fullImageName}"
+                            "bash /home/ubuntu/justplanit-app/deploy.sh ${fullImageName}"
                         """
                     }
                 }
