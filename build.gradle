@@ -47,6 +47,7 @@ dependencies {
 
     // GCP
     implementation 'com.google.cloud:spring-cloud-gcp-starter-storage'
+    implementation 'com.google.cloud:spring-cloud-gcp-starter-secretmanager'
 
     // JWT
     implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
