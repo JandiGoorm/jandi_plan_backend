@@ -1,5 +1,7 @@
 ## ✈️ 프로젝트 소개
 
+<img width="2000" height="1125" alt="Image" src="https://github.com/kyj0503/image/blob/main/JandiGoorm/JustPlanIt/JustPlanIt%20(2).png" />
+
 **Just Plan It**은 MBTI에서 계획 세우기를 어려워하는 **P 성향**의 사람들도 **J 성향**처럼 쉽게 여행 계획을 세울 수 있도록 돕는 플랫폼입니다.  
 프론트엔드와 백엔드를 나누어 **React와 Spring 기반**으로 개발되었습니다.
 
@@ -10,6 +12,10 @@
 
 ## 📺 서비스 체험하기
 
+<img width="2000" height="1125" alt="Image" src="https://github.com/kyj0503/image/blob/main/JandiGoorm/JustPlanIt/JustPlanIt%20(4).png" />
+<img width="2000" height="1125" alt="Image" src="https://github.com/kyj0503/image/blob/main/JandiGoorm/JustPlanIt/JustPlanIt%20(5).png" />
+<img width="2000" height="1125" alt="Image" src="https://github.com/kyj0503/image/blob/main/JandiGoorm/JustPlanIt/JustPlanIt%20(6).png" />
+
 **배포 URL**: [https://justplanit.site/](https://justplanit.site/)
 
 회원가입이 번거로우시다면, 아래 테스트 계정으로 바로 로그인해보실 수 있습니다.  
@@ -19,6 +25,8 @@
 <br/>
 
 ## 👥 팀원 소개
+
+<img width="2000" height="1125" alt="Image" src="https://github.com/kyj0503/image/blob/main/JandiGoorm/JustPlanIt/JustPlanIt%20(3).png" />
 
 | 이름   | 역할    | 주요 기여                                            | GitHub                                                     |
 | ------ | ------- | ---------------------------------------------------- | ---------------------------------------------------------- |
@@ -31,14 +39,22 @@
 
 ## 🏗️ 아키텍처
 
-![Just Plan It Architecture](https://github.com/user-attachments/assets/7157abb5-f109-44e3-ae38-8d39fc01332a)
+<img width="2000" height="1125" alt="Image" src="https://github.com/kyj0503/image/blob/main/JandiGoorm/JustPlanIt/JustPlanIt%20(11).png" />
+
+<br/>
 
 ## 🏗️ ERD
-![jandi_plan_erd](https://github.com/JandiGoorm/jandi_plan_backend/blob/master/jandi_plan_erd.png)
+
+<img width="2000" height="1125" alt="Image" src="https://github.com/kyj0503/image/blob/main/JandiGoorm/JustPlanIt/JustPlanIt%20(12).png" />
+
+<br/>
 
 ## 🏗️ API 명세서
 
 https://www.notion.so/API-190be199511b81d29d08da36c1c4ad30
+
+<img width="2000" height="1125" alt="Image" src="https://github.com/kyj0503/image/blob/main/JandiGoorm/JustPlanIt/JustPlanIt%20(13).png" />
+<img width="2000" height="1125" alt="Image" src="https://github.com/kyj0503/image/blob/main/JandiGoorm/JustPlanIt/JustPlanIt%20(14).png" />
 
 <br/>
 
@@ -74,8 +90,16 @@ https://www.notion.so/API-190be199511b81d29d08da36c1c4ad30
 | 문서 및 일정 관리 | Notion을 활용한 자료 공유 및 회의록 작성                              |
 | 이슈 및 명세 관리 | Notion을 통한 기능 명세 작성 및 이슈 관리                             |
 
+<img width="2000" height="1125" alt="Image" src="https://github.com/kyj0503/image/blob/main/JandiGoorm/JustPlanIt/JustPlanIt%20(15).png" />
+<img width="2000" height="1125" alt="Image" src="https://github.com/kyj0503/image/blob/main/JandiGoorm/JustPlanIt/JustPlanIt%20(16).png" />
+<img width="2000" height="1125" alt="Image" src="https://github.com/kyj0503/image/blob/main/JandiGoorm/JustPlanIt/JustPlanIt%20(17).png" />
+<img width="2000" height="1125" alt="Image" src="https://github.com/kyj0503/image/blob/main/JandiGoorm/JustPlanIt/JustPlanIt%20(18).png" />
+<img width="2000" height="1125" alt="Image" src="https://github.com/kyj0503/image/blob/main/JandiGoorm/JustPlanIt/JustPlanIt%20(19).png" />
+<img width="2000" height="1125" alt="Image" src="https://github.com/kyj0503/image/blob/main/JandiGoorm/JustPlanIt/JustPlanIt%20(20).png" />
+<img width="2000" height="1125" alt="Image" src="https://github.com/kyj0503/image/blob/main/JandiGoorm/JustPlanIt/JustPlanIt%20(21).png" />
+<img width="2000" height="1125" alt="Image" src="https://github.com/kyj0503/image/blob/main/JandiGoorm/JustPlanIt/JustPlanIt%20(11).png" />
+
+
 <br/>
 
-## 🤝 요구사항
-
-https://www.notion.so/185be199511b8117b480cbf822f84280
+<img width="2000" height="1125" alt="Image" src="https://github.com/kyj0503/image/blob/main/JandiGoorm/JustPlanIt/JustPlanIt%20(22).png" />
