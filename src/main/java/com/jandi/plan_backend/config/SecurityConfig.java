@@ -85,6 +85,8 @@ public class SecurityConfig {
                                 "/api/users/register/checkName", "/api/users/forgot", "/api/users/verify",
                                 "/api/users/token/refresh",
 
+                                "/actuator/health",
+
                                 // 소셜 로그인 관련
                                 "/api/auth/kakaoLogin",
                                 "/api/auth/naver/loginUrl", "/api/auth/naver/callback",
