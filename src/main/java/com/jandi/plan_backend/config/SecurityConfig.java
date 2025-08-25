@@ -117,13 +117,13 @@ public class SecurityConfig {
                                 "/api/images/**",
 
                                 // users 관련
-                                "api/users/del-user", "api/users/change-password", "/api/users/profile",
+                                "/api/users/del-user", "/api/users/change-password", "/api/users/profile",
 
                                 // users - prefer 관련
-                                "api/trip/cities/prefer",
+                                "/api/trip/cities/prefer",
 
                                 // community - post 관련
-                                "api/community/posts", "/api/community/posts/{postId}", "/api/temp",
+                                "/api/community/posts", "/api/community/posts/{postId}", "/api/temp",
                                 "/api/community/posts/reports{postId}", "/api/community/posts/likes/{postId}",
 
                                 // community - comments 관련
@@ -177,7 +177,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 // 유저 관련
                                 "/api/manage/user/delete/{userId}",
-                                "api/manage/user/change-role/{user_id}"
+                                "/api/manage/user/change-role/{user_id}"
                         ).hasRole("ADMIN")
                         // 그 외 모든 요청은 인증 필요
                         .anyRequest().authenticated()
