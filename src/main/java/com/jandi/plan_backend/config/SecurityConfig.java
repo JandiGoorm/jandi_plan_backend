@@ -78,6 +78,8 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 // 요청에 대한 접근 권한 설정
                 .authorizeHttpRequests(authorize -> authorize
+                        // 모든 OPTIONS 메서드 요청은 인증 없이 허용 (CORS Preflight 대응)
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         /** 미로그인 상태에서도 접근 가능 */
                         .requestMatchers(
                                 // user - 자체 login & register 관련
