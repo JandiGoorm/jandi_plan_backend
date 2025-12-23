@@ -38,3 +38,4 @@ out/
 
 application-dev.properties
 application-release.properties
+jenkins_log.txt

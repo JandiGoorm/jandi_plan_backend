@@ -36,6 +36,8 @@ pipeline {
                     def fullImageName = "ghcr.io/${env.GHCR_OWNER}/${env.IMAGE_NAME}:${env.BUILD_NUMBER}"
                     withCredentials([sshUserPrivateKey(credentialsId: 'ec2-ssh-key', keyFileVariable: 'EC2_PRIVATE_KEY')]) {
                         sh """
+                            scp -o StrictHostKeyChecking=no -i \${EC2_PRIVATE_KEY} docker-compose.yml ${env.EC2_USER}@${env.EC2_HOST}:/home/ubuntu/justplanit-app/docker-compose.yml
+                            scp -o StrictHostKeyChecking=no -i \${EC2_PRIVATE_KEY} deploy.sh ${env.EC2_USER}@${env.EC2_HOST}:/home/ubuntu/justplanit-app/deploy.sh
                             ssh -o StrictHostKeyChecking=no -i \${EC2_PRIVATE_KEY} ${env.EC2_USER}@${env.EC2_HOST} \
                             "bash /home/ubuntu/justplanit-app/deploy.sh ${fullImageName}"
                         """

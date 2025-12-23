@@ -12,7 +12,7 @@ COPY build.gradle settings.gradle ./
 RUN chmod +x ./gradlew
 
 # 의존성 분리 캐싱
-RUN ./gradlew dependencies --no-daemon
+RUN ./gradlew dependencies --no-daemon > /dev/null 2>&1 || true
 
 # 소스 코드 복사
 COPY src src
