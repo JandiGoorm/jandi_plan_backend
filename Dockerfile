@@ -40,4 +40,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
   CMD curl -f http://localhost:8080/actuator/health || exit 1
 
 # 외부 설정 파일을 참조하여 애플리케이션 실행
-ENTRYPOINT ["java", "-Dspring.config.location=file:/app/config/application.properties", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar"]
