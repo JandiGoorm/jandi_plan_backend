@@ -4,8 +4,6 @@ services:
     container_name: justplanit-app
     ports:
       - "8083:8080"
-    volumes:
-      - ./application.properties:/app/config/application.properties
     restart: always
     env_file:
       - .env
