@@ -5,6 +5,25 @@
 2. 실행 시 환경 변수 `SPRING_PROFILES_ACTIVE=dev`를 설정하여 `dev` 프로파일을 활성화해야 합니다.
    - **IntelliJ**: `Run Configuration` -> `Environment variables` 에 `SPRING_PROFILES_ACTIVE=dev` 추가.
    - **VS Code**: `launch.json`의 `env` 섹션에 `"SPRING_PROFILES_ACTIVE": "dev"` 추가.
+```
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-PlanBackendApplication<jandi_plan_backend>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.jandi.plan_backend.PlanBackendApplication",
+            "projectName": "jandi_plan_backend",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env",
+            "env": {
+                "SPRING_PROFILES_ACTIVE": "dev"
+            }
+        }
+    ]
+}
+```
    - **Terminal**: `SPRING_PROFILES_ACTIVE=dev ./gradlew bootRun`
 
 #### 운영 환경
