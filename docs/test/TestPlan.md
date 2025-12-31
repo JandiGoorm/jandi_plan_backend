@@ -253,6 +253,47 @@ void registerUser_WithDuplicateEmail_ShouldThrowException() { ... }
 | 신고 게시물 조회 | page, size | Page<CommunityReportedListDTO> | 🟡 권장 |
 | 신고 댓글 조회 | page, size | Page<CommentReportedListDTO> | 🟡 권장 |
 | 신고 게시물 삭제 | postId | 삭제 완료 | 🟢 선택 |
+| 신고 댓글 삭제 | commentId | 삭제 완료 | 🟢 선택 |
+
+#### ManageTripService 테스트 케이스
+
+| 테스트 항목 | 입력 | 기대 출력 | 우선순위 |
+|-----------|------|----------|---------|
+| 대륙 생성 (관리자) | continentName, file | ContinentRespDTO | 🟢 선택 |
+| 국가 생성 (관리자) | continentName, countryName | CountryRespDTO | 🟢 선택 |
+| 도시 생성 (관리자) | countryName, cityName, file, lat, lng | CityRespDTO | 🟢 선택 |
+| 국가 수정 (관리자) | countryId, countryName | CountryRespDTO | 🟢 선택 |
+| 도시 수정 (관리자) | cityId, cityName, description | CityRespDTO | 🟢 선택 |
+| 국가 삭제 (관리자) | countryId | 삭제된 도시 수 반환 | 🟢 선택 |
+| 도시 삭제 (관리자) | cityId | 삭제 완료 | 🟢 선택 |
+| 일반 사용자 접근 거절 | 일반 사용자 | Exception | 🟢 선택 |
+
+---
+
+### 2.7 Image Domain
+
+#### ImageService 테스트 케이스
+
+| 테스트 항목 | 입력 | 기대 출력 | 우선순위 |
+|-----------|------|----------|---------|
+| 이미지 업로드 성공 | file, ownerEmail, targetId, targetType | ImageRespDto | 🟡 권장 |
+| 빈 파일 업로드 거절 | empty file | Exception | 🟡 권장 |
+| 지원하지 않는 형식 거절 | .exe file | Exception | 🟡 권장 |
+
+---
+
+### 2.8 TripParticipant Domain
+
+#### TripParticipantService 테스트 케이스
+
+| 테스트 항목 | 입력 | 기대 출력 | 우선순위 |
+|-----------|------|----------|---------|
+| 동반자 추가 성공 | tripId, userName | TripParticipantRespDTO | 🟡 권장 |
+| 동반자 목록 조회 | tripId | List<TripParticipantRespDTO> | 🟡 권장 |
+| 동반자 삭제 성공 | tripId, userName | 삭제 완료 | 🟡 권장 |
+| 존재하지 않는 사용자 추가 거절 | 없는 userName | Exception | 🟡 권장 |
+| 이미 추가된 동반자 중복 거절 | 기존 참여자 | Exception | 🟡 권장 |
+| 타인 여행에 동반자 추가 거절 | 다른 사용자의 tripId | Exception | 🟡 권장 |
 
 ---
 

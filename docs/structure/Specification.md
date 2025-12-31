@@ -165,7 +165,16 @@
 | 이미지 수정 | PUT | `/api/images/{imageId}` | O | 이미지 파일 교체 |
 | 이미지 삭제 | DELETE | `/api/images/{imageId}` | X | 이미지 삭제 |
 
-## 5.2 임시 게시물
+## 5.2 타겟별 이미지 업로드
+
+| 기능 | Method | Endpoint | 인증 | 설명 |
+|------|--------|----------|------|------|
+| 게시글 이미지 | POST | `/api/images/upload/community` | O | 게시글 이미지 업로드 |
+| 공지사항 이미지 | POST | `/api/images/upload/notice` | O (관리자) | 공지사항 이미지 업로드 |
+| 프로필 이미지 | POST | `/api/images/upload/profile` | O | 프로필 사진 업로드 |
+| 여행 이미지 | POST | `/api/images/upload/trip` | O | 여행 계획 이미지 업로드 |
+
+## 5.3 임시 게시물
 
 | 기능 | Method | Endpoint | 인증 | 설명 |
 |------|--------|----------|------|------|
@@ -201,6 +210,35 @@
 | 신고 댓글 | GET | `/api/manage/community/reported/comments` | O (관리자) | 신고된 댓글 목록 조회 |
 | 게시물 삭제 | DELETE | `/api/manage/community/delete/posts/{postId}` | O (관리자) | 신고 게시물 삭제 |
 | 댓글 삭제 | DELETE | `/api/manage/community/delete/comments/{commentId}` | O (관리자) | 신고 댓글 삭제 |
+
+## 7.3 여행지 관리
+
+| 기능 | Method | Endpoint | 인증 | 설명 |
+|------|--------|----------|------|------|
+| 대륙 생성 | POST | `/api/manage/trip/continents` | O (관리자) | 새 대륙 등록 |
+| 국가 생성 | POST | `/api/manage/trip/countries` | O (관리자) | 새 국가 등록 |
+| 도시 생성 | POST | `/api/manage/trip/cities` | O (관리자) | 새 도시 등록 |
+| 국가 수정 | PATCH | `/api/manage/trip/countries/{countryId}` | O (관리자) | 국가 정보 수정 |
+| 도시 수정 | PATCH | `/api/manage/trip/cities/{cityId}` | O (관리자) | 도시 정보 수정 |
+| 국가 삭제 | DELETE | `/api/manage/trip/countries/{countryId}` | O (관리자) | 국가 삭제 |
+| 도시 삭제 | DELETE | `/api/manage/trip/cities/{cityId}` | O (관리자) | 도시 삭제 |
+
+## 7.4 통계
+
+| 기능 | Method | Endpoint | 인증 | 설명 |
+|------|--------|----------|------|------|
+| 월별 가입자 | GET | `/api/manage/util/month/users` | O (관리자) | 최근 12개월 가입자 통계 |
+| 전체 통계 | GET | `/api/manage/util/all` | O (관리자) | 게시글/여행/사용자 수, 7일 가입자 |
+
+---
+
+# 8. 스케줄러 서비스 (Background Jobs)
+
+| 서비스 | 주기 | 설명 |
+|--------|------|------|
+| RoleMonitorService | 1시간마다 | 비정상적인 권한 변경 감지 및 로깅 |
+| UserCleanupService | 매 정각 | 이메일 미인증 사용자 자동 삭제 |
+| ImageCleanupService | 트랜잭션 후 | 고아 이미지(미사용) 정리 |
 
 ---
 
