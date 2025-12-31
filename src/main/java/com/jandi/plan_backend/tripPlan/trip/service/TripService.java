@@ -13,6 +13,7 @@ import com.jandi.plan_backend.tripPlan.trip.repository.TripRepository;
 import com.jandi.plan_backend.user.entity.City;
 import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.user.repository.CityRepository;
+import com.jandi.plan_backend.util.TimeUtil;
 import com.jandi.plan_backend.util.ValidationUtil;
 import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
 import com.jandi.plan_backend.util.service.PaginationService;
@@ -250,7 +251,7 @@ public class TripService {
         TripLike tripLike = new TripLike();
         tripLike.setTrip(trip);
         tripLike.setUser(user);
-        tripLike.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
+        tripLike.setCreatedAt(TimeUtil.now());
         tripLikeRepository.save(tripLike);
 
         trip.setLikeCount(trip.getLikeCount() + 1);

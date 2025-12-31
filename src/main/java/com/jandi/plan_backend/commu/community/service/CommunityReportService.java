@@ -6,13 +6,11 @@ import com.jandi.plan_backend.commu.community.entity.Community;
 import com.jandi.plan_backend.commu.community.entity.CommunityReported;
 import com.jandi.plan_backend.commu.community.repository.CommunityReportedRepository;
 import com.jandi.plan_backend.user.entity.User;
+import com.jandi.plan_backend.util.TimeUtil;
 import com.jandi.plan_backend.util.ValidationUtil;
 import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 
 @Service
 public class CommunityReportService {
@@ -45,7 +43,7 @@ public class CommunityReportService {
         communityReported.setUser(user);
         communityReported.setCommunity(post);
         communityReported.setContents(reportDTO.getContents());
-        communityReported.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
+        communityReported.setCreatedAt(TimeUtil.now());
         communityReportedRepository.save(communityReported);
 
         return new PostReportRespDTO(communityReported);

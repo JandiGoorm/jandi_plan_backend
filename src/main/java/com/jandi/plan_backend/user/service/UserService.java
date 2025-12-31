@@ -20,6 +20,7 @@ import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.user.repository.UserCityPreferenceRepository;
 import com.jandi.plan_backend.user.repository.UserRepository;
 import com.jandi.plan_backend.security.JwtTokenProvider;
+import com.jandi.plan_backend.util.TimeUtil;
 import com.jandi.plan_backend.util.ValidationUtil;
 import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +30,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -116,13 +116,13 @@ public class UserService {
         user.setLastName(dto.getLastName());
         user.setEmail(dto.getEmail());
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
-        user.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
-        user.setUpdatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
+        user.setCreatedAt(TimeUtil.now());
+        user.setUpdatedAt(TimeUtil.now());
         user.setVerified(false);
         user.setReported(false);
         String token = UUID.randomUUID().toString();
         user.setVerificationToken(token);
-        user.setTokenExpires(LocalDateTime.now(ZoneId.of("Asia/Seoul")).plusHours(24));
+        user.setTokenExpires(TimeUtil.now().plusHours(24));
         userRepository.save(user);
         String verifyLink = verifyUrl + "?token=" + token;
         String subject = "[회원가입] 이메일 인증 안내";
@@ -180,13 +180,13 @@ public class UserService {
             return false;
         }
         User user = optionalUser.get();
-        if (user.getTokenExpires() != null && user.getTokenExpires().isBefore(LocalDateTime.now(ZoneId.of("Asia/Seoul")))) {
+        if (user.getTokenExpires() != null && user.getTokenExpires().isBefore(TimeUtil.now())) {
             return false;
         }
         user.setVerified(true);
         user.setVerificationToken(null);
         user.setTokenExpires(null);
-        user.setUpdatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
+        user.setUpdatedAt(TimeUtil.now());
         userRepository.save(user);
         return true;
     }
@@ -199,7 +199,7 @@ public class UserService {
         User user = optionalUser.get();
         String tempPassword = UUID.randomUUID().toString().substring(0, 8);
         user.setPassword(passwordEncoder.encode(tempPassword));
-        user.setUpdatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
+        user.setUpdatedAt(TimeUtil.now());
         userRepository.save(user);
         String subject = "[비밀번호 찾기] 임시 비밀번호 안내";
         String text = "임시 비밀번호: " + tempPassword + "\n로그인 후 반드시 비밀번호를 변경하세요.";
@@ -255,7 +255,7 @@ public class UserService {
             throw new RuntimeException("현재 비밀번호가 올바르지 않습니다.");
         }
         user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
-        user.setUpdatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
+        user.setUpdatedAt(TimeUtil.now());
         userRepository.save(user);
     }
 
@@ -350,7 +350,7 @@ public class UserService {
 
         // 4) 변경 후 저장
         user.setUserName(newUserName);
-        user.setUpdatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
+        user.setUpdatedAt(TimeUtil.now());
         userRepository.save(user);
     }
 }

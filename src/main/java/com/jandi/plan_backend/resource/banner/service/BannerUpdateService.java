@@ -10,6 +10,7 @@ import com.jandi.plan_backend.image.service.ImageService;
 import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.user.entity.Role;
 import com.jandi.plan_backend.util.BannerUtil;
+import com.jandi.plan_backend.util.TimeUtil;
 import com.jandi.plan_backend.util.ValidationUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,8 +19,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.Objects;
 
 @Slf4j
@@ -75,7 +74,7 @@ public class BannerUpdateService {
 
     private Banner createBannerData(BannerReqDTO reqDTO) {
         Banner banner = new Banner();
-        banner.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
+        banner.setCreatedAt(TimeUtil.now());
         banner.setTitle(reqDTO.getTitle());
         banner.setSubtitle(reqDTO.getSubTitle());
         banner.setLinkUrl(reqDTO.getLinkUrl());

@@ -5,15 +5,13 @@ import com.jandi.plan_backend.commu.community.entity.CommunityLike;
 import com.jandi.plan_backend.commu.community.repository.CommunityLikeRepository;
 import com.jandi.plan_backend.commu.community.repository.CommunityRepository;
 import com.jandi.plan_backend.user.entity.User;
+import com.jandi.plan_backend.util.TimeUtil;
 import com.jandi.plan_backend.util.ValidationUtil;
 import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.Optional;
 
 @Slf4j
@@ -49,7 +47,7 @@ public class CommunityLikeService {
         CommunityLike communityLike = new CommunityLike();
         communityLike.setCommunity(post);
         communityLike.setUser(user);
-        communityLike.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
+        communityLike.setCreatedAt(TimeUtil.now());
 
         communityLikeRepository.save(communityLike);
         communityRepository.incrementLikeCount(postId);

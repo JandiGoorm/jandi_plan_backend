@@ -10,14 +10,13 @@ import com.jandi.plan_backend.user.repository.ContinentRepository;
 import com.jandi.plan_backend.user.repository.CountryRepository;
 import com.jandi.plan_backend.user.repository.CityRepository;
 import com.jandi.plan_backend.user.repository.UserCityPreferenceRepository;
+import com.jandi.plan_backend.util.TimeUtil;
 import com.jandi.plan_backend.util.ValidationUtil;
 import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -224,7 +223,7 @@ public class PreferTripService {
             UserCityPreference userCityPreference = new UserCityPreference();
             userCityPreference.setCity(curCity);
             userCityPreference.setUser(user);
-            userCityPreference.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
+            userCityPreference.setCreatedAt(TimeUtil.now());
             userCityPreferenceRepository.save(userCityPreference);
             log.info("도시 {}을/를 선호 도시로 등록 성공", cityName);
             successCount++;

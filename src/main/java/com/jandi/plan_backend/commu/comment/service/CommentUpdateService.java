@@ -9,14 +9,13 @@ import com.jandi.plan_backend.commu.comment.repository.CommentRepository;
 import com.jandi.plan_backend.commu.community.entity.Community;
 import com.jandi.plan_backend.image.service.ImageService;
 import com.jandi.plan_backend.user.entity.User;
+import com.jandi.plan_backend.util.TimeUtil;
 import com.jandi.plan_backend.util.ValidationUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.List;
 
 @Slf4j
@@ -104,7 +103,7 @@ public class CommentUpdateService {
         comment.setCommunity(post);
         comment.setParentComment(parentComment);
         comment.setUserId(user.getUserId());
-        comment.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
+        comment.setCreatedAt(TimeUtil.now());
         comment.setContents(content);
         comment.setLikeCount(0);
         comment.setRepliesCount(0);

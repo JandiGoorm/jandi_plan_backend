@@ -14,8 +14,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import com.jandi.plan_backend.util.TimeUtil;
+
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -185,8 +185,8 @@ public class NaverService {
         newUser.setVerified(true);
         newUser.setReported(false);
         newUser.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
-        newUser.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
-        newUser.setUpdatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
+        newUser.setCreatedAt(TimeUtil.now());
+        newUser.setUpdatedAt(TimeUtil.now());
         userRepository.save(newUser);
 
         return newUser;

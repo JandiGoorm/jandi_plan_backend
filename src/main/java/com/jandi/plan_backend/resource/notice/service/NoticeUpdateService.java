@@ -10,6 +10,7 @@ import com.jandi.plan_backend.resource.notice.dto.NoticeRespDTO;
 import com.jandi.plan_backend.resource.notice.entity.Notice;
 import com.jandi.plan_backend.resource.notice.repository.NoticeRepository;
 import com.jandi.plan_backend.user.entity.User;
+import com.jandi.plan_backend.util.TimeUtil;
 import com.jandi.plan_backend.util.ValidationUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,8 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.List;
 
 @Slf4j
@@ -87,7 +86,7 @@ public class NoticeUpdateService {
         Notice notice = new Notice();
         notice.setTitle(reqDTO.getTitle());
         notice.setContents(reqDTO.getContent());
-        notice.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
+        notice.setCreatedAt(TimeUtil.now());
         noticeRepository.save(notice);
 
         return notice;
