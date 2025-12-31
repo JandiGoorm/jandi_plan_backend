@@ -1,14 +1,12 @@
 package com.jandi.plan_backend.user.entity;
 
 import com.jandi.plan_backend.user.repository.RoleLogRepository;
+import com.jandi.plan_backend.util.TimeUtil;
 import jakarta.persistence.PostUpdate;
 import jakarta.persistence.PreUpdate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 
 @Component
 @RequiredArgsConstructor
@@ -39,7 +37,7 @@ public class UserEntityListener {
             roleLog.setPrevRole(this.previousRole);
             roleLog.setNewRole(user.getRole());
             roleLog.setChangedBy("SYSTEM"); // 비정상적인 변경은 SYSTEM이 감지함
-            roleLog.setChangedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
+            roleLog.setChangedAt(TimeUtil.now());
             roleLogRepository.save(roleLog);
         }
     }

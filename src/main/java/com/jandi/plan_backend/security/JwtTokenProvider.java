@@ -27,8 +27,13 @@ public class JwtTokenProvider {
 
     /**
      * application.properties에 설정한 jwt.secret 값을 주입받아 SecretKey를 생성합니다.
+     * JWT Secret은 HMAC-SHA256 알고리즘을 위해 최소 32자(256비트) 이상이어야 합니다.
      */
     public JwtTokenProvider(@Value("${jwt.secret}") String jwtSecret, UserRepository userRepository) {
+        if (jwtSecret == null || jwtSecret.length() < 32) {
+            throw new IllegalArgumentException("JWT secret은 최소 32자 이상이어야 합니다. 현재: " + 
+                    (jwtSecret == null ? "null" : jwtSecret.length() + "자"));
+        }
         this.secretKey = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
         this.userRepository = userRepository;
     }

@@ -3,12 +3,11 @@ package com.jandi.plan_backend.image.service;
 import com.jandi.plan_backend.image.dto.ImageRespDto;
 import com.jandi.plan_backend.image.entity.Image;
 import com.jandi.plan_backend.image.repository.ImageRepository;
+import com.jandi.plan_backend.util.TimeUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 
@@ -47,7 +46,7 @@ public class ImageService {
         image.setTargetId(targetId);
         image.setImageUrl(storedFileName);
         image.setOwner(owner);
-        image.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
+        image.setCreatedAt(TimeUtil.now());
         image = imageRepository.save(image);
         String fullPublicUrl = urlPrefix + image.getImageUrl();
         ImageRespDto responseDto = new ImageRespDto();
@@ -115,7 +114,7 @@ public class ImageService {
         }
         String newStoredFileName = uploadResult.replace("파일 업로드 성공: ", "").trim();
         image.setImageUrl(newStoredFileName);
-        image.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
+        image.setCreatedAt(TimeUtil.now());
         image = imageRepository.save(image);
         String fullPublicUrl = urlPrefix + image.getImageUrl();
         ImageRespDto responseDto = new ImageRespDto();

@@ -17,6 +17,7 @@ import com.jandi.plan_backend.image.service.ImageService;
 import com.jandi.plan_backend.image.service.InMemoryTempPostService;
 import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.util.CommunityUtil;
+import com.jandi.plan_backend.util.TimeUtil;
 import com.jandi.plan_backend.util.ValidationUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,8 +26,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.List;
 
 @Slf4j
@@ -45,8 +44,6 @@ public class CommunityUpdateService {
     private final CommentReportedRepository commentReportedRepository;
     private final CommentLikeRepository commentLikeRepository;
     private final ImageCleanupService imageCleanupService;
-
-    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
 
     /** 최종 게시글 생성 (임시 postId(음수)를 실제 postId로 전환) */
     @Transactional
@@ -112,7 +109,7 @@ public class CommunityUpdateService {
         community.setUser(user);
         community.setTitle(reqDTO.getTitle());
         community.setContents(reqDTO.getContent());
-        community.setCreatedAt(LocalDateTime.now(KST));
+        community.setCreatedAt(TimeUtil.now());
         community.setLikeCount(0);
         community.setCommentCount(0);
         community.setPreview(communityUtil.getPreview(reqDTO.getContent())); // 미리보기 반영

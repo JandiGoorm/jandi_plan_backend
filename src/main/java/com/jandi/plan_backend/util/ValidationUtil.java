@@ -154,16 +154,9 @@ public class ValidationUtil {
     /* ==========================
        6) Trip(여행) 검증
        ========================== */
-    // 만약 TripRepository의 PK가 Long이라면, findById(Long) 필요
-    // 파라미터로 Integer를 받되, longValue()로 변환
     public Trip validateTripExists(Integer tripId) {
-        Trip tripObj = tripRepository.findById(tripId.longValue())
+        return tripRepository.findById(tripId.longValue())
                 .orElseThrow(() -> new BadRequestExceptionMessage("존재하지 않는 여행 계획입니다."));
-
-        if (tripObj == null) {
-            throw new BadRequestExceptionMessage("존재하지 않는 여행 계획입니다.");
-        }
-        return tripObj;
     }
 
     public Reservation validateReservationExists(Long reservationId) {

@@ -9,9 +9,10 @@ import com.jandi.plan_backend.tripPlan.reservation.entitiy.Reservation;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import com.jandi.plan_backend.util.TimeUtil;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.List;
 
 /**
@@ -87,8 +88,8 @@ public class Trip {
 
     @PrePersist
     protected void onCreate() {
-        this.createdAt = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
-        this.updatedAt = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
+        this.createdAt = TimeUtil.now();
+        this.updatedAt = TimeUtil.now();
         if (this.likeCount == null) {
             this.likeCount = 0;
         }
@@ -96,6 +97,6 @@ public class Trip {
 
     @PreUpdate
     protected void onUpdate() {
-        this.updatedAt = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
+        this.updatedAt = TimeUtil.now();
     }
 }

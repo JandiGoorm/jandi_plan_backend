@@ -3,6 +3,7 @@ package com.jandi.plan_backend.user.controller;
 import com.jandi.plan_backend.commu.community.repository.CommunityRepository;
 import com.jandi.plan_backend.tripPlan.trip.repository.TripRepository;
 import com.jandi.plan_backend.user.repository.UserRepository;
+import com.jandi.plan_backend.util.TimeUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -10,7 +11,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.temporal.TemporalAdjusters;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -38,7 +38,7 @@ public class ManageUtilController {
     public Map<String, Long> getMonthUsers(
             @RequestHeader("Authorization") String token
     ) {
-        LocalDateTime today = LocalDateTime.now(ZoneId.of("Asia/Seoul")); // 현재 시간
+        LocalDateTime today = TimeUtil.now(); // 현재 시간
         LocalDateTime curMonth = today.toLocalDate().withDayOfMonth(1).atStartOfDay(); // 현재 달의 1일 00:00:00
         log.info("Today is {}, curMonth is {}", today, curMonth);
 
@@ -66,7 +66,7 @@ public class ManageUtilController {
     public Map<String, Long> getServiceData(
             @RequestHeader("Authorization") String token // 헤더의 Authorization에서 JWT 토큰 받기
     ) {
-        LocalDateTime today = LocalDateTime.now(ZoneId.of("Asia/Seoul")); // 현재 시간까지 포함됨
+        LocalDateTime today = TimeUtil.now(); // 현재 시간까지 포함됨
         LocalDateTime last7Days = today.minusDays(7).toLocalDate().atStartOfDay(); // 7일 전 00:00:00부터
         log.info("Today is {}, last7Days ago is {}", today, last7Days);
 

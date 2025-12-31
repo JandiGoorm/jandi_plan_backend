@@ -6,14 +6,12 @@ import com.jandi.plan_backend.commu.comment.entity.CommentReported;
 import com.jandi.plan_backend.commu.comment.repository.CommentReportedRepository;
 import com.jandi.plan_backend.commu.community.dto.ReportReqDTO;
 import com.jandi.plan_backend.user.entity.User;
+import com.jandi.plan_backend.util.TimeUtil;
 import com.jandi.plan_backend.util.ValidationUtil;
 import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 
 @Service
 @RequiredArgsConstructor
@@ -36,7 +34,7 @@ public class CommentReportService {
         commentReported.setComment(comment);
         commentReported.setUser(user);
         commentReported.setContents(reportDTO.getContents());
-        commentReported.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
+        commentReported.setCreatedAt(TimeUtil.now());
         commentReportedRepository.save(commentReported);
         return new CommentReportRespDTO(commentReported);
     }

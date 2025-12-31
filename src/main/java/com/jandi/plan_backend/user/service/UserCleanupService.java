@@ -2,13 +2,13 @@ package com.jandi.plan_backend.user.service;
 
 import com.jandi.plan_backend.user.entity.User;
 import com.jandi.plan_backend.user.repository.UserRepository;
+import com.jandi.plan_backend.util.TimeUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.List;
 
 @Slf4j
@@ -28,7 +28,7 @@ public class UserCleanupService {
     @Scheduled(cron = "0 0 * * * *")  // 매 정각 실행 (원하는 주기로 수정 가능)
     @Transactional
     public void cleanupUnverifiedUsers() {
-        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
+        LocalDateTime now = TimeUtil.now();
         List<User> unverifiedUsers = userRepository.findByVerifiedFalseAndTokenExpiresBefore(now);
         if (!unverifiedUsers.isEmpty()) {
             log.info("삭제할 미인증 사용자 {}명을 찾았습니다.", unverifiedUsers.size());

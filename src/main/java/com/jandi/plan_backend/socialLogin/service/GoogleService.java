@@ -15,8 +15,8 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import com.jandi.plan_backend.util.TimeUtil;
+
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -183,8 +183,8 @@ public class GoogleService {
         newUser.setSocialId(googleId);
         newUser.setVerified(true);
         newUser.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
-        newUser.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
-        newUser.setUpdatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
+        newUser.setCreatedAt(TimeUtil.now());
+        newUser.setUpdatedAt(TimeUtil.now());
 
         userRepository.save(newUser);
         return newUser;

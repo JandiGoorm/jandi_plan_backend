@@ -3,6 +3,7 @@ package com.jandi.plan_backend.user.controller;
 import com.jandi.plan_backend.security.CustomUserDetails;
 import com.jandi.plan_backend.user.dto.*;
 import com.jandi.plan_backend.user.service.UserService;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,7 +28,7 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody UserRegisterDTO dto) {
+    public ResponseEntity<?> register(@Valid @RequestBody UserRegisterDTO dto) {
         userService.registerUser(dto);
         return ResponseEntity.ok("회원가입 완료! 이메일의 링크를 클릭하면 인증이 완료됨");
     }
@@ -63,7 +64,7 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthRespDTO> login(@RequestBody UserLoginDTO userLoginDTO) {
+    public ResponseEntity<AuthRespDTO> login(@Valid @RequestBody UserLoginDTO userLoginDTO) {
         log.info("로그인 시도, 이메일: {}", userLoginDTO.getEmail());
         AuthRespDTO authRespDTO = userService.login(userLoginDTO);
         log.info("로그인 성공, 이메일: {}, JWT 토큰 생성됨", userLoginDTO.getEmail());
@@ -117,7 +118,7 @@ public class UserController {
     @PutMapping("/change-password")
     public ResponseEntity<?> changePassword(
             @AuthenticationPrincipal com.jandi.plan_backend.security.CustomUserDetails customUserDetails,
-            @RequestBody ChangePasswordDTO dto) {
+            @Valid @RequestBody ChangePasswordDTO dto) {
         if (customUserDetails == null) {
             return ResponseEntity.status(401).body(Map.of("error", "로그인이 필요합니다."));
         }
@@ -163,7 +164,7 @@ public class UserController {
     @PatchMapping("/change-username")
     public ResponseEntity<?> changeUserName(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
-            @RequestBody UserNameUpdateDTO dto
+            @Valid @RequestBody UserNameUpdateDTO dto
     ) {
         // 1) 인증 확인
         if (customUserDetails == null) {

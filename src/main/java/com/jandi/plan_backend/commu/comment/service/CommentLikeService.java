@@ -5,14 +5,13 @@ import com.jandi.plan_backend.commu.comment.entity.CommentLike;
 import com.jandi.plan_backend.commu.comment.repository.CommentLikeRepository;
 import com.jandi.plan_backend.commu.comment.repository.CommentRepository;
 import com.jandi.plan_backend.user.entity.User;
+import com.jandi.plan_backend.util.TimeUtil;
 import com.jandi.plan_backend.util.ValidationUtil;
 import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.Optional;
 
 @Service
@@ -62,7 +61,7 @@ public class CommentLikeService {
         CommentLike commentLike = new CommentLike();
         commentLike.setComment(comment);
         commentLike.setUser(user);
-        commentLike.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
+        commentLike.setCreatedAt(TimeUtil.now());
         commentLikeRepository.save(commentLike);
 
         // 좋아요 수 증가

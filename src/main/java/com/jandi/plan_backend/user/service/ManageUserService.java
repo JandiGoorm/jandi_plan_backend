@@ -14,8 +14,7 @@ import com.jandi.plan_backend.user.entity.RoleLog;
 import com.jandi.plan_backend.user.repository.RoleLogRepository;
 import jakarta.transaction.Transactional;
 import com.jandi.plan_backend.user.entity.Role;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import com.jandi.plan_backend.util.TimeUtil;
 
 @Slf4j
 @Service
@@ -114,7 +113,7 @@ public class ManageUserService {
             roleLog.setPrevRole(previousRole);
             roleLog.setNewRole(intRole);
             roleLog.setChangedBy(curUser.getEmail());
-            roleLog.setChangedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
+            roleLog.setChangedAt(TimeUtil.now());
             roleLogRepository.save(roleLog);
         }catch(Exception e){
             throw new BadRequestExceptionMessage(e.getMessage());
