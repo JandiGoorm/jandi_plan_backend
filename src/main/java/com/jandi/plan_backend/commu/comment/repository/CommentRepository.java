@@ -4,6 +4,7 @@ import com.jandi.plan_backend.commu.comment.entity.Comment;
 import com.jandi.plan_backend.commu.community.entity.Community;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -14,7 +15,10 @@ import java.util.Optional;
 
 public interface CommentRepository extends JpaRepository<Comment, Integer> {
 
-    //특정 게시글의 부모 댓글만 조회하는 메서드
+    /**
+     * 특정 게시글의 부모 댓글만 조회 (N+1 방지: community 함께 조회)
+     */
+    @EntityGraph(attributePaths = {"community"})
     Page<Comment> findByCommunityPostIdAndParentCommentIsNull(Integer postId, Pageable pageable);
 
     //특정 게시글에 속한 부모 댓글의 수를 반환하는 메서드
