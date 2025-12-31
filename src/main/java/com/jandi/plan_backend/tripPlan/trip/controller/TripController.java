@@ -1,11 +1,13 @@
 package com.jandi.plan_backend.tripPlan.trip.controller;
 
-import com.jandi.plan_backend.security.JwtTokenProvider;
 import com.jandi.plan_backend.tripPlan.trip.dto.*;
 import com.jandi.plan_backend.tripPlan.trip.service.TripService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,15 +18,10 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/api/trip/")
+@RequiredArgsConstructor
 public class TripController {
 
     private final TripService tripService;
-    private final JwtTokenProvider jwtTokenProvider;
-
-    public TripController(TripService tripService, JwtTokenProvider jwtTokenProvider) {
-        this.tripService = tripService;
-        this.jwtTokenProvider = jwtTokenProvider;
-    }
 
     /**
      * 공개 설정된 여행 계획 목록 조회 (로그인 시 본인+타인 공개, 관리자면 전체)
@@ -33,11 +30,9 @@ public class TripController {
     public Map<String, Object> getAllTrips(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestHeader(value = "Authorization", required = false) String token
+            @AuthenticationPrincipal UserDetails userDetails
     ) {
-        String userEmail = (token == null)
-                ? null
-                : jwtTokenProvider.getEmail(token.replace("Bearer ", ""));
+        String userEmail = (userDetails != null) ? userDetails.getUsername() : null;
         Page<TripRespDTO> tripsPage = tripService.getAllTrips(userEmail, page, size);
 
         return Map.of(
@@ -65,11 +60,11 @@ public class TripController {
      */
     @GetMapping("/my/allTrips")
     public Map<String, Object> getAllMyTrips(
-            @RequestHeader("Authorization") String token,
+            @AuthenticationPrincipal UserDetails userDetails,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        String userEmail = jwtTokenProvider.getEmail(token.replace("Bearer ", ""));
+        String userEmail = userDetails.getUsername();
         Page<MyTripRespDTO> myTripsPage = tripService.getAllMyTrips(userEmail, page, size);
 
         return Map.of(
@@ -88,11 +83,11 @@ public class TripController {
      */
     @GetMapping("/my/likedTrips")
     public Map<String, Object> getLikedTrips(
-            @RequestHeader("Authorization") String token,
+            @AuthenticationPrincipal UserDetails userDetails,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        String userEmail = jwtTokenProvider.getEmail(token.replace("Bearer ", ""));
+        String userEmail = userDetails.getUsername();
         Page<TripRespDTO> likedTripsPage = tripService.getLikedTrips(userEmail, page, size);
 
         return Map.of(
@@ -112,12 +107,9 @@ public class TripController {
     @GetMapping("/{tripId}")
     public ResponseEntity<?> getSpecTrips(
             @PathVariable Integer tripId,
-            @RequestHeader(value = "Authorization", required = false) String token
+            @AuthenticationPrincipal UserDetails userDetails
     ) {
-        String userEmail = null;
-        if (token != null && !token.isBlank()) {
-            userEmail = jwtTokenProvider.getEmail(token.replace("Bearer ", ""));
-        }
+        String userEmail = (userDetails != null) ? userDetails.getUsername() : null;
         TripItemRespDTO tripResp = tripService.getSpecTrips(userEmail, tripId);
         return ResponseEntity.ok(tripResp);
     }
@@ -127,10 +119,10 @@ public class TripController {
      */
     @PostMapping("/my/create")
     public ResponseEntity<?> writeTrip(
-            @RequestHeader("Authorization") String token,
+            @AuthenticationPrincipal UserDetails userDetails,
             @RequestBody TripCreateReqDTO tripCreateReqDTO
     ) {
-        String userEmail = jwtTokenProvider.getEmail(token.replace("Bearer ", ""));
+        String userEmail = userDetails.getUsername();
         TripRespDTO savedTrip = tripService.writeTrip(
                 userEmail,
                 tripCreateReqDTO.getTitle(),
@@ -149,9 +141,9 @@ public class TripController {
     @PostMapping("/my/likedTrips/{tripId}")
     public ResponseEntity<?> addLikeTrip(
             @PathVariable Integer tripId,
-            @RequestHeader("Authorization") String token
+            @AuthenticationPrincipal UserDetails userDetails
     ) {
-        String userEmail = jwtTokenProvider.getEmail(token.replace("Bearer ", ""));
+        String userEmail = userDetails.getUsername();
         TripLikeRespDTO likedTrip = tripService.addLikeTrip(userEmail, tripId);
         return ResponseEntity.ok(likedTrip);
     }
@@ -162,9 +154,9 @@ public class TripController {
     @DeleteMapping("/my/likedTrips/{tripId}")
     public ResponseEntity<?> deleteLikeTrip(
             @PathVariable Integer tripId,
-            @RequestHeader("Authorization") String token
+            @AuthenticationPrincipal UserDetails userDetails
     ) {
-        String userEmail = jwtTokenProvider.getEmail(token.replace("Bearer ", ""));
+        String userEmail = userDetails.getUsername();
         boolean isDeleteLikeTrip = tripService.deleteLikeTrip(userEmail, tripId);
         return (isDeleteLikeTrip)
                 ? ResponseEntity.ok("좋아요 해제되었습니다.")
@@ -176,10 +168,10 @@ public class TripController {
      */
     @DeleteMapping("/my/{tripId}")
     public ResponseEntity<?> deleteMyTrip(
-            @RequestHeader("Authorization") String token,
+            @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable("tripId") Integer tripId
     ) {
-        String userEmail = jwtTokenProvider.getEmail(token.replace("Bearer ", ""));
+        String userEmail = userDetails.getUsername();
         tripService.deleteMyTrip(tripId, userEmail);
         return ResponseEntity.ok(Map.of("message", "해당 여행 계획이 삭제되었습니다."));
     }
@@ -189,11 +181,11 @@ public class TripController {
      */
     @PatchMapping("/my/{tripId}")
     public ResponseEntity<?> updateMyTripBasicInfo(
-            @RequestHeader("Authorization") String token,
+            @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable("tripId") Integer tripId,
             @RequestBody TripUpdateReqDTO tripUpdateReqDTO
     ) {
-        String userEmail = jwtTokenProvider.getEmail(token.replace("Bearer ", ""));
+        String userEmail = userDetails.getUsername();
         TripRespDTO updatedTrip = tripService.updateTripBasicInfo(
                 userEmail,
                 tripId,
@@ -212,18 +204,11 @@ public class TripController {
             @RequestParam String keyword,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestHeader(value = "Authorization", required = false) String token
+            @AuthenticationPrincipal UserDetails userDetails
     ) {
-        // (1) userEmail 추출 (토큰이 없거나 비어 있으면 null)
-        String userEmail = null;
-        if (token != null && !token.isBlank()) {
-            userEmail = jwtTokenProvider.getEmail(token.replace("Bearer ", ""));
-        }
-
-        // (2) 검색
+        String userEmail = (userDetails != null) ? userDetails.getUsername() : null;
         Page<TripRespDTO> tripsPage = tripService.searchTrips(category, keyword, page, size, userEmail);
 
-        // (3) 응답
         return ResponseEntity.ok(Map.of(
                 "pageInfo", Map.of(
                         "currentPage", tripsPage.getNumber(),
