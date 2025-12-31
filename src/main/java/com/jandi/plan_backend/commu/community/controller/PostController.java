@@ -3,6 +3,7 @@ package com.jandi.plan_backend.commu.community.controller;
 import com.jandi.plan_backend.commu.community.dto.*;
 import com.jandi.plan_backend.commu.community.service.*;
 import com.jandi.plan_backend.security.JwtTokenProvider;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -73,7 +74,7 @@ public class PostController {
     public ResponseEntity<?> updatePost(
             @PathVariable Integer postId,
             @RequestHeader("Authorization") String token,
-            @RequestBody CommunityReqDTO postDTO
+            @Valid @RequestBody CommunityReqDTO postDTO
     ) {
         String jwtToken = token.replace("Bearer ", "");
         String userEmail = jwtTokenProvider.getEmail(jwtToken);
@@ -135,7 +136,7 @@ public class PostController {
     @PostMapping("/posts/reports/{postId}")
     public ResponseEntity<?> reportPost(
             @PathVariable Integer postId,
-            @RequestBody ReportReqDTO reportDTO,
+            @Valid @RequestBody ReportReqDTO reportDTO,
             @RequestHeader("Authorization") String token
     ) {
         String jwtToken = token.replace("Bearer ", "");
@@ -151,7 +152,7 @@ public class PostController {
     @PostMapping("/posts")
     public ResponseEntity<CommunityRespDTO> finalizePost(
             @RequestHeader("Authorization") String token,
-            @RequestBody PostFinalizeReqDTO finalizeReqDTO
+            @Valid @RequestBody PostFinalizeReqDTO finalizeReqDTO
     ) {
         String jwtToken = token.replace("Bearer ", "");
         String userEmail = jwtTokenProvider.getEmail(jwtToken);
