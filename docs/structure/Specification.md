@@ -1,199 +1,214 @@
-### 요구 사항 초안
+# Jandi Plan Backend API 명세서
+
+## 개요
+
+본 문서는 Jandi Plan 백엔드의 모든 REST API를 정의한다. 각 엔드포인트의 인증 요구사항, 요청/응답 형식, 주요 예외 처리를 포함한다.
 
 ---
 
-## Default
+# 1. 사용자 관리 (User Domain)
 
-- 사용자는 Header의 메뉴를 이용할 수 있다.
-    - Header의 로고 클릭을 통해 메인페이지로 이동
-    - 메뉴(프로필or로그인, Community, Notice) 클릭 이동
-- 사용자는 Footer를 확인할 수 있다.
-    - 프로젝트 관련 정보 제공
+## 1.1 인증/회원가입
 
----
+| 기능 | Method | Endpoint | 인증 | 설명 |
+|------|--------|----------|------|------|
+| 회원가입 | POST | `/api/users/register` | X | 성, 이름, 이메일, 비밀번호, 닉네임으로 가입 |
+| 이메일 중복 확인 | GET | `/api/users/register/checkEmail` | X | 이메일 사용 가능 여부 확인 |
+| 닉네임 중복 확인 | GET | `/api/users/register/checkName` | X | 닉네임 사용 가능 여부 확인 |
+| 로그인 | POST | `/api/users/login` | X | 이메일, 비밀번호로 로그인 → JWT 발급 |
+| 토큰 갱신 | POST | `/api/users/token/refresh` | X | 리프레시 토큰으로 새 액세스 토큰 발급 |
+| 이메일 인증 | GET | `/api/users/verify` | X | 이메일 인증 토큰 검증 |
+| 비밀번호 찾기 | POST | `/api/users/forgot` | X | 임시 비밀번호 이메일 발송 |
+| 프로필 조회 | GET | `/api/users/profile` | O | 현재 로그인한 사용자 정보 조회 |
+| 비밀번호 변경 | PUT | `/api/users/change-password` | O | 기존 비밀번호 확인 후 변경 |
+| 닉네임 변경 | PATCH | `/api/users/change-username` | O | 닉네임 변경 |
+| 회원 탈퇴 | DELETE | `/api/users/del-user` | O | 계정 삭제 |
 
-## LoginPage
+## 1.2 소셜 로그인
 
-- 사용자는 회원가입을 할 수 있다
-    - 회원가입 형식(**성, 이름, 이메일, 비밀번호**, 비밀번호 확인, **닉네임**) 입력
-    - 닉네임 중복 확인
-    - 이메일 중복 확인
-- 사용자는 회원가입 후 이메일 본인인증을 진행한다
-    - 이메일 인증 형식
-    - 이메일 인증 요구 시 이메일로 인증 코드 보내기
-    - 인증 코드 입력시 확인 후 **본인인증 여부** 관리
-- 사용자는 로그인을 할 수 있다.
-    - 아이디, 비밀번호 입력
-    - 사용자 정보 존재 여부 확인 후 로그인 진행
-- 사용자는 비밀번호 찾기/변경 기능을 사용할 수 있다.
-    - 이메일 입력 시 이메일로 비밀번호 보내기
-- 사용자는 첫 로그인 시 선호하는 여행지(대륙별)를 선택할 수 있다.
-    - **선호 대륙** 선택(유럽, 아시아, 북미, 남미, 아프리카, 오세아니아)(다중 선택 O)
-    - 대륙 선택 후 대륙별 **주요 여행지** 선택(다중 선택 O)
-- 사용자는 소셜 로그인을 통해 로그인을 할 수 있다.
-    - 카카오톡 로그인
-    - 구글 로그인
-    - 네이버 로그인
+| 기능 | Method | Endpoint | 인증 | 설명 |
+|------|--------|----------|------|------|
+| 카카오 로그인 | GET | `/api/auth/kakaoLogin` | X | 카카오 OAuth 로그인 |
+| 구글 로그인 | GET | `/api/auth/googleLogin` | X | 구글 OAuth 로그인 |
+| 네이버 로그인 | GET | `/api/auth/naverLogin` | X | 네이버 OAuth 로그인 |
 
----
+## 1.3 선호 여행지 관리
 
-## MainPage
-
-- 사용자는 상단 배너(공지, 광고)를 확인할 수 있다
-    - 상단 배너 슬라이드 구현
-    - 상단 배너 클릭 시 navigate 구현
-
-### MainPage(Login X)
-
-- 사용자는 여행지 목록을 확인 할 수 있다.
-    - 여행지 목록 슬라이드 구현
-    - 여행지는 사용자의 플랜 수 순으로 구현
-- 사용자는 베스트 플랜 목록을 확인할 수 있다.
-    - 플랜 목록 슬라이드 구현
-    - 좋아요 순으로 플랜 목록 구현
-
-### MainPage(Login)
-
-- 사용자는 내 여행 플랜 목록을 확인할 수 있다.
-    - **내 여행 플랜 목록** 슬라이드 구현
-    - 마지막 컴포넌트(+) 클릭시 플랜 생성 페이지 빠른 이동
-- 사용자는 여행지 목록을 확인 할 수 있다.
-    - 사용자가 로그인 시 입력한 선호하는 여행지 순(차순 전체 인기순) 구현
-    - 여행지 목록 슬라이드 구현
-- 사용자는 좋아요, 스크랩 한 플랜을 확인할 수 있다.
-    - 사용자가 **좋아요** 한 **타인의 플랜** 슬라이드 구현
+| 기능 | Method | Endpoint | 인증 | 설명 |
+|------|--------|----------|------|------|
+| 대륙 목록 조회 | GET | `/api/trip/continents` | X | 필터링 가능한 대륙 목록 |
+| 국가 목록 조회 | GET | `/api/trip/countries` | X | 필터/카테고리로 국가 조회 |
+| 도시 목록 조회 | GET | `/api/trip/cities` | X | 필터/카테고리로 도시 조회 |
+| 인기 도시 조회 | GET | `/api/trip/rank` | X | 좋아요/조회수 기준 상위 N개 |
+| 선호 도시 조회 | GET | `/api/trip/cities/prefer` | O | 사용자의 선호 도시 목록 조회 |
+| 선호 도시 등록 | POST | `/api/trip/cities/prefer` | O | 선호 도시 추가 |
+| 선호 도시 수정 | PATCH | `/api/trip/cities/prefer` | O | 선호 도시 목록 수정 |
 
 ---
 
-## Mypage
+# 2. 여행 계획 (TripPlan Domain)
 
-- 사용자는 내 여행 플랜을 확인할 수 있다.
-    - 내 여행 플랜 목록 구현
-- 사용자는 내 관심 여행지를 관리할 수 있다.
-    - **선호 대륙** 선택(유럽, 아시아, 북미, 남미, 아프리카, 오세아니아)(다중 선택 O)
-    - 대륙 선택 후 대륙별 **주요 여행지** 선택(다중 선택 O)
-- 사용자는 여행 플랜 공개/비공개 여부 및 삭제를 할 수 있다.
-    - 내 여행 플랜 목록 중 공개/비공개 여부 간편 설정
-    - 내 여행 플랜 목록 중 삭제 지원
-- 사용자는 내 정보(아이디, 닉네임, 프로필)를 확인할 수 있다.
-    - 비밀번호 입력을 통해 내 정보 수정 페이지 확인
-    - 내 정보 확인(아이디, 닉네임, 프로필)
-- 사용자는 프로필 사진 변경을 할 수 있다.
-    - 닉네임 변경 후 중복확인 진행 후 변경 가능
-- 사용자는 비밀번호 변경을 할 수 있다.
-    - 변경 비밀번호 입력을 통해 변경 가능
-- 사용자는 좋아요, 스크랩 한 플랜을 확인할 수 있다.
-    - 사용자가 **좋아요**, **스크랩** 한 **타인의 플랜** 목록 구현
+## 2.1 여행 계획 관리
 
----
+| 기능 | Method | Endpoint | 인증 | 설명 |
+|------|--------|----------|------|------|
+| 전체 여행 조회 | GET | `/api/trip/allTrips` | △ | 공개된 여행 계획 목록 (페이징) |
+| 인기 여행 조회 | GET | `/api/trip/top-likes` | X | 좋아요 상위 10개 여행 |
+| 내 여행 목록 | GET | `/api/trip/my/allTrips` | O | 내 여행 계획 목록 |
+| 좋아요한 여행 | GET | `/api/trip/my/likedTrips` | O | 좋아요한 여행 목록 |
+| 여행 상세 조회 | GET | `/api/trip/{tripId}` | △ | 특정 여행 계획 상세 |
+| 여행 생성 | POST | `/api/trip/my/create` | O | 여행 계획 생성 |
+| 여행 수정 | PATCH | `/api/trip/my/{tripId}` | O | 제목, 공개/비공개 수정 |
+| 여행 삭제 | DELETE | `/api/trip/my/{tripId}` | O | 여행 계획 삭제 |
+| 여행 좋아요 | POST | `/api/trip/my/likedTrips/{tripId}` | O | 좋아요 추가 |
+| 좋아요 취소 | DELETE | `/api/trip/my/likedTrips/{tripId}` | O | 좋아요 해제 |
+| 여행 검색 | GET | `/api/trip/search` | △ | 카테고리/키워드 검색 |
 
-## PlanCreatePage
+## 2.2 동반자 관리
 
-- 사용자는 여행 계획을 입력하여 여행 플래너를 만들 수 있다.
-    - 사용자는 여행 일정(**장소, 제목, 출발일, 도착일, 비용**, 친구추가) 형식을 입력한다
-- 사용자는 친구 추가를 활용하여 플래너에 친구를 추가할 수 있다.
-    - 같이 계획하고자 하는 친구의 **닉네임**이나 이메일을 통해 추가할 수 있다.
-- 사용자는 AI 도움을 받아 여행 플래너를 작성할 수 있다.(미정)
-    - AI 입력형식(**미정**)에 맞춰 입력시 추천 여행지, 음식점 추천
-    - 추천받은 여행지, 음식점 나의 플랜 추가
+| 기능 | Method | Endpoint | 인증 | 설명 |
+|------|--------|----------|------|------|
+| 동반자 목록 | GET | `/api/trip/{tripId}/participants` | X | 여행 동반자 목록 조회 |
+| 동반자 추가 | POST | `/api/trip/{tripId}/participants` | O | 닉네임으로 동반자 추가 |
+| 동반자 삭제 | DELETE | `/api/trip/{tripId}/participants/{userName}` | O | 동반자 제거 |
 
----
+## 2.3 일정 관리
 
-## MyPlanPage
+| 기능 | Method | Endpoint | 인증 | 설명 |
+|------|--------|----------|------|------|
+| 일정 조회 | GET | `/api/trip/itinerary/{tripId}` | △ | 여행의 전체 일정 조회 |
+| 일정 생성 | POST | `/api/trip/itinerary/{tripId}` | O | 새 일정 추가 |
+| 일정 수정 | PATCH | `/api/trip/itinerary/{itineraryId}` | O | 일정 정보 수정 |
+| 일정 삭제 | DELETE | `/api/trip/itinerary/{itineraryId}` | O | 일정 삭제 |
 
-- 사용자는 여행 계획 기본 정보를 확인할 수 있다.
-    - 여행 계획 기본 정보(장소, 인원, 날짜) 제공 기능
-    - 여행 계획 기본 정보(여행 제목)수정 가능
-- 사용자는 Total 계획에 대한 예산안을 확인할 수 있다.
-    - BudGet Plan(Budget, 일자별 예산. 기본비용(비행기,호텔,보험…)) 폼 제작
-- 사용자는 각각 일자별로의 계획을 확인할 수 있다.
-    - 각각의 일자 별로 추가한 계획을 시간 순으로 확인할 수 있다.
-    - 계획 삭제 기능
-- 사용자는 일정 추가를 활용하여 날짜별로 일정을 추가할 수 있다.
-    - 일정 추가 폼(날짜, 장소, 제목, 시간, 비용)을 입력 하고 추가 할 수 있다.
-    - 장소는 “지도에서 선택”을 통해 google map 지도에서 선택 가능하다.
-- 사용자는 고정비용 일정 추가를 할 수 있다
-    - 
-- 사용자는 지도를 통해 일정을 확인할 수 있다.
-    - Total 플랜을 확인할 때 전체 일정의 장소를 확인 가능하다.
-    - 일자별 플랜을 확인할 때 그 날짜의 장소를 확인 가능하다.
-- 사용자는 여행 비용을 확인할 수 있다.
-    - 전체 Budget에서 사용 total을 뺀 값 확인 기능
-    - 날짜별 plan시 그 날짜의 total 비용 확인 기능
-- 사용자는 이동에 대한 교통수단 및 비용을 선택할 수 있다.
-    - 두 위치간 대중교통 이용시간, 택시 이용시간 및 비용을 제공한다
-    - 직접 시간 및 비용을 입력할 수 있는 칸을 제공한다
-    - 제공된 것 중 하나를 선택하여 일정을 등록하여 비용을 확인할 수 있다
+## 2.4 예약 정보 관리
+
+| 기능 | Method | Endpoint | 인증 | 설명 |
+|------|--------|----------|------|------|
+| 예약 조회 | GET | `/api/trip/reservation/{tripId}` | O | 여행의 예약 정보 조회 |
+| 예약 생성 | POST | `/api/trip/reservation/{tripId}` | O | 예약 정보 추가 |
+| 예약 수정 | PATCH | `/api/trip/reservation/{reservationId}` | O | 예약 정보 수정 |
+| 예약 삭제 | DELETE | `/api/trip/reservation/{reservationId}` | O | 예약 정보 삭제 |
+
+## 2.5 장소 관리
+
+| 기능 | Method | Endpoint | 인증 | 설명 |
+|------|--------|----------|------|------|
+| 장소 조회 | GET | `/api/place/{placeId}` | X | 특정 장소 정보 조회 |
+| 전체 장소 | GET | `/api/place` | X | 모든 장소 목록 조회 |
+| 장소 생성 | POST | `/api/place` | O | 새 장소 등록 |
 
 ---
 
-## PlanPage
+# 3. 커뮤니티 (Community Domain)
 
-- 사용자는 여행 플랜을 확인할 수 있다.
-    - 상단의 MyPlanPage 플랜 내용 확인 기능
-- 사용자는 좋아요, 스크랩을 할 수 있다.
-    - 타인의 여행 플랜을 좋아요, 스크랩 기능
+## 3.1 게시물 관리
 
----
+| 기능 | Method | Endpoint | 인증 | 설명 |
+|------|--------|----------|------|------|
+| 게시물 목록 | GET | `/api/community/posts` | X | 게시물 목록 조회 (페이징) |
+| 게시물 상세 | GET | `/api/community/posts/{postId}` | △ | 특정 게시물 조회 |
+| 게시물 생성 | POST | `/api/community/posts` | O | 게시물 작성 (임시→최종) |
+| 게시물 수정 | PATCH | `/api/community/posts/{postId}` | O | 게시물 수정 |
+| 게시물 삭제 | DELETE | `/api/community/posts/{postId}` | O | 게시물 삭제 |
+| 게시물 좋아요 | POST | `/api/community/posts/likes/{postId}` | O | 게시물 좋아요 |
+| 좋아요 취소 | DELETE | `/api/community/posts/likes/{postId}` | O | 좋아요 취소 |
+| 게시물 신고 | POST | `/api/community/posts/reports/{postId}` | O | 게시물 신고 |
+| 게시물 검색 | GET | `/api/community/search` | X | 카테고리/키워드 검색 |
 
-## 여행지페이지
+## 3.2 댓글 관리
 
-- 사용자는 여행지의 지도를 확인할 수 있다.
-    - 여행지의 지도 확인 기능 및 지도 이동, 확대/축소 기능
-- 사용자는 여행지의 날씨를 확인할 수 있다.
-    - 오늘부터 1주일 간 날씨 확인 기능
-- 사용자는 여행지까지의 비행기편을 검색할 수 있다.
-- 사용자는 여행지의 숙박 정보를 확인할 수 있다.
-- 사용자는 여행지의 맛집 리스트를 확인할 수 있다.
-- 사용자는 여행지의 다른 사람들의 여행 계획 목록을 확인할 수 있다.
-
----
-
-## SearhPage
-
-- 사용자는 검색 바 검색을 통해 통합 검색을 할 수 있다,
-    - 검색바 검색어 입력 후 검색 결과 확인
-- 사용자는 그래프를 통해 검색된 토픽의 정보를 확인할 수 있다
-    - 그래프를 통한 토픽 정보 확인
-
----
-
-## CommutiyPage
-
-- 사용자는 다른 사용자의 게시물을 확인할 수 있다.
-    - 게시물 목록(**제목, 작성자, 작성날짜, 게시글**) 기능
-    - 게시물 목록 내 게시물 클릭 시 게시물 내용 확인
-- 사용자는 게시물을 생성할 수 있다.
-    - 게시물 내용(**제목, 게시글**) 작성 후 등록을 통해 생성 기능
-    - 게시물 삭제 기능
-    - 게시물 수정 기능
-- 사용자는 다른 사용자의 게시물을 좋아요, 신고 할 수 있다.
-    - 게시물 좋아요 기능
-    - 게시물 신고 기능
-- 사용자는 게시물에 댓글, 답글을 남길 수 있다.
-    - 게시물 댓글(**내용**) 기능
-    - 게시물 답글(**내용**) 기능
-- 사용자는 게시물을 검색하여 게시물을 확인할 수 있다.
-    - 검색바 검색어(**내용, 작성자, 제목**) 입력 후 검색 결과 게시물 확인
+| 기능 | Method | Endpoint | 인증 | 설명 |
+|------|--------|----------|------|------|
+| 댓글 조회 | GET | `/api/community/comments/{postId}` | △ | 게시물의 댓글 목록 조회 |
+| 답글 조회 | GET | `/api/community/replies/{commentId}` | △ | 댓글의 답글 목록 조회 |
+| 댓글 작성 | POST | `/api/community/comments/{postId}` | O | 댓글 작성 |
+| 답글 작성 | POST | `/api/community/replies/{commentId}` | O | 답글 작성 |
+| 댓글 수정 | PATCH | `/api/community/comments/{commentId}` | O | 댓글/답글 수정 |
+| 댓글 삭제 | DELETE | `/api/community/comments/{commentId}` | O | 댓글/답글 삭제 |
+| 댓글 좋아요 | POST | `/api/community/comments/likes/{commentId}` | O | 댓글 좋아요 |
+| 좋아요 취소 | DELETE | `/api/community/comments/likes/{commentId}` | O | 좋아요 취소 |
+| 댓글 신고 | POST | `/api/community/comments/reports/{commentId}` | O | 댓글 신고 |
 
 ---
 
-## NoticePage
+# 4. 리소스 (Resource Domain)
 
-- 사용자는 공지사항 목록을 확인할 수 있다.
-    - 공지사항 목록(**제목, 작성날짜, 게시글**) 기능
+## 4.1 배너 관리
+
+| 기능 | Method | Endpoint | 인증 | 설명 |
+|------|--------|----------|------|------|
+| 배너 목록 | GET | `/api/banner/lists` | X | 활성화된 배너 목록 조회 |
+| 배너 생성 | POST | `/api/banner/lists` | O (관리자) | 새 배너 등록 |
+| 배너 수정 | PATCH | `/api/banner/lists/{bannerId}` | O (관리자) | 배너 정보 수정 |
+| 배너 삭제 | DELETE | `/api/banner/lists/{bannerId}` | O (관리자) | 배너 삭제 |
+
+## 4.2 공지사항 관리
+
+| 기능 | Method | Endpoint | 인증 | 설명 |
+|------|--------|----------|------|------|
+| 공지 목록 | GET | `/api/notice/lists` | X | 공지사항 목록 조회 |
+| 공지 생성 | POST | `/api/notice` | O (관리자) | 공지사항 작성 |
+| 공지 수정 | PATCH | `/api/notice/{noticeId}` | O (관리자) | 공지사항 수정 |
+| 공지 삭제 | DELETE | `/api/notice/{noticeId}` | O (관리자) | 공지사항 삭제 |
 
 ---
 
-## AdminPage
+# 5. 이미지 (Image Domain)
 
-- 관리자는 공지사항을 관리할 수 있다.
-    - 공지사항 작성(**제목, 게시글**)  기능
-    - 공지사항 삭제 기능
-    - 공지사항 배너 여부 기능
-- 관리자는 커뮤니티 게시물에 대한 관리를 할 수 있다.
-    - 신고 게시물 삭제 기능
-    - 부적절 게시물 작성자 게시물 제한 기능
-- 관리자는 가입자를 관리 할 수 있다.
-    - 가입자 정보 확인 기능
-    - 부적절 게시물 작성자 탈퇴 기능
+## 5.1 이미지 관리
+
+| 기능 | Method | Endpoint | 인증 | 설명 |
+|------|--------|----------|------|------|
+| 이미지 업로드 | POST | `/api/images/upload` | O | 이미지 업로드 → GCS 저장 |
+| 이미지 조회 | GET | `/api/images/{imageId}` | X | 이미지 공개 URL 조회 |
+| 이미지 수정 | PUT | `/api/images/{imageId}` | O | 이미지 파일 교체 |
+| 이미지 삭제 | DELETE | `/api/images/{imageId}` | X | 이미지 삭제 |
+
+## 5.2 임시 게시물
+
+| 기능 | Method | Endpoint | 인증 | 설명 |
+|------|--------|----------|------|------|
+| 임시 ID 발급 | POST | `/api/temp` | O | 이미지 업로드용 임시 ID 발급 |
+
+---
+
+# 6. Google Maps 추천 (GooglePlace Domain)
+
+| 기능 | Method | Endpoint | 인증 | 설명 |
+|------|--------|----------|------|------|
+| 맛집 추천 | POST | `/api/map/recommend/restaurant` | X | 도시별 맛집 추천 (Google API) |
+
+---
+
+# 7. 관리자 (Admin Domain)
+
+## 7.1 사용자 관리
+
+| 기능 | Method | Endpoint | 인증 | 설명 |
+|------|--------|----------|------|------|
+| 전체 사용자 | GET | `/api/manage/user/all` | O (관리자) | 전체 사용자 목록 조회 |
+| 제한 사용자 | GET | `/api/manage/user/reported` | O (관리자) | 제한된 사용자 목록 조회 |
+| 사용자 제한 | POST | `/api/manage/user/permit/{userId}` | O (관리자) | 사용자 제한/해제 토글 |
+| 사용자 탈퇴 | DELETE | `/api/manage/user/delete/{userId}` | O (관리자) | 강제 탈퇴 처리 |
+| 권한 변경 | PUT | `/api/manage/user/change-role/{userId}` | O (관리자) | 사용자 권한 변경 |
+
+## 7.2 커뮤니티 관리
+
+| 기능 | Method | Endpoint | 인증 | 설명 |
+|------|--------|----------|------|------|
+| 신고 게시물 | GET | `/api/manage/community/reported/posts` | O (관리자) | 신고된 게시물 목록 조회 |
+| 신고 댓글 | GET | `/api/manage/community/reported/comments` | O (관리자) | 신고된 댓글 목록 조회 |
+| 게시물 삭제 | DELETE | `/api/manage/community/delete/posts/{postId}` | O (관리자) | 신고 게시물 삭제 |
+| 댓글 삭제 | DELETE | `/api/manage/community/delete/comments/{commentId}` | O (관리자) | 신고 댓글 삭제 |
+
+---
+
+# 인증 범례
+
+| 기호 | 의미 |
+|------|------|
+| X | 인증 불필요 (공개 API) |
+| O | JWT 인증 필수 |
+| O (관리자) | JWT 인증 + 관리자 권한 필수 |
+| △ | 선택적 인증 (로그인 시 추가 정보 제공) |
