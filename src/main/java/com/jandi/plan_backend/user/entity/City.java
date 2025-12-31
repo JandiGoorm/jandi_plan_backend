@@ -16,11 +16,11 @@ public class City {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer cityId;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "country_id", nullable = false)
     private Country country;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "continent_id", nullable = false)
     private Continent continent;
 
