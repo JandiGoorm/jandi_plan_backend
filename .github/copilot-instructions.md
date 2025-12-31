@@ -115,10 +115,12 @@ Redirect URIs configured for Kakao, Naver, Google (see `application.properties`)
 ## Project-Specific Notes
 
 ### Korean Timezone
-Services use `ZoneId.of("Asia/Seoul")` for timestamp operations:
+Services should use the centralized `TimeUtil` for timestamp operations in Korean time (KST):
 ```java
-private static final ZoneId KST = ZoneId.of("Asia/Seoul");
-LocalDateTime.now(KST);
+import com.jandi.plan_backend.util.TimeUtil;
+
+// 현재 KST 시간 가져오기
+LocalDateTime now = TimeUtil.now();
 ```
 
 ### Role-Based Access
