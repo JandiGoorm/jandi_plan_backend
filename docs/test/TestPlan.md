@@ -253,6 +253,7 @@ void registerUser_WithDuplicateEmail_ShouldThrowException() { ... }
 | 신고 게시물 조회 | page, size | Page<CommunityReportedListDTO> | 🟡 권장 |
 | 신고 댓글 조회 | page, size | Page<CommentReportedListDTO> | 🟡 권장 |
 | 신고 게시물 삭제 | postId | 삭제 완료 | 🟢 선택 |
+<<<<<<< HEAD
 | 신고 댓글 삭제 | commentId | 삭제 완료 | 🟢 선택 |
 
 #### ManageTripService 테스트 케이스
@@ -294,6 +295,8 @@ void registerUser_WithDuplicateEmail_ShouldThrowException() { ... }
 | 존재하지 않는 사용자 추가 거절 | 없는 userName | Exception | 🟡 권장 |
 | 이미 추가된 동반자 중복 거절 | 기존 참여자 | Exception | 🟡 권장 |
 | 타인 여행에 동반자 추가 거절 | 다른 사용자의 tripId | Exception | 🟡 권장 |
+=======
+>>>>>>> e7506c0158ba443bb520db9c0bec68790deb1853
 
 ---
 

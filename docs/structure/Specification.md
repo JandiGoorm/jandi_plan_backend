@@ -165,6 +165,7 @@
 | 이미지 수정 | PUT | `/api/images/{imageId}` | O | 이미지 파일 교체 |
 | 이미지 삭제 | DELETE | `/api/images/{imageId}` | X | 이미지 삭제 |
 
+<<<<<<< HEAD
 ## 5.2 타겟별 이미지 업로드
 
 | 기능 | Method | Endpoint | 인증 | 설명 |
@@ -175,6 +176,9 @@
 | 여행 이미지 | POST | `/api/images/upload/trip` | O | 여행 계획 이미지 업로드 |
 
 ## 5.3 임시 게시물
+=======
+## 5.2 임시 게시물
+>>>>>>> e7506c0158ba443bb520db9c0bec68790deb1853
 
 | 기능 | Method | Endpoint | 인증 | 설명 |
 |------|--------|----------|------|------|
@@ -210,6 +214,7 @@
 | 신고 댓글 | GET | `/api/manage/community/reported/comments` | O (관리자) | 신고된 댓글 목록 조회 |
 | 게시물 삭제 | DELETE | `/api/manage/community/delete/posts/{postId}` | O (관리자) | 신고 게시물 삭제 |
 | 댓글 삭제 | DELETE | `/api/manage/community/delete/comments/{commentId}` | O (관리자) | 신고 댓글 삭제 |
+<<<<<<< HEAD
 
 ## 7.3 여행지 관리
 
@@ -244,6 +249,13 @@
 
 # 인증 범례
 
+=======
+
+---
+
+# 인증 범례
+
+>>>>>>> e7506c0158ba443bb520db9c0bec68790deb1853
 | 기호 | 의미 |
 |------|------|
 | X | 인증 불필요 (공개 API) |
