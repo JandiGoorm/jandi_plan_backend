@@ -136,7 +136,7 @@ class CommunityQueryServiceTest {
             assertThat(result).isNotNull();
             assertThat(result.getPostId()).isEqualTo(postId);
             assertThat(result.getTitle()).isEqualTo(community.getTitle());
-            assertThat(result.isLiked()).isFalse();
+            assertThat(result.getLiked()).isFalse();
             verify(communityRepository).incrementViewCount(postId);
         }
 
@@ -156,7 +156,7 @@ class CommunityQueryServiceTest {
 
             // then
             assertThat(result).isNotNull();
-            assertThat(result.isLiked()).isTrue();
+            assertThat(result.getLiked()).isTrue();
         }
 
         @Test
@@ -175,7 +175,7 @@ class CommunityQueryServiceTest {
 
             // then
             assertThat(result).isNotNull();
-            assertThat(result.isLiked()).isFalse();
+            assertThat(result.getLiked()).isFalse();
         }
 
         @Test
