@@ -110,6 +110,29 @@ class UserServiceTest {
             verify(userRepository, never()).save(any(User.class));
             verify(emailService, never()).sendSimpleMail(anyString(), anyString(), anyString());
         }
+
+        @Test
+        @DisplayName("[성공] 회원가입 시 인증 토큰이 생성되고 만료 시간이 설정됨")
+        void registerUser_ShouldCreateVerificationTokenWithExpiry() {
+            // given
+            UserRegisterDTO dto = UserFixture.createValidRegisterDTO();
+            when(userRepository.existsByEmail(dto.getEmail())).thenReturn(false);
+            when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
+            when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
+                User savedUser = invocation.getArgument(0);
+                savedUser.setUserId(1);
+                return savedUser;
+            });
+
+            // when
+            User result = userService.registerUser(dto);
+
+            // then
+            assertThat(result.getVerificationToken()).isNotNull();
+            assertThat(result.getVerificationToken()).isNotEmpty();
+            assertThat(result.getTokenExpires()).isNotNull();
+            assertThat(result.getTokenExpires()).isAfter(java.time.LocalDateTime.now());
+        }
     }
 
     // ==================== 로그인 테스트 ====================

@@ -110,6 +110,49 @@ class CommunityQueryServiceTest {
             assertThat(result.getContent()).isEmpty();
             assertThat(result.getTotalElements()).isZero();
         }
+
+        @Test
+        @DisplayName("[경계값] 첫 번째 페이지(page=0) 조회")
+        void getAllPosts_WithFirstPage_ShouldReturnFirstPageResults() {
+            // given - 경계값: 페이지 인덱스 최소값
+            int page = 0;
+            int size = 5;
+            List<Community> communities = CommunityFixture.createCommunityList(normalUser, 5);
+            Page<Community> communityPage = new PageImpl<>(communities);
+
+            when(communityRepository.count()).thenReturn(10L);
+            when(communityRepository.findAll(any(Pageable.class))).thenReturn(communityPage);
+            when(communityUtil.getThumbnailUrl(any(Community.class))).thenReturn("https://example.com/thumbnail.jpg");
+
+            // when
+            Page<CommunityListDTO> result = communityQueryService.getAllPosts(page, size);
+
+            // then
+            assertThat(result).isNotNull();
+            assertThat(result.getContent()).hasSize(5);
+            assertThat(result.getNumber()).isZero();
+        }
+
+        @Test
+        @DisplayName("[경계값] 최소 사이즈(size=1)로 조회")
+        void getAllPosts_WithMinimalSize_ShouldReturnSingleItem() {
+            // given - 경계값: 페이지 사이즈 최소값
+            int page = 0;
+            int size = 1;
+            List<Community> communities = CommunityFixture.createCommunityList(normalUser, 1);
+            Page<Community> communityPage = new PageImpl<>(communities);
+
+            when(communityRepository.count()).thenReturn(5L);
+            when(communityRepository.findAll(any(Pageable.class))).thenReturn(communityPage);
+            when(communityUtil.getThumbnailUrl(any(Community.class))).thenReturn("https://example.com/thumbnail.jpg");
+
+            // when
+            Page<CommunityListDTO> result = communityQueryService.getAllPosts(page, size);
+
+            // then
+            assertThat(result).isNotNull();
+            assertThat(result.getContent()).hasSize(1);
+        }
     }
 
     // ==================== 게시물 상세 조회 테스트 ====================

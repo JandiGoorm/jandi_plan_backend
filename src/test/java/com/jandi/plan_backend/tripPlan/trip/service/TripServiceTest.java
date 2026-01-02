@@ -144,6 +144,27 @@ class TripServiceTest {
             assertThat(result).isNotNull();
             assertThat(result.getContent()).hasSize(2);
         }
+
+        @Test
+        @DisplayName("[경계값] 비로그인 사용자가 빈 목록 조회 시 빈 페이지 반환")
+        void getAllTrips_WhenNoPublicTrips_ShouldReturnEmptyPage() {
+            // given - 경계값: 결과가 0개인 경우
+            int page = 0;
+            int size = 10;
+            String userEmail = null;
+
+            when(tripRepository.countByPrivatePlan(false)).thenReturn(0L);
+            when(tripRepository.findByPrivatePlan(eq(false), any(Pageable.class)))
+                    .thenReturn(new PageImpl<>(List.of()));
+
+            // when
+            Page<TripRespDTO> result = tripService.getAllTrips(userEmail, page, size);
+
+            // then
+            assertThat(result).isNotNull();
+            assertThat(result.getContent()).isEmpty();
+            assertThat(result.getTotalElements()).isZero();
+        }
     }
 
     // ==================== 내 여행 계획 목록 조회 테스트 ====================
