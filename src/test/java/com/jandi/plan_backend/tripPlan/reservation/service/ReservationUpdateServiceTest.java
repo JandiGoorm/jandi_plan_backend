@@ -164,12 +164,12 @@ class ReservationUpdateServiceTest {
         void updateReservation_OwnReservation_ShouldSucceed() {
             // given
             String userEmail = normalUser.getEmail();
-            Integer reservationId = 1;
+            int reservationId = 1;
             ReservationReqDTO updateDTO = ReservationFixture.createUpdateReservationReqDTO();
 
             when(validationUtil.validateUserExists(userEmail)).thenReturn(normalUser);
             doNothing().when(validationUtil).validateUserRestricted(normalUser);
-            when(validationUtil.validateReservationExists(reservationId.longValue())).thenReturn(reservation);
+            when(validationUtil.validateReservationExists((long) reservationId)).thenReturn(reservation);
             doNothing().when(tripUtil).isCanEditTrip(publicTrip, normalUser);
 
             // when
@@ -184,13 +184,13 @@ class ReservationUpdateServiceTest {
         void updateReservation_OthersReservation_ShouldThrowException() {
             // given
             String userEmail = normalUser.getEmail();
-            Integer reservationId = 1;
+            int reservationId = 1;
             Reservation othersReservation = ReservationFixture.createReservation(othersTrip);
             ReservationReqDTO updateDTO = ReservationFixture.createUpdateReservationReqDTO();
 
             when(validationUtil.validateUserExists(userEmail)).thenReturn(normalUser);
             doNothing().when(validationUtil).validateUserRestricted(normalUser);
-            when(validationUtil.validateReservationExists(reservationId.longValue())).thenReturn(othersReservation);
+            when(validationUtil.validateReservationExists((long) reservationId)).thenReturn(othersReservation);
             doThrow(new BadRequestExceptionMessage("해당 작업을 수행할 권한이 없습니다"))
                     .when(tripUtil).isCanEditTrip(othersTrip, normalUser);
 
@@ -205,12 +205,12 @@ class ReservationUpdateServiceTest {
         void updateReservation_NonExistentReservation_ShouldThrowException() {
             // given
             String userEmail = normalUser.getEmail();
-            Integer nonExistentReservationId = 9999;
+            int nonExistentReservationId = 9999;
             ReservationReqDTO updateDTO = ReservationFixture.createUpdateReservationReqDTO();
 
             when(validationUtil.validateUserExists(userEmail)).thenReturn(normalUser);
             doNothing().when(validationUtil).validateUserRestricted(normalUser);
-            when(validationUtil.validateReservationExists(nonExistentReservationId.longValue()))
+            when(validationUtil.validateReservationExists((long) nonExistentReservationId))
                     .thenThrow(new BadRequestExceptionMessage("존재하지 않는 예약 일정입니다"));
 
             // when & then
@@ -231,13 +231,13 @@ class ReservationUpdateServiceTest {
         void deleteReservation_OwnReservation_ShouldSucceed() {
             // given
             String userEmail = normalUser.getEmail();
-            Integer reservationId = 1;
+            int reservationId = 1;
 
             when(validationUtil.validateUserExists(userEmail)).thenReturn(normalUser);
-            when(validationUtil.validateReservationExists(reservationId.longValue())).thenReturn(reservation);
+            when(validationUtil.validateReservationExists((long) reservationId)).thenReturn(reservation);
             doNothing().when(tripUtil).isCanEditTrip(publicTrip, normalUser);
             doNothing().when(reservationRepository).delete(reservation);
-            when(reservationRepository.existsById(reservationId.longValue())).thenReturn(false);
+            when(reservationRepository.existsById((long) reservationId)).thenReturn(false);
 
             // when
             boolean result = reservationUpdateService.deleteReservation(userEmail, reservationId);
@@ -252,11 +252,11 @@ class ReservationUpdateServiceTest {
         void deleteReservation_OthersReservation_ShouldThrowException() {
             // given
             String userEmail = normalUser.getEmail();
-            Integer reservationId = 1;
+            int reservationId = 1;
             Reservation othersReservation = ReservationFixture.createReservation(othersTrip);
 
             when(validationUtil.validateUserExists(userEmail)).thenReturn(normalUser);
-            when(validationUtil.validateReservationExists(reservationId.longValue())).thenReturn(othersReservation);
+            when(validationUtil.validateReservationExists((long) reservationId)).thenReturn(othersReservation);
             doThrow(new BadRequestExceptionMessage("해당 작업을 수행할 권한이 없습니다"))
                     .when(tripUtil).isCanEditTrip(othersTrip, normalUser);
 
@@ -273,10 +273,10 @@ class ReservationUpdateServiceTest {
         void deleteReservation_NonExistentReservation_ShouldThrowException() {
             // given
             String userEmail = normalUser.getEmail();
-            Integer nonExistentReservationId = 9999;
+            int nonExistentReservationId = 9999;
 
             when(validationUtil.validateUserExists(userEmail)).thenReturn(normalUser);
-            when(validationUtil.validateReservationExists(nonExistentReservationId.longValue()))
+            when(validationUtil.validateReservationExists((long) nonExistentReservationId))
                     .thenThrow(new BadRequestExceptionMessage("존재하지 않는 예약 일정입니다"));
 
             // when & then
