@@ -20,6 +20,7 @@ public interface CommunityRepository extends JpaRepository<Community, Integer> {
     /**
      * User 연관 엔티티를 함께 조회 (N+1 방지)
      */
+    @Override
     @EntityGraph(attributePaths = {"user"})
     Page<Community> findAll(Pageable pageable);
 
