@@ -29,7 +29,7 @@ pipeline {
                         try {
                             docker.image(latestImageName).pull()
                         } catch (Exception e) {
-                            echo "No latest image found for caching. Skipping pull."
+                            echo "Cache pull failed or no latest image found. Proceeding without cache. Error: ${e.getMessage()}"
                         }
                         
                         // 2. 캐시를 활용하여 빌드 (--cache-from 옵션 추가)
