@@ -1,5 +1,6 @@
 package com.jandi.plan_backend.global;
 
+import com.jandi.plan_backend.util.TimeUtil;
 import com.jandi.plan_backend.util.service.BadRequestExceptionMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -8,7 +9,6 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -35,7 +35,7 @@ public class GlobalExceptionHandler {
         errorResponse.put("status", HttpStatus.BAD_REQUEST.value());
         errorResponse.put("error", "Validation Failed");
         errorResponse.put("message", errorMessage);
-        errorResponse.put("timestamp", LocalDateTime.now());
+        errorResponse.put("timestamp", TimeUtil.now());
 
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
@@ -49,7 +49,7 @@ public class GlobalExceptionHandler {
         errorResponse.put("status", HttpStatus.BAD_REQUEST.value());
         errorResponse.put("error", HttpStatus.BAD_REQUEST.getReasonPhrase());
         errorResponse.put("message", ex.getMessage());
-        errorResponse.put("timestamp", LocalDateTime.now());
+        errorResponse.put("timestamp", TimeUtil.now());
 
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
@@ -63,7 +63,7 @@ public class GlobalExceptionHandler {
         errorResponse.put("status", HttpStatus.BAD_REQUEST.value());
         errorResponse.put("error", HttpStatus.BAD_REQUEST.getReasonPhrase());
         errorResponse.put("message", ex.getMessage());
-        errorResponse.put("timestamp", LocalDateTime.now());
+        errorResponse.put("timestamp", TimeUtil.now());
 
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
@@ -80,7 +80,7 @@ public class GlobalExceptionHandler {
         errorResponse.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
         errorResponse.put("error", HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase());
         errorResponse.put("message", "서버 내부 오류가 발생했습니다.");
-        errorResponse.put("timestamp", LocalDateTime.now());
+        errorResponse.put("timestamp", TimeUtil.now());
 
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }

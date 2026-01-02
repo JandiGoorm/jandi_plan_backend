@@ -26,10 +26,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -41,41 +41,57 @@ public class CommentQueryService {
     private final UserRepository userRepository;
     private final CommentUtil commentUtil;
 
-    /** 댓글 목록 조회 */
+    /** 댓글 목록 조회 (배치 조회로 N+1 최적화) */
     @Transactional(readOnly = true)
     public Page<ParentCommentDTO> getAllComments(Integer postId, int page, int size, String userEmail) {
-        validationUtil.validatePostExists(postId); // 게시글 존재 검증
+        validationUtil.validatePostExists(postId);
 
-        // 현재 요청자의 최신 정보를 조회 (로그인이 되어 있다면)
         User currentUser = (userEmail == null) ? null :
                 userRepository.findByEmail(userEmail).orElse(null);
 
         long totalCount = commentRepository.countByCommunityPostIdAndParentCommentIsNull(postId);
-        return PaginationService.getPagedData(page, size, totalCount,
+        
+        return PaginationService.getPagedDataBatch(page, size, totalCount,
                 pageable -> commentRepository.findByCommunityPostIdAndParentCommentIsNull(postId, pageable),
-                comment -> {
-                    User commentAuthor = commentUtil.getCommentUser(comment);
-                    boolean liked = commentUtil.isLiked(comment, currentUser);
-                    return new ParentCommentDTO(comment, commentAuthor, imageService, liked);
+                (comments, pageable) -> {
+                    // 배치 조회: User 맵, 좋아요 Set을 한 번에 조회
+                    Map<Integer, User> userMap = commentUtil.getCommentUsersMap(comments);
+                    Set<Integer> likedIds = commentUtil.getLikedCommentIds(comments, currentUser);
+                    
+                    return comments.stream()
+                            .map(comment -> {
+                                User author = userMap.get(comment.getUserId());
+                                boolean liked = likedIds.contains(comment.getCommentId());
+                                return new ParentCommentDTO(comment, author, imageService, liked);
+                            })
+                            .collect(Collectors.toList());
                 });
     }
 
-    /** 답글 목록 조회 */
+    /** 답글 목록 조회 (배치 조회로 N+1 최적화) */
     @Transactional(readOnly = true)
     public Page<RepliesDTO> getAllReplies(Integer commentId, int page, int size, String userEmail) {
-        validationUtil.validateCommentExists(commentId); // 댓글 존재 검증
+        validationUtil.validateCommentExists(commentId);
 
-        // 현재 요청자의 최신 정보를 조회 (로그인이 되어 있다면)
         User currentUser = (userEmail == null) ? null :
                 userRepository.findByEmail(userEmail).orElse(null);
 
         long totalCount = commentRepository.countByParentCommentCommentId(commentId);
-        return PaginationService.getPagedData(page, size, totalCount,
+        
+        return PaginationService.getPagedDataBatch(page, size, totalCount,
                 pageable -> commentRepository.findByParentCommentCommentId(commentId, pageable),
-                reply -> {
-                    User replyAuthor = commentUtil.getCommentUser(reply);
-                    boolean liked = commentUtil.isLiked(reply, currentUser);
-                    return new RepliesDTO(reply, replyAuthor, imageService, liked);
+                (replies, pageable) -> {
+                    // 배치 조회: User 맵, 좋아요 Set을 한 번에 조회
+                    Map<Integer, User> userMap = commentUtil.getCommentUsersMap(replies);
+                    Set<Integer> likedIds = commentUtil.getLikedCommentIds(replies, currentUser);
+                    
+                    return replies.stream()
+                            .map(reply -> {
+                                User author = userMap.get(reply.getUserId());
+                                boolean liked = likedIds.contains(reply.getCommentId());
+                                return new RepliesDTO(reply, author, imageService, liked);
+                            })
+                            .collect(Collectors.toList());
                 });
     }
 }

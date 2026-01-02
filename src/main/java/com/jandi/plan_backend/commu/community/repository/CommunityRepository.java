@@ -2,6 +2,9 @@ package com.jandi.plan_backend.commu.community.repository;
 
 import com.jandi.plan_backend.commu.community.entity.Community;
 import com.jandi.plan_backend.user.entity.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -13,6 +16,15 @@ import java.util.Optional;
 
 @Repository
 public interface CommunityRepository extends JpaRepository<Community, Integer> {
+
+    /**
+     * User 연관 엔티티를 함께 조회 (N+1 방지)
+     */
+    @Override
+    @EntityGraph(attributePaths = {"user"})
+    Page<Community> findAll(Pageable pageable);
+
+    @EntityGraph(attributePaths = {"user"})
     Optional<Community> findByPostId(Integer postId);
 
     /** 검사 */

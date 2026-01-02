@@ -16,7 +16,7 @@ public class Community {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer postId;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 

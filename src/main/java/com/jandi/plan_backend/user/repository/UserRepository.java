@@ -58,4 +58,9 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     long countByCreatedAtBetween(LocalDateTime today, LocalDateTime last7Days);
 
     Optional<User> findBySocialTypeAndSocialId(String kakao, String kakaoId);
+
+    /**
+     * 여러 userId에 대한 User를 한 번에 조회 (N+1 방지)
+     */
+    List<User> findAllByUserIdIn(List<Integer> userIds);
 }

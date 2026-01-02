@@ -19,12 +19,12 @@ import java.time.LocalDateTime;
 public class TripParticipant {
 
     @Id
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "trip_id", nullable = false)
     private Trip trip;
 
     @Id
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "participant_user_id", nullable = false)
     private User participant;
 
