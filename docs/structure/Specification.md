@@ -163,7 +163,7 @@
 | 이미지 업로드 | POST | `/api/images/upload` | O | 이미지 업로드 → GCS 저장 |
 | 이미지 조회 | GET | `/api/images/{imageId}` | X | 이미지 공개 URL 조회 |
 | 이미지 수정 | PUT | `/api/images/{imageId}` | O | 이미지 파일 교체 |
-| 이미지 삭제 | DELETE | `/api/images/{imageId}` | X | 이미지 삭제 |
+| 이미지 삭제 | DELETE | `/api/images/{imageId}` | O | 이미지 삭제 (인증 필수) |
 
 ## 5.2 타겟별 이미지 업로드
 
