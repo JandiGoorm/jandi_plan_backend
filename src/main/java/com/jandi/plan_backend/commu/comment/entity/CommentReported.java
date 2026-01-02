@@ -14,11 +14,11 @@ public class CommentReported {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer reportId;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "comment_id", nullable = false)
     private Comment comment;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 

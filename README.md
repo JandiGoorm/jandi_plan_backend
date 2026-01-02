@@ -30,7 +30,29 @@
 - 루트 디렉터리에 `.env` 파일을 생성하여 사용합니다.
 - 기본적으로 `application.properties`가 `.env`의 값을 읽어오도록 설정되어 있습니다.
 
-#### 깃 커밋 메시지 컨벤션
+### 코드 테스트 방법
+
+```
+# 모든 테스트 실행
+./gradlew test
+
+# 특정 테스트 클래스만 실행
+./gradlew test --tests "com.jandi.plan_backend.user.service.UserServiceTest"
+
+# 특정 테스트 메서드만 실행
+./gradlew test --tests "com.jandi.plan_backend.user.service.UserServiceTest.{특정 메서드}"
+
+# 테스트 + 상세 로그 출력
+./gradlew test --info
+
+# 실패한 테스트만 재실행
+./gradlew test --rerun-tasks
+
+# 빌드 캐시 무시하고 전체 재실행
+./gradlew clean test
+```
+
+### 깃 커밋 메시지 컨벤션
 
 1. 기본 포맷 (Format)
 

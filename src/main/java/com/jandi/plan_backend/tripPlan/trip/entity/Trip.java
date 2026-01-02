@@ -28,7 +28,7 @@ public class Trip {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer tripId;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
@@ -56,7 +56,7 @@ public class Trip {
     @Column(nullable = false)
     private Integer budget;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "city_id", nullable = false)
     private City city;
 

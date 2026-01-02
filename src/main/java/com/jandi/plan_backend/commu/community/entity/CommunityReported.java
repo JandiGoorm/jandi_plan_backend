@@ -14,12 +14,12 @@ public class CommunityReported {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer reportId;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id", nullable = false,
             foreignKey = @ForeignKey(name = "FK_REPORTED_COMMUNITY"))
     private Community community;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false,
             foreignKey = @ForeignKey(name = "FK_REPORTED_USER"))
     private User user;
