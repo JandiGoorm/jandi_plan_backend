@@ -1,34 +1,13 @@
 ### 개발 주의 사항
 
 #### 로컬 개발
-1. `src/main/resources/application-dev.properties` 파일을 생성하여 필요한 환경 변수를 설정합니다.
-2. 실행 시 환경 변수 `SPRING_PROFILES_ACTIVE=dev`를 설정하여 `dev` 프로파일을 활성화해야 합니다.
-   - **IntelliJ**: `Run Configuration` -> `Environment variables` 에 `SPRING_PROFILES_ACTIVE=dev` 추가.
-   - **VS Code**: `launch.json`의 `env` 섹션에 `"SPRING_PROFILES_ACTIVE": "dev"` 추가.
-```
-{
-    "configurations": [
-        {
-            "type": "java",
-            "name": "Spring Boot-PlanBackendApplication<jandi_plan_backend>",
-            "request": "launch",
-            "cwd": "${workspaceFolder}",
-            "mainClass": "com.jandi.plan_backend.PlanBackendApplication",
-            "projectName": "jandi_plan_backend",
-            "args": "",
-            "envFile": "${workspaceFolder}/.env",
-            "env": {
-                "SPRING_PROFILES_ACTIVE": "dev"
-            }
-        }
-    ]
-}
-```
-   - **Terminal**: `SPRING_PROFILES_ACTIVE=dev ./gradlew bootRun`
+1. `src/main/resources/application.properties.example` 파일을 복사하여 `application.properties`를 생성합니다.
+2. 생성한 `application.properties` 파일에 필요한 환경 변수 값을 설정합니다.
+3. `application.properties`는 `.gitignore`에 등록되어 있어 Git에 커밋되지 않습니다.
 
 #### 운영 환경
-- 루트 디렉터리에 `.env` 파일을 생성하여 사용합니다.
-- 기본적으로 `application.properties`가 `.env`의 값을 읽어오도록 설정되어 있습니다.
+- Jenkins 파이프라인을 통해 Docker 이미지 빌드 후 GHCR에 Push되며, 운영 환경 배포는 **home-server** 리포지토리에서 중앙 관리합니다.
+- 환경변수 및 시크릿은 `home-server/config/jandi-plan/` 디렉토리에서 관리됩니다.
 
 ### 코드 테스트 방법
 
