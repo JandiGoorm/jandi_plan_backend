@@ -1,0 +1,86 @@
+# ===========================================
+# Jandi Plan Backend Application Properties Sample
+# ===========================================
+# 이 파일을 복사하여 application.properties를 생성하세요
+# 시크릿 값은 .env.example을 참고하여 환경변수로 설정하세요
+
+server.port=8080
+spring.application.name=jandi_plan_backend
+
+# ===========================================
+# Database (MySQL)
+# ===========================================
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+spring.jpa.database-platform=org.hibernate.dialect.MySQLDialect
+spring.datasource.url=${DB_URL}
+spring.datasource.username=${DB_USERNAME}
+spring.datasource.password=${DB_PASSWORD}
+
+# JPA/Hibernate
+spring.jpa.hibernate.ddl-auto=validate
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.format_sql=true
+spring.jpa.properties.hibernate.default_batch_fetch_size=100
+
+# ===========================================
+# Mail (Gmail SMTP)
+# ===========================================
+spring.mail.host=smtp.gmail.com
+spring.mail.port=587
+spring.mail.username=${MAIL_USERNAME}
+spring.mail.password=${MAIL_PASSWORD}
+spring.mail.properties.mail.smtp.auth=true
+spring.mail.properties.mail.smtp.starttls.enable=true
+spring.mail.properties.mail.smtp.starttls.required=true
+spring.mail.default-encoding=UTF-8
+app.verify.url=https://your-domain.com/api/users/verify
+
+# ===========================================
+# Google Cloud Storage
+# ===========================================
+gcs.bucket.name=your-bucket-name
+gcp.credentials.key.base64=${GCP_SA_KEY_BASE64}
+
+# ===========================================
+# Google Maps API
+# ===========================================
+google.api.key=${GOOGLE_MAP_KEY}
+
+# ===========================================
+# JWT
+# ===========================================
+jwt.secret=${JWT_KEY}
+
+# ===========================================
+# OAuth (Kakao, Naver, Google)
+# ===========================================
+# Kakao
+kakao.rest-api-key=${KAKAO_RESTAPI_KEY}
+kakao.redirect-uri=https://your-domain.com/auth/kakaoLogin
+
+# Naver
+naver.client-id=${NAVER_CLIENT_ID}
+naver.client-secret=${NAVER_CLIENT_SECRET}
+naver.redirect-uri=https://your-domain.com/auth/naverLogin
+
+# Google
+google.client-id=${GOOGLE_CLIENT_ID}
+google.client-secret=${GOOGLE_CLIENT_SECRET}
+google.redirect-uri=https://your-domain.com/auth/googleLogin
+
+# ===========================================
+# File Upload
+# ===========================================
+spring.servlet.multipart.max-file-size=5MB
+spring.servlet.multipart.max-request-size=5MB
+
+# ===========================================
+# Constants
+# ===========================================
+image-prefix=https://storage.googleapis.com/your-bucket-name/
+
+# ===========================================
+# Actuator (Monitoring)
+# ===========================================
+management.endpoints.web.exposure.include=health,prometheus
+management.endpoint.health.show-details=always
