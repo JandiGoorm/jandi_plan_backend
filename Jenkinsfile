@@ -19,6 +19,9 @@ pipeline {
                     def latestImageName = "ghcr.io/${env.GHCR_OWNER}/${env.IMAGE_NAME}:latest"
                     def fullImageName = "ghcr.io/${env.GHCR_OWNER}/${env.IMAGE_NAME}:${env.BUILD_NUMBER}"
                     
+                    // Jenkins 빌드: application.properties.example 복사
+                    sh 'cp src/main/resources/application.properties.example src/main/resources/application.properties'
+                    
                     docker.withRegistry("https://ghcr.io", 'github-token') {
                         // 1. 이전 캐시용 이미지 Pull (실패해도 무시)
                         try {

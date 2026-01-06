@@ -1,5 +1,5 @@
 # 1. 빌드 스테이지: 표준 JDK 환경에서 프로젝트의 Gradle Wrapper를 사용해 빌드
-FROM eclipse-temurin:17-jdk-jammy AS build
+FROM eclipse-temurin:21-jdk-jammy AS build
 
 WORKDIR /app
 
@@ -17,18 +17,19 @@ RUN ./gradlew dependencies --no-daemon > /dev/null 2>&1 || true
 # 소스 코드 복사
 COPY src src
 
-# application.properties.example을 application.properties로 복사 (빌드용)
-RUN cp src/main/resources/application.properties.example src/main/resources/application.properties
-
 # 최종 JAR 파일 빌드
 RUN ./gradlew build -x test
 
 # -----------------------------------------------------
 
 # 2. 실행 스테이지: JRE만 포함된 경량 이미지 사용
-FROM eclipse-temurin:17-jre-jammy
+FROM eclipse-temurin:21-jre-jammy
 
 WORKDIR /app
+
+# Ubuntu 미러를 Kakao로 변경 (다운로드 속도 향상)
+RUN sed -i 's@archive.ubuntu.com@mirror.kakao.com@g' /etc/apt/sources.list && \
+    sed -i 's@security.ubuntu.com@mirror.kakao.com@g' /etc/apt/sources.list
 
 # HEALTHCHECK에 필요한 curl 설치
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
