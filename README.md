@@ -2,8 +2,32 @@
 
 #### 로컬 개발
 1. `src/main/resources/application.properties.example` 파일을 복사하여 `application.properties`를 생성합니다.
+   ```bash
+   cp src/main/resources/application.properties.example src/main/resources/application.properties
+   ```
 2. 생성한 `application.properties` 파일에 필요한 환경 변수 값을 설정합니다.
 3. `application.properties`는 `.gitignore`에 등록되어 있어 Git에 커밋되지 않습니다.
+
+#### Docker로 실행
+```bash
+# 1. 이미지 빌드
+docker build -t jandi-plan:local .
+
+# 2. 컨테이너 실행
+docker run -d \
+  --name jandi-plan \
+  -p 8080:8080 \
+  jandi-plan:local
+
+# 3. 로그 확인
+docker logs -f jandi-plan
+
+# 4. 컨테이너 중지 및 삭제
+docker stop jandi-plan && docker rm jandi-plan
+```
+
+> **참고**: Docker 빌드 시 `src/main/resources/application.properties` 파일이 이미지에 포함됩니다.
+> 로컬 테스트 전 해당 파일에 올바른 환경 변수 값이 설정되어 있는지 확인하세요.
 
 #### 운영 환경
 - Jenkins 파이프라인을 통해 Docker 이미지 빌드 후 GHCR에 Push되며, 운영 환경 배포는 **home-server** 리포지토리에서 중앙 관리합니다.
