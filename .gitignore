@@ -40,3 +40,5 @@ application-dev.properties
 application-release.properties
 jenkins_log.txt
 src/main/resources/application.properties
+src/main/resources/application.properties
+src/main/resources/application.properties
