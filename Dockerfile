@@ -17,6 +17,9 @@ RUN ./gradlew dependencies --no-daemon > /dev/null 2>&1 || true
 # 소스 코드 복사
 COPY src src
 
+# application.properties.example을 application.properties로 복사 (빌드용)
+RUN cp src/main/resources/application.properties.example src/main/resources/application.properties
+
 # 최종 JAR 파일 빌드
 RUN ./gradlew build -x test
 
