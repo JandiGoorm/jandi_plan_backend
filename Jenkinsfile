@@ -8,6 +8,7 @@ pipeline {
     environment {
         GHCR_OWNER = 'kyj0503'
         IMAGE_NAME = 'jandi-plan'
+        DOCKER_BUILDKIT = '1'
     }
     
     stages {
@@ -33,8 +34,8 @@ pipeline {
                 }
             }
         }
-        
-        stage('Build and Push to GHCR') {
+
+        stage('Setup Buildx') {
             when {
                 anyOf {
                     branch 'main'
@@ -43,29 +44,43 @@ pipeline {
             }
             steps {
                 script {
-                    def latestImageName = "ghcr.io/${env.GHCR_OWNER}/${env.IMAGE_NAME}:latest"
-                    def fullImageName = "ghcr.io/${env.GHCR_OWNER}/${env.IMAGE_NAME}:${env.BUILD_NUMBER}"
+                    // Docker Buildx 설정 (멀티 아키텍처 빌드용)
+                    sh '''
+                        docker buildx create --name multiarch-builder --use --bootstrap || docker buildx use multiarch-builder
+                        docker buildx inspect --bootstrap
+                    '''
+                }
+            }
+        }
+        
+        stage('Build and Push Multi-Arch Image') {
+            when {
+                anyOf {
+                    branch 'main'
+                    branch 'master'
+                }
+            }
+            steps {
+                script {
+                    def fullImageName = "ghcr.io/${env.GHCR_OWNER}/${env.IMAGE_NAME}"
                     
                     // Jenkins 빌드: application.properties.example 복사
                     sh 'cp src/main/resources/application.properties.example src/main/resources/application.properties'
                     
-                    docker.withRegistry("https://ghcr.io", 'github-token') {
-                        // 1. 이전 캐시용 이미지 Pull (실패해도 무시)
-                        try {
-                            docker.image(latestImageName).pull()
-                        } catch (Exception e) {
-                            echo "Cache pull failed or no latest image found. Proceeding without cache."
-                        }
-                        
-                        // 2. 캐시를 활용하여 빌드
-                        docker.build(fullImageName, "--cache-from ${latestImageName} .")
-                        
-                        // 3. 빌드된 이미지 Push
-                        docker.image(fullImageName).push()
-                        
-                        // 4. 다음 빌드를 위한 캐시 갱신 (latest 태그 업데이트)
-                        docker.image(fullImageName).push("latest")
+                    // GHCR 로그인
+                    withCredentials([usernamePassword(credentialsId: 'github-token', usernameVariable: 'GITHUB_USER', passwordVariable: 'GITHUB_TOKEN')]) {
+                        sh 'echo $GITHUB_TOKEN | docker login ghcr.io -u $GITHUB_USER --password-stdin'
                     }
+                    
+                    // 멀티 아키텍처 빌드 및 푸시 (AMD64 + ARM64)
+                    sh """
+                        docker buildx build \
+                            --platform linux/amd64,linux/arm64 \
+                            --tag ${fullImageName}:${env.BUILD_NUMBER} \
+                            --tag ${fullImageName}:latest \
+                            --push \
+                            .
+                    """
                 }
             }
         }
