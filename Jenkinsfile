@@ -1,56 +1,113 @@
 pipeline {
     agent any
+
+    tools {
+        jdk 'jdk21'
+    }
     
     environment {
         GHCR_OWNER = 'kyj0503'
-        EC2_HOST = 'plan.yeonjae.kr'
-        EC2_USER = 'ubuntu'
-        IMAGE_NAME = 'justplanit'
+        IMAGE_NAME = 'jandi-plan'
+        DOCKER_BUILDKIT = '1'
     }
     
     stages {
         stage('Checkout') {
             steps {
-                // GitHub 리포지토리의 코드를 가져옵니다.
                 checkout scm
             }
         }
-        
-        stage('Build and Push to GHCR') {
+
+        stage('Test') {
             steps {
                 script {
-                    // Dockerfile을 사용하여 이미지를 빌드하고 GHCR에 푸시합니다.
-                    def fullImageName = "ghcr.io/${env.GHCR_OWNER}/${env.IMAGE_NAME}:${env.BUILD_NUMBER}"
-                    docker.build(fullImageName, '.')
-                    docker.withRegistry("https://ghcr.io", 'github-token') { // Jenkins에 등록된 GHCR 인증 정보 ID
-                        docker.image(fullImageName).push()
-                    }
+                    echo "Running tests..."
+                    sh './gradlew test --no-daemon'
+                }
+            }
+            post {
+                always {
+                    junit allowEmptyResults: true, testResults: '**/build/test-results/test/*.xml'
+                }
+                failure {
+                    echo "Tests failed. Stopping pipeline."
+                }
+            }
+        }
+
+        stage('Setup Buildx') {
+            when {
+                anyOf {
+                    branch 'main'
+                    branch 'master'
+                }
+            }
+            steps {
+                script {
+                    // Docker Buildx 설정 (멀티 아키텍처 빌드용)
+                    sh '''
+                        docker buildx create --name multiarch-builder --use --bootstrap || docker buildx use multiarch-builder
+                        docker buildx inspect --bootstrap
+                    '''
                 }
             }
         }
         
-        stage('Deploy to EC2') {
+        stage('Build and Push Multi-Arch Image') {
+            when {
+                anyOf {
+                    branch 'main'
+                    branch 'master'
+                }
+            }
             steps {
                 script {
-                    // EC2 서버에 접속하여 배포 스크립트를 실행합니다.
-                    def fullImageName = "ghcr.io/${env.GHCR_OWNER}/${env.IMAGE_NAME}:${env.BUILD_NUMBER}"
-                    withCredentials([sshUserPrivateKey(credentialsId: 'ec2-ssh-key', keyFileVariable: 'EC2_PRIVATE_KEY')]) {
-                        sh """
-                            scp -o StrictHostKeyChecking=no -i \${EC2_PRIVATE_KEY} docker-compose.yml ${env.EC2_USER}@${env.EC2_HOST}:/home/ubuntu/justplanit-app/docker-compose.yml
-                            scp -o StrictHostKeyChecking=no -i \${EC2_PRIVATE_KEY} deploy.sh ${env.EC2_USER}@${env.EC2_HOST}:/home/ubuntu/justplanit-app/deploy.sh
-                            ssh -o StrictHostKeyChecking=no -i \${EC2_PRIVATE_KEY} ${env.EC2_USER}@${env.EC2_HOST} \
-                            "bash /home/ubuntu/justplanit-app/deploy.sh ${fullImageName}"
-                        """
+                    def fullImageName = "ghcr.io/${env.GHCR_OWNER}/${env.IMAGE_NAME}"
+                    
+                    // Jenkins 빌드: application.properties.example 복사
+                    sh 'cp src/main/resources/application.properties.example src/main/resources/application.properties'
+                    
+                    // GHCR 로그인
+                    withCredentials([usernamePassword(credentialsId: 'github-token', usernameVariable: 'GITHUB_USER', passwordVariable: 'GITHUB_TOKEN')]) {
+                        sh 'echo $GITHUB_TOKEN | docker login ghcr.io -u $GITHUB_USER --password-stdin'
                     }
+                    
+                    // 멀티 아키텍처 빌드 및 푸시 (AMD64 + ARM64)
+                    sh """
+                        docker buildx build \
+                            --platform linux/amd64,linux/arm64 \
+                            --tag ${fullImageName}:${env.BUILD_NUMBER} \
+                            --tag ${fullImageName}:latest \
+                            --push \
+                            .
+                    """
                 }
+            }
+        }
+
+        // 배포는 home-server에서 담당
+        stage('Trigger Deploy') {
+            when {
+                anyOf {
+                    branch 'main'
+                    branch 'master'
+                }
+            }
+            steps {
+                build job: 'home-server-deploy', wait: false, propagate: false
             }
         }
     }
     
     post {
         always {
-            // 빌드가 끝나면 작업 공간을 정리합니다.
             cleanWs()
+        }
+        success {
+            echo '✅ Build and Push completed successfully!'
+        }
+        failure {
+            echo '❌ Build failed!'
         }
     }
 }
