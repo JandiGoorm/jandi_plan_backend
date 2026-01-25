@@ -14,11 +14,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.cors.CorsConfigurationSource;
-
-import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -45,21 +40,7 @@ public class SecurityConfig {
         this.jwtAccessDeniedHandler = jwtAccessDeniedHandler;
     }
 
-    /**
-     * CORS 설정을 위한 CorsConfigurationSource 빈.
-     * - 모든 HTTP 메서드와 헤더를 허용하며, 쿠키와 인증 정보를 포함한 요청도 허용합니다.
-     */
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("https://justplanit.site")); // Explicitly allow the frontend domain
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-        configuration.setAllowedHeaders(List.of("*"));
-        configuration.setAllowCredentials(true); // 쿠키 및 인증 정보 허용
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
-    }
+    // CORS는 nginx에서 통합 관리 (home-server/nginx/nginx.conf)
 
     /**
      * HTTP 보안 설정을 담당하는 SecurityFilterChain 빈.
@@ -70,8 +51,8 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // lambda 스타일로 커스텀 CORS 설정 적용
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                // CORS는 nginx에서 통합 관리
+                .cors(AbstractHttpConfigurer::disable)
                 // 세션을 사용하지 않도록 설정 (stateless)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 // CSRF 보호 비활성화 (API 서버에서는 필요 없음)
