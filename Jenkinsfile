@@ -6,6 +6,7 @@ pipeline {
         PATH = "${JAVA_HOME}/bin:${env.PATH}"
         GHCR_OWNER = 'kyj0503'
         IMAGE_NAME = 'jandi-plan'
+        DOCKER_BUILDKIT = '1'
     }
     
     stages {
@@ -59,7 +60,7 @@ pipeline {
                     sh '''
                         cd /opt/home-server/docker
                         docker compose -f docker-compose.apps.yml pull jandi-plan
-                        docker compose -f docker-compose.apps.yml up -d jandi-plan
+                        docker compose -f docker-compose.apps.yml up -d --no-deps jandi-plan
                         sleep 10
                         docker ps | grep jandi-plan
                         echo "✅ jandi-plan deployment completed!"
