@@ -58,11 +58,8 @@ pipeline {
             steps {
                 script {
                     sh '''
-                        cd /opt/home-server/docker
-                        docker compose -f docker-compose.yml -f docker-compose.prod.yml pull jandi-plan
-                        docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --no-deps jandi-plan
-                        sleep 30
-                        docker ps | grep jandi-plan
+                        /opt/home-server/scripts/deploy-app.sh jandi-plan
+                        sleep 20
                         echo "✅ jandi-plan deployment completed!"
                     '''
                 }
