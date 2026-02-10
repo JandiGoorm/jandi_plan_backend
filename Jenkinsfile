@@ -59,8 +59,8 @@ pipeline {
                 script {
                     sh '''
                         cd /opt/home-server/docker
-                        docker compose -f docker-compose.apps.yml pull jandi-plan
-                        docker compose -f docker-compose.apps.yml up -d --no-deps jandi-plan
+                        docker compose -f docker-compose.yml -f docker-compose.prod.yml pull jandi-plan
+                        docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --no-deps jandi-plan
                         sleep 30
                         docker ps | grep jandi-plan
                         echo "✅ jandi-plan deployment completed!"
