@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 # 1. 빌드 스테이지: 표준 JDK 환경에서 프로젝트의 Gradle Wrapper를 사용해 빌드
 FROM eclipse-temurin:21-jdk-jammy AS build
 
@@ -11,14 +12,16 @@ COPY build.gradle settings.gradle ./
 # 실행 권한 부여
 RUN chmod +x ./gradlew
 
-# 의존성 분리 캐싱
-RUN ./gradlew dependencies --no-daemon > /dev/null 2>&1 || true
+# 의존성 분리 캐싱 (Gradle 캐시 마운트로 재다운로드 방지)
+RUN --mount=type=cache,target=/root/.gradle \
+    ./gradlew dependencies --no-daemon > /dev/null 2>&1 || true
 
 # 소스 코드 복사
 COPY src src
 
 # 최종 JAR 파일 빌드
-RUN ./gradlew build -x test
+RUN --mount=type=cache,target=/root/.gradle \
+    ./gradlew build -x test --no-daemon
 
 # -----------------------------------------------------
 
@@ -44,5 +47,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
   CMD curl -f http://localhost:8080/actuator/health || exit 1
 
 # 컨테이너 실행 시, 외부(/app/config/application.properties)에 있는 설정 파일을 사용하도록 지정
-# 이 경로는 docker-compose.yml에 설정한 volumes 경로와 반드시 일치해야 합니다.
+# 이 경로는 home-server 저장소의 docker-compose.apps.yml에 설정한 volumes 경로와 반드시 일치해야 합니다.
 ENTRYPOINT ["java", "-Dspring.config.location=file:/app/config/application.properties", "-jar", "app.jar"]
