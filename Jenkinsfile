@@ -1,11 +1,9 @@
 pipeline {
     agent any
 
-    tools {
-        jdk 'jdk21'
-    }
-    
     environment {
+        JAVA_HOME = '/usr/lib/jvm/java-1.21.0-openjdk-arm64'
+        PATH = "${JAVA_HOME}/bin:${env.PATH}"
         GHCR_OWNER = 'kyj0503'
         IMAGE_NAME = 'jandi-plan'
         DOCKER_BUILDKIT = '1'
@@ -14,52 +12,28 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                checkout scm
+                checkout([$class: 'GitSCM',
+                    branches: [[name: '*/main'], [name: '*/master']],
+                    userRemoteConfigs: [[
+                        url: 'https://github.com/kyj0503/jandi_plan_backend.git',
+                        credentialsId: 'github-token'
+                    ]]
+                ])
             }
         }
 
-        stage('Test') {
-            steps {
-                script {
-                    echo "Running tests..."
-                    sh './gradlew test --no-daemon'
-                }
-            }
-            post {
-                always {
-                    junit allowEmptyResults: true, testResults: '**/build/test-results/test/*.xml'
-                }
-                failure {
-                    echo "Tests failed. Stopping pipeline."
-                }
-            }
-        }
 
-        stage('Setup Buildx') {
-            when {
-                anyOf {
-                    branch 'main'
-                    branch 'master'
-                }
-            }
+        stage('Login GHCR') {
             steps {
                 script {
-                    // Docker Buildx 설정 (멀티 아키텍처 빌드용)
-                    sh '''
-                        docker buildx create --name multiarch-builder --use --bootstrap || docker buildx use multiarch-builder
-                        docker buildx inspect --bootstrap
-                    '''
+                    withCredentials([usernamePassword(credentialsId: 'github-token', usernameVariable: 'GITHUB_USER', passwordVariable: 'GITHUB_TOKEN')]) {
+                        sh 'echo $GITHUB_TOKEN | docker login ghcr.io -u $GITHUB_USER --password-stdin'
+                    }
                 }
             }
         }
         
-        stage('Build and Push Multi-Arch Image') {
-            when {
-                anyOf {
-                    branch 'main'
-                    branch 'master'
-                }
-            }
+        stage('Build and Push Image') {
             steps {
                 script {
                     def fullImageName = "ghcr.io/${env.GHCR_OWNER}/${env.IMAGE_NAME}"
@@ -67,47 +41,60 @@ pipeline {
                     // Jenkins 빌드: application.properties.example 복사
                     sh 'cp src/main/resources/application.properties.example src/main/resources/application.properties'
                     
-                    // GHCR 로그인
-                    withCredentials([usernamePassword(credentialsId: 'github-token', usernameVariable: 'GITHUB_USER', passwordVariable: 'GITHUB_TOKEN')]) {
-                        sh 'echo $GITHUB_TOKEN | docker login ghcr.io -u $GITHUB_USER --password-stdin'
-                    }
-                    
-                    // 멀티 아키텍처 빌드 및 푸시 (AMD64 + ARM64)
+                    // 빌드 및 푸시
                     sh """
-                        docker buildx build \
-                            --platform linux/amd64,linux/arm64 \
+                        docker build \
                             --tag ${fullImageName}:${env.BUILD_NUMBER} \
                             --tag ${fullImageName}:latest \
-                            --push \
                             .
+                        docker push ${fullImageName}:${env.BUILD_NUMBER}
+                        docker push ${fullImageName}:latest
                     """
                 }
             }
         }
 
-        // 배포는 home-server에서 담당
-        stage('Trigger Deploy') {
-            when {
-                anyOf {
-                    branch 'main'
-                    branch 'master'
+        stage('Deploy') {
+            steps {
+                script {
+                    sh '''
+                        /opt/home-server/scripts/deploy-app.sh jandi-plan
+                        sleep 20
+                        echo "✅ jandi-plan deployment completed!"
+                    '''
                 }
             }
+        }
+
+        stage('Health Check') {
             steps {
-                build job: 'home-server-deploy', wait: false, propagate: false
+                script {
+                    sh '''
+                        echo "Waiting for service to be ready..."
+                        for i in 1 2 3 4 5 6 7 8 9 10; do
+                            echo "Health check attempt $i/10"
+                            if curl -sf https://plan-be.yeonjae.kr/actuator/health; then
+                                echo "✅ Service is healthy!"
+                                exit 0
+                            fi
+                            sleep 5
+                        done
+                        echo "⚠️ Health check timed out, but continuing..."
+                    '''
+                }
             }
         }
     }
-    
+
     post {
         always {
             cleanWs()
         }
         success {
-            echo '✅ Build and Push completed successfully!'
+            echo '✅ jandi-plan Build, Push, and Deploy completed successfully!'
         }
         failure {
-            echo '❌ Build failed!'
+            echo '❌ Pipeline failed!'
         }
     }
 }

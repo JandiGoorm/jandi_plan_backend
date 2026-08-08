@@ -83,4 +83,4 @@ image-prefix=https://storage.googleapis.com/your-bucket-name/
 # Actuator (Monitoring)
 # ===========================================
 management.endpoints.web.exposure.include=health,prometheus
-management.endpoint.health.show-details=always
+management.endpoint.health.show-details=when-authorized

@@ -73,7 +73,7 @@ cp src/main/resources/application.properties.example src/main/resources/applicat
 ./gradlew bootRun
 
 # 또는 JAR 직접 실행
-java -jar build/libs/plan_backend-0.0.1-SNAPSHOT.jar
+java -jar build/libs/jandi_plan_backend-0.0.1-SNAPSHOT.jar
 ```
 
 **접속 URL**
