@@ -43,21 +43,27 @@ public class LocalImageStorageService {
     }
 
     /**
-     * 파일을 저장하고, 성공하면 URL 인코딩된 파일명을 포함한 결과 문자열을 반환합니다.
+     * 저장 전에 파일명과 확장자를 검증합니다.
      */
-    public String uploadFile(MultipartFile file) {
+    public void validateUpload(MultipartFile file) {
         String originalFileName = file.getOriginalFilename();
         if (originalFileName == null || originalFileName.isBlank()) {
             throw new IllegalArgumentException("파일의 이름이 유효하지 않습니다.");
         }
-
         String safeName = lastSegment(originalFileName);
         if (!hasAllowedExtension(safeName)) {
             log.warn("허용되지 않는 파일 형식: {}", safeName);
             throw new IllegalArgumentException("허용되지 않는 파일 형식입니다. (허용: jpg, jpeg, png, gif, webp)");
         }
+    }
 
-        String fileName = UUID.randomUUID() + "_" + safeName;
+    /**
+     * 파일을 저장하고, 성공하면 URL 인코딩된 파일명을 포함한 결과 문자열을 반환합니다.
+     */
+    public String uploadFile(MultipartFile file) {
+        validateUpload(file);
+
+        String fileName = UUID.randomUUID() + "_" + lastSegment(file.getOriginalFilename());
         Path target = resolveInStorageDir(fileName);
         Path temp = null;
         try {

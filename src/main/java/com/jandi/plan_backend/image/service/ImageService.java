@@ -29,6 +29,13 @@ public class ImageService {
     }
 
     /**
+     * 기존 이미지를 지우기 전에 업로드할 파일을 검증합니다.
+     */
+    public void validateUpload(MultipartFile file) {
+        storageService.validateUpload(file);
+    }
+
+    /**
      * DB에 저장된 파일명으로 공개 URL을 만듭니다.
      */
     public String toPublicUrl(String storedFileName) {
@@ -113,6 +120,7 @@ public class ImageService {
             return null;
         }
         Image image = optionalImage.get();
+        validateUpload(newFile);
         boolean storageDeleted = storageService.deleteFile(image.getImageUrl());
         if (!storageDeleted) {
             log.warn("기존 파일 삭제 실패. 이미지 ID: {}", imageId);

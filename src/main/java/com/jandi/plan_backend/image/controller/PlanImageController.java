@@ -100,6 +100,9 @@ public class PlanImageController {
 
         log.info("사용자 '{}' (ID: {})가 프로필 이미지 업로드 요청", ownerEmail, userId);
 
+        // 거부될 파일이면 기존 이미지를 지우기 전에 중단
+        imageService.validateUpload(file);
+
         // 1) 기존 프로필 이미지 삭제 (이미 userId에 연결된 profile 이미지가 있으면 제거)
         imageService.getImageByTarget("profile", userId).ifPresent(img -> {
             log.info("기존 프로필 이미지(imageId={}) 삭제 후 새 이미지로 교체", img.getImageId());
@@ -143,6 +146,9 @@ public class PlanImageController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(Collections.singletonMap("error", "본인이 작성한 여행계획만 이미지 업로드 가능합니다."));
         }
+
+        // 거부될 파일이면 기존 이미지를 지우기 전에 중단
+        imageService.validateUpload(file);
 
         // 3) 기존 이미지 삭제 (이미 trip에 이미지가 1개 존재한다면 제거)
         imageService.getImageByTarget("trip", tripId).ifPresent(img -> {

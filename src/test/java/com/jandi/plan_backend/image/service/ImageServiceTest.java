@@ -18,6 +18,7 @@ import java.nio.file.Path;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -49,5 +50,22 @@ class ImageServiceTest {
         assertThat(image.getImageUrl()).endsWith("_new.png");
         assertThat(resp.getImageUrl()).isEqualTo(PREFIX + image.getImageUrl());
         assertThat(storageDir.resolve(URLDecoder.decode(image.getImageUrl(), StandardCharsets.UTF_8))).exists();
+    }
+
+    @Test
+    void 거부될_파일로_수정하면_기존_파일과_DB값이_그대로_남는다() throws IOException {
+        ImageService imageService = new ImageService(
+                new LocalImageStorageService(storageDir.toString()), imageRepository, PREFIX);
+        Files.writeString(storageDir.resolve("old.png"), "old");
+        Image image = new Image();
+        image.setImageUrl("old.png");
+        when(imageRepository.findById(1)).thenReturn(Optional.of(image));
+
+        assertThatThrownBy(() -> imageService.updateImage(
+                1, new MockMultipartFile("file", "x.html", "text/html", new byte[]{9})))
+                .isInstanceOf(IllegalArgumentException.class);
+
+        assertThat(storageDir.resolve("old.png")).exists();
+        assertThat(image.getImageUrl()).isEqualTo("old.png");
     }
 }

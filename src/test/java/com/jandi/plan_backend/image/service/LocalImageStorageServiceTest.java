@@ -96,7 +96,11 @@ class LocalImageStorageServiceTest {
         for (String name : List.of("x.html", "x.svg", "x.png.html", "noext", "x.")) {
             assertThatThrownBy(() -> service.uploadFile(new MockMultipartFile("file", name, "text/html", new byte[]{1})))
                     .isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> service.validateUpload(new MockMultipartFile("file", name, "text/html", new byte[]{1})))
+                    .isInstanceOf(IllegalArgumentException.class);
         }
+        assertThatCode(() -> service.validateUpload(new MockMultipartFile("file", "PHOTO.JPG", "image/jpeg", new byte[]{1})))
+                .doesNotThrowAnyException();
         assertThat(service.uploadFile(new MockMultipartFile("file", "PHOTO.JPG", "image/jpeg", new byte[]{1})))
                 .startsWith(SUCCESS);
         try (Stream<Path> files = Files.list(storageDir)) {
