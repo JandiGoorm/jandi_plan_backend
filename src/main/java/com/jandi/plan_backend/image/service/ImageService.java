@@ -5,6 +5,7 @@ import com.jandi.plan_backend.image.entity.Image;
 import com.jandi.plan_backend.image.repository.ImageRepository;
 import com.jandi.plan_backend.util.TimeUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -15,13 +16,30 @@ import java.util.Optional;
 @Service
 public class ImageService {
 
-    private final GoogleCloudStorageService googleCloudStorageService;
+    private final LocalImageStorageService storageService;
     private final ImageRepository imageRepository;
-    private final String urlPrefix = "https://storage.googleapis.com/plan-storage/";
+    private final String urlPrefix;
 
-    public ImageService(GoogleCloudStorageService googleCloudStorageService, ImageRepository imageRepository) {
-        this.googleCloudStorageService = googleCloudStorageService;
+    public ImageService(LocalImageStorageService storageService,
+                        ImageRepository imageRepository,
+                        @Value("${image-prefix}") String urlPrefix) {
+        this.storageService = storageService;
         this.imageRepository = imageRepository;
+        this.urlPrefix = urlPrefix;
+    }
+
+    /**
+     * 기존 이미지를 지우기 전에 업로드할 파일을 검증합니다.
+     */
+    public void validateUpload(MultipartFile file) {
+        storageService.validateUpload(file);
+    }
+
+    /**
+     * DB에 저장된 파일명으로 공개 URL을 만듭니다.
+     */
+    public String toPublicUrl(String storedFileName) {
+        return urlPrefix + storedFileName;
     }
 
     /**
@@ -34,7 +52,7 @@ public class ImageService {
      * @return 업로드 결과를 담은 ImageRespDto
      */
     public ImageRespDto uploadImage(MultipartFile file, String owner, Integer targetId, String targetType) {
-        String uploadResult = googleCloudStorageService.uploadFile(file);
+        String uploadResult = storageService.uploadFile(file);
         if (!uploadResult.startsWith("파일 업로드 성공: ")) {
             ImageRespDto errorDto = new ImageRespDto();
             errorDto.setMessage(uploadResult);
@@ -48,7 +66,7 @@ public class ImageService {
         image.setOwner(owner);
         image.setCreatedAt(TimeUtil.now());
         image = imageRepository.save(image);
-        String fullPublicUrl = urlPrefix + image.getImageUrl();
+        String fullPublicUrl = toPublicUrl(image.getImageUrl());
         ImageRespDto responseDto = new ImageRespDto();
         responseDto.setImageId(image.getImageId());
         responseDto.setImageUrl(fullPublicUrl);
@@ -72,7 +90,7 @@ public class ImageService {
      */
     public String getPublicUrlByImageId(Integer imageId) {
         Optional<Image> imageOptional = imageRepository.findById(imageId);
-        return imageOptional.map(img -> urlPrefix + img.getImageUrl()).orElse(null);
+        return imageOptional.map(img -> toPublicUrl(img.getImageUrl())).orElse(null);
     }
 
     /**
@@ -88,7 +106,7 @@ public class ImageService {
 
     /**
      * 이미지 업데이트 기능.
-     * 기존 이미지(이미지 ID 기준)를 찾아, 기존 파일을 클라우드 스토리지에서 삭제한 후,
+     * 기존 이미지(이미지 ID 기준)를 찾아, 기존 파일을 저장소에서 삭제한 후,
      * 새 파일을 업로드하여 DB 레코드를 업데이트합니다.
      *
      * @param imageId 업데이트할 이미지의 DB ID
@@ -102,11 +120,12 @@ public class ImageService {
             return null;
         }
         Image image = optionalImage.get();
-        boolean storageDeleted = googleCloudStorageService.deleteFile(image.getImageUrl());
+        validateUpload(newFile);
+        boolean storageDeleted = storageService.deleteFile(image.getImageUrl());
         if (!storageDeleted) {
             log.warn("기존 파일 삭제 실패. 이미지 ID: {}", imageId);
         }
-        String uploadResult = googleCloudStorageService.uploadFile(newFile);
+        String uploadResult = storageService.uploadFile(newFile);
         if (!uploadResult.startsWith("파일 업로드 성공: ")) {
             ImageRespDto errorDto = new ImageRespDto();
             errorDto.setMessage(uploadResult);
@@ -116,7 +135,7 @@ public class ImageService {
         image.setImageUrl(newStoredFileName);
         image.setCreatedAt(TimeUtil.now());
         image = imageRepository.save(image);
-        String fullPublicUrl = urlPrefix + image.getImageUrl();
+        String fullPublicUrl = toPublicUrl(image.getImageUrl());
         ImageRespDto responseDto = new ImageRespDto();
         responseDto.setImageId(image.getImageId());
         responseDto.setImageUrl(fullPublicUrl);
@@ -126,7 +145,7 @@ public class ImageService {
 
     /**
      * 삭제 시, DB의 imageUrl = rawFileName
-     * googleCloudStorageService.deleteFile(rawFileName) → 실제 GCS 삭제
+     * storageService.deleteFile(rawFileName) → 로컬 파일 삭제
      */
     public boolean deleteImage(Integer imageId) {
         Optional<Image> imageOptional = imageRepository.findById(imageId);
@@ -137,15 +156,15 @@ public class ImageService {
         Image image = imageOptional.get();
 
         // DB에 인코딩된 형태로 저장되어 있어도,
-        // googleCloudStorageService.deleteFile(...) 내부에서 URLDecoder.decode(...)
-        // -> 실제 GCS 파일명으로 삭제
-        boolean storageDeleted = googleCloudStorageService.deleteFile(image.getImageUrl());
+        // storageService.deleteFile(...) 내부에서 URLDecoder.decode(...)
+        // -> 저장된 파일명으로 삭제
+        boolean storageDeleted = storageService.deleteFile(image.getImageUrl());
         if (storageDeleted) {
             imageRepository.delete(image);
             log.info("이미지 삭제 완료: 이미지 ID: {}", imageId);
             return true;
         } else {
-            log.warn("클라우드 스토리지에서 이미지 삭제 실패: 이미지 ID: {}", imageId);
+            log.warn("저장소에서 이미지 삭제 실패: 이미지 ID: {}", imageId);
             return false;
         }
     }

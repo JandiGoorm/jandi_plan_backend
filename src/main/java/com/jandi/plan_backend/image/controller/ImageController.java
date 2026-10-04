@@ -66,7 +66,7 @@ public class ImageController {
      * 경로 변수로 전달받은 이미지 ID를 기반으로 DB에 저장된 파일명을 바탕으로 공개 URL을 반환합니다.
      *
      * @param imageId 조회할 이미지의 ID (경로 변수)
-     * @return {"imageUrl": "https://storage.googleapis.com/plan-storage/{파일명}"} 형태의 JSON 응답
+     * @return {"imageUrl": "{image-prefix}{파일명}"} 형태의 JSON 응답
      */
     @GetMapping("/{imageId}")
     public ResponseEntity<?> getPublicUrl(@PathVariable("imageId") Integer imageId) {
@@ -83,7 +83,7 @@ public class ImageController {
     /**
      * 이미지 수정(업데이트) API.
      * 경로 변수로 전달받은 이미지 ID를 기반으로 기존 이미지를 새 파일로 업데이트합니다.
-     * 기존 파일은 클라우드 스토리지에서 삭제한 후, 새 파일을 업로드하고 DB 레코드를 갱신합니다.
+     * 기존 파일은 저장소에서 삭제한 후, 새 파일을 업로드하고 DB 레코드를 갱신합니다.
      *
      * @param imageId 업데이트할 이미지의 DB ID (경로 변수)
      * @param file 새로 업로드할 이미지 파일
@@ -112,7 +112,7 @@ public class ImageController {
 
     /**
      * 이미지 삭제 API.
-     * 경로 변수로 전달받은 이미지 ID를 기반으로 클라우드 스토리지와 DB에서 해당 이미지를 삭제합니다.
+     * 경로 변수로 전달받은 이미지 ID를 기반으로 저장소와 DB에서 해당 이미지를 삭제합니다.
      *
      * @param imageId 삭제할 이미지의 DB ID (경로 변수)
      * @return 삭제 성공 시 JSON 응답, 실패 시 오류 메시지 반환

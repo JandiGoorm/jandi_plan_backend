@@ -22,7 +22,7 @@ public class UserCommunityDTO {
         this.email = user.getEmail();
         // 프로필 이미지 URL을 가져옴 (예: imageService에서 최신 URL 반환)
         this.profileImageUrl = imageService.getImageByTarget("profile", user.getUserId())
-                .map(img -> "https://storage.googleapis.com/plan-storage/" + img.getImageUrl())
+                .map(img -> imageService.toPublicUrl(img.getImageUrl()))
                 .orElseGet(() -> imageService.getPublicUrlByImageId(1));
     }
 
