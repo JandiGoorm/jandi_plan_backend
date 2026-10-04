@@ -20,7 +20,7 @@
 | **Language** | Java 21 |
 | **Framework** | Spring Boot 3.x, Spring Security, Spring Data JPA |
 | **Database** | MySQL 8.0 |
-| **Storage** | Google Cloud Storage |
+| **Storage** | 서버 로컬 디스크 (nginx 정적 서빙) |
 | **Infra** | Docker, Jenkins (`home-server`에서 중앙 관리) |
 | **Test** | JUnit 5, Mockito, H2 (테스트 DB) |
 | **Docs** | Swagger (SpringDoc OpenAPI) |
@@ -63,7 +63,7 @@ jandi_plan_backend/
 ```bash
 # 1. 환경변수 설정
 cp src/main/resources/application.properties.example src/main/resources/application.properties
-# application.properties 파일에 DB, GCS, OAuth 정보 입력
+# application.properties 파일에 DB, 이미지 저장 경로(image.storage-path), OAuth 정보 입력
 
 # 2. 빌드
 ./gradlew clean build -x test
