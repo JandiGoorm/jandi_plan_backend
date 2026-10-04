@@ -232,7 +232,7 @@ public class UserService {
         if (optionalProfileImage.isPresent()) {
             // (1) 프로필 이미지가 존재하면 해당 이미지 URL 사용
             Image profileImage = optionalProfileImage.get();
-            profileImageUrl = "https://storage.googleapis.com/plan-storage/" + profileImage.getImageUrl();
+            profileImageUrl = imageService.toPublicUrl(profileImage.getImageUrl());
         } else {
             // (2) 프로필 이미지가 없으면 imageId=1(가정) 인 이미지를 대신 사용
             String fallbackUrl = imageService.getPublicUrlByImageId(1);  // imageId=1로 조회

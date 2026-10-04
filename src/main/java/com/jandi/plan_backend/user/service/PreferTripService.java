@@ -31,7 +31,6 @@ public class PreferTripService {
     private final ValidationUtil validationUtil;
     private final ImageService imageService;
     private final UserCityPreferenceRepository userCityPreferenceRepository;
-    private final String urlPrefix = "https://storage.googleapis.com/plan-storage/";
 
     public PreferTripService(
             ContinentRepository continentRepository,
@@ -60,7 +59,7 @@ public class PreferTripService {
                 .map(continent -> {
                     // Image 테이블에서 이미지 조회
                     String continentImageUrl = imageService.getImageByTarget("continent", continent.getContinentId())
-                            .map(img -> urlPrefix + img.getImageUrl())
+                            .map(img -> imageService.toPublicUrl(img.getImageUrl()))
                             .orElse(null);
                     // DTO 생성시 imageUrl 주입
                     return new ContinentRespDTO(continent, continentImageUrl);
@@ -133,7 +132,7 @@ public class PreferTripService {
                 .map(city -> {
                     // imageService를 통해 targetType="city", targetId=cityId 로 이미지 조회
                     String cityImageUrl = imageService.getImageByTarget("city", city.getCityId())
-                            .map(img -> urlPrefix + img.getImageUrl())
+                            .map(img -> imageService.toPublicUrl(img.getImageUrl()))
                             .orElse(null);
 
                     // DTO 생성자에 city + cityImageUrl 전달
@@ -167,7 +166,7 @@ public class PreferTripService {
                 .map(city -> {
                     // imageService를 통해 targetType="city", targetId=cityId 로 이미지 조회
                     String cityImageUrl = imageService.getImageByTarget("city", city.getCityId())
-                            .map(img -> urlPrefix + img.getImageUrl())
+                            .map(img -> imageService.toPublicUrl(img.getImageUrl()))
                             .orElse(null);
 
                     // DTO 생성자에 city + cityImageUrl 전달
@@ -191,7 +190,7 @@ public class PreferTripService {
                     City curCity = pref.getCity(); //도시
                     String cityImageUrl = //이미지
                             imageService.getImageByTarget("city", curCity.getCityId())
-                            .map(img -> urlPrefix + img.getImageUrl())
+                            .map(img -> imageService.toPublicUrl(img.getImageUrl()))
                             .orElse(null);
                     return new CityRespDTO(curCity, cityImageUrl);
                 })
