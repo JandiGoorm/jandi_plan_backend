@@ -52,7 +52,7 @@
 - 호스트 경로: `/opt/home-server/data/plan-images`
 - `jandi-plan` 컨테이너: `/app/uploads`에 읽기/쓰기로 마운트한다.
 - `nginx` 컨테이너: `/var/www/plan-images`에 읽기 전용으로 마운트한다.
-- 로컬 compose에도 같은 구조를 적용한다.
+- 로컬 compose에는 `jandi-plan`에 `../data/plan-images` 볼륨을 추가하고, 이 디렉터리를 서빙하는 `plan-images`(nginx, 호스트 포트 8094) 서비스를 추가한다. 로컬 compose에는 nginx 게이트웨이가 없기 때문이다.
 
 ### 백엔드
 
@@ -64,16 +64,19 @@
   - 검증: 해석한 최종 경로가 `image.storage-path` 하위인지 확인하고, 아니면 업로드를 거부한다.
   - 쓰기: 같은 디렉터리의 임시 파일에 쓴 뒤 원자적 이동으로 확정한다. 실패 시 임시 파일을 삭제한다.
   - 삭제: DB 파일명을 URL 디코딩한 이름으로 같은 경로 검증을 거쳐 삭제한다. 파일이 없으면 기존처럼 `false`를 반환한다.
-- 제거: `Storage` 빈 설정, `build.gradle`의 GCP 의존성, `gcs.bucket.name`, GCP 인증 관련 설정.
+- 제거: `GcpCredentialsConfig`(`Storage` 빈), `build.gradle`의 `spring-cloud-gcp-starter-storage`, `spring-cloud-gcp-starter-secretmanager`, spring-cloud-gcp BOM, `gcs.bucket.name`, `gcp.credentials.key.base64`. Secret Manager 참조(`sm://`)는 코드와 설정에 없다.
+- 저장 디렉터리가 없거나 쓸 수 없으면 기동 시 실패시킨다. 마운트가 빠진 채 컨테이너 내부에 저장되는 사고를 막는다.
+- 업로드 파일의 권한은 `rw-r--r--`로 맞춘다. 임시 파일의 기본 권한(`rw-------`)을 그대로 두면 nginx가 읽지 못해 403이 난다.
 
 ### nginx와 compose (home-server)
 
 - `plan-be.yeonjae.kr` 서버 블록에 `location /images/`를 추가한다.
-  - `alias`로 `/var/www/plan-images/`를 가리킨다.
+  - `root /var/www/plan;`을 쓰고 이미지 디렉터리를 `/var/www/plan/images`에 마운트한다(`alias`의 `try_files` 문제를 피한다).
   - 파일이 없으면 404를 반환하고 백엔드로 넘기지 않는다.
   - `Cache-Control: public, max-age=31536000, immutable`. 파일명에 UUID가 있어 내용이 바뀌지 않는다.
+  - `X-Content-Type-Options: nosniff`와 `Content-Security-Policy: default-src 'none'; sandbox`를 붙인다. 업로드 파일이 API 도메인에서 서빙되므로, 스크립트가 든 파일이 실행되지 않게 한다.
   - CORS 헤더는 기존 `location /`과 같은 값을 적용한다.
-- `client_max_body_size 5m`을 `plan-be` 서버 블록에 추가한다. 현재는 기본값 1MB라서, 백엔드 제한(5MB)보다 먼저 업로드가 막힐 수 있다.
+- `client_max_body_size 6m`을 `plan-be` 서버 블록에 추가한다. 현재는 기본값 1MB라서, 백엔드 제한(5MB)보다 먼저 업로드가 막힐 수 있다. multipart 오버헤드 때문에 5MB 파일이 5m을 넘을 수 있어 6m으로 한다.
 - `config/jandi-plan/application.properties`, `application-local.properties`에 `image-prefix`와 `image.storage-path`를 반영한다.
 
 ### 환경변수와 설정 파일
