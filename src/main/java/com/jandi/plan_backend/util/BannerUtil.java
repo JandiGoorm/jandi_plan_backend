@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -36,8 +37,9 @@ public class BannerUtil {
     // 기존 배너 이미지 교체 (검증 실패 시 기존 이미지 유지)
     public void replaceBannerImage(Banner banner, User user, MultipartFile file) {
         imageService.validateUpload(file);
-        deleteBannerImage(banner);
+        Optional<Image> existing = imageRepository.findByTargetTypeAndTargetId("banner", banner.getBannerId());
         uploadBannerImage(banner, user, file);
+        existing.ifPresent(img -> imageService.deleteImage(img.getImageId()));
     }
 
     // 배너 이미지 조회

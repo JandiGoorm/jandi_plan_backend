@@ -56,7 +56,7 @@
 
 ### 백엔드
 
-- `LocalImageStorageService`가 `GoogleCloudStorageService`를 대체한다. 공개 메서드는 `uploadFile(MultipartFile)`, `deleteFile(String)`이고 반환 규칙은 기존과 같다. `ImageService`의 호출부는 변경하지 않는다.
+- `LocalImageStorageService`가 `GoogleCloudStorageService`를 대체한다. 공개 메서드는 `uploadFile(MultipartFile)`, `deleteFile(String)`이다. 성공 시 반환 문자열은 기존과 같고, 저장에 실패하면(용량 부족, 권한) `IllegalStateException`을 던진다. 이 예외는 HTTP 500으로 응답된다.
 - 설정 키: `image.storage-path`(저장 디렉터리), `image-prefix`(공개 URL 접두사, 끝에 `/` 포함).
 - 하드코딩된 접두사는 모두 `${image-prefix}` 주입으로 바꾼다.
 - 저장 규칙:
@@ -66,7 +66,8 @@
   - 삭제: DB 파일명을 URL 디코딩한 이름으로 같은 경로 검증을 거쳐 삭제한다. 파일이 없으면 기존처럼 `false`를 반환한다.
 - 제거: `GcpCredentialsConfig`(`Storage` 빈), `build.gradle`의 `spring-cloud-gcp-starter-storage`, `spring-cloud-gcp-starter-secretmanager`, spring-cloud-gcp BOM, `gcs.bucket.name`, `gcp.credentials.key.base64`. Secret Manager 참조(`sm://`)는 코드와 설정에 없다.
 - 업로드 확장자는 `jpg`, `jpeg`, `png`, `gif`, `webp`(대소문자 무시)만 허용한다. 그 밖의 확장자는 저장하지 않고 `IllegalArgumentException`을 던진다. `GlobalExceptionHandler`가 HTTP 400으로 응답하므로, 프론트엔드의 `catch`가 실패로 처리하고 `ManageTripService`와 `BannerUtil`처럼 반환값을 보지 않는 호출부도 조용히 넘어가지 않는다. nginx가 확장자로 `Content-Type`을 정하므로, HTML과 SVG가 API 도메인에서 실행되는 것을 막기 위한 조치다.
-- 기존 이미지를 지우고 새로 올리는 경로(프로필·여행계획 이미지 교체, 이미지 수정, 도시 수정, 배너 수정)는 지우기 전에 `ImageService.validateUpload()`로 파일을 검증한다. 거부될 파일 때문에 기존 이미지만 삭제되는 일을 막는다.
+- 기존 이미지를 지우고 새로 올리는 경로(프로필·여행계획 이미지 교체, 이미지 수정, 도시 수정, 배너 수정)는 먼저 `ImageService.validateUpload()`로 파일을 검증하고, 새 파일 저장에 성공한 뒤에 기존 이미지를 삭제한다. 거부되거나 저장에 실패한 파일 때문에 기존 이미지만 삭제되는 일을 막는다.
+- 운영의 이미지 디렉터리는 5GB 루프백 ext4 파일시스템(`/srv/jandi-plan.img`)을 `/srv/jandi-plan`에 마운트해 용량을 제한한다. 가득 차면 저장이 실패한다.
 - 저장 디렉터리가 없거나 쓸 수 없으면 기동 시 실패시킨다. 마운트가 빠진 채 컨테이너 내부에 저장되는 사고를 막는다.
 - 업로드 파일의 권한은 `rw-r--r--`로 맞춘다. 임시 파일의 기본 권한(`rw-------`)을 그대로 두면 nginx가 읽지 못해 403이 난다.
 
