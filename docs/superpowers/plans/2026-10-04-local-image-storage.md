@@ -18,7 +18,7 @@
 - 빌드·테스트는 도커에서 실행한다. 동작 검증은 `/health/ready` 200만으로 끝내지 않고 실제 기능 엔드포인트를 호출한다.
 - 주석은 코드에서 바로 읽히지 않는 것만, 블록당 3줄 이하, 명사구 단위. 미완료 항목은 `docs/todo.md`, 이력은 `docs/history.md`에 적는다.
 - 저장 디렉터리 설정 키: `image.storage-path`(컨테이너 값 `/app/uploads`). 공개 URL 접두사: `image-prefix`(운영 값 `https://plan-be.yeonjae.kr/images/`, 끝에 `/`).
-- 호스트 이미지 디렉터리: `/opt/home-server/data/plan-images`. `/opt/home-server`는 `home-server` 저장소 체크아웃의 심볼릭 링크이고 `data/`는 `.gitignore` 대상이다.
+- 호스트 이미지 디렉터리: `/srv/jandi-plan`(`home-server` 저장소 밖). 로컬 개발은 `home-server/data/plan-images`를 쓴다.
 - nginx: `client_max_body_size 6m`, `/images/` 응답에 `Cache-Control: public, max-age=31536000, immutable`, `X-Content-Type-Options: nosniff`, `Content-Security-Policy: default-src 'none'; sandbox`.
 - 업로드 확장자 허용 목록: `jpg`, `jpeg`, `png`, `gif`, `webp`(대소문자 무시). SVG와 HTML은 허용하지 않는다.
 - 업로드 파일 권한은 `rw-r--r--`. 업로드 메서드 반환 문자열 형식(`파일 업로드 성공: {인코딩된 파일명}`)은 바꾸지 않는다.
@@ -631,7 +631,7 @@ EOF
 ```markdown
 # 미완료 항목
 
-- 이미지 디렉터리(`/opt/home-server/data/plan-images`) 정기 백업 구성.
+- 이미지 디렉터리(`/srv/jandi-plan`) 정기 백업 구성.
 - 전환 확인 후 GCS 버킷(`plan-storage`)과 서비스 계정 삭제. 서비스 계정 키가 `home-server` 저장소 이력에 있으므로 키를 폐기한다.
 - DB 저장 실패 시 디스크에 남는 고아 파일 정리. `image.image_url` 길이 제한은 100자다.
 ```
@@ -669,13 +669,13 @@ EOF
   jandi-plan:
     volumes:
       - /opt/home-server/config/jandi-plan:/app/config:ro
-      - /opt/home-server/data/plan-images:/app/uploads
+      - /srv/jandi-plan:/app/uploads
 ```
 
 `nginx.volumes`에 한 줄 추가한다.
 
 ```yaml
-      - /opt/home-server/data/plan-images:/var/www/plan/images:ro
+      - /srv/jandi-plan:/var/www/plan/images:ro
 ```
 
 - [ ] **Step 2: 로컬 compose 수정**
@@ -930,18 +930,18 @@ python3 --version
 - [ ] **Step 3: 디렉터리 생성**
 
 ```bash
-sudo mkdir -p /opt/home-server/data/plan-images
-sudo chown root:root /opt/home-server/data /opt/home-server/data/plan-images
-sudo chmod 755 /opt/home-server/data /opt/home-server/data/plan-images
-ls -ld /opt/home-server/data /opt/home-server/data/plan-images
+sudo mkdir -p /srv/jandi-plan
+sudo chown ubuntu:ubuntu /srv/jandi-plan
+chmod 755 /srv/jandi-plan
+ls -ld /srv/jandi-plan
 ```
 
-Expected: 두 디렉터리 모두 `drwxr-xr-x`. 백엔드 컨테이너가 root로 실행되므로 소유자는 root여도 쓸 수 있다.
+Expected: `drwxr-xr-x ubuntu ubuntu`. 백엔드 컨테이너가 root로 실행되므로 쓸 수 있다.
 
 - [ ] **Step 4: 백업 복원**
 
 ```bash
-sudo rsync -a --chmod=D755,F644 <백업 디렉터리>/ /opt/home-server/data/plan-images/
+sudo rsync -a --chmod=D755,F644 <백업 디렉터리>/ /srv/jandi-plan/
 ```
 
 `<백업 디렉터리>`는 이미지 백업을 풀어 둔 경로다. 파일은 하위 디렉터리 없이 `plan-images` 바로 아래에 있어야 한다(GCS 객체명과 같은 평면 구조).
@@ -952,7 +952,7 @@ DB 호스트(`10.0.0.161`), 데이터베이스 `plan_backend`, 테이블 `image`
 
 ```bash
 mysql -h 10.0.0.161 -u <계정> -p plan_backend -N -B -e "SELECT image_url FROM image" > /tmp/image-urls.txt
-/opt/home-server/scripts/check-plan-images.sh /tmp/image-urls.txt /opt/home-server/data/plan-images
+/opt/home-server/scripts/check-plan-images.sh /tmp/image-urls.txt /srv/jandi-plan
 ```
 
 Expected: `total=N missing=0`. 허용 목록 밖의 기존 파일도 확인한다: `grep -iEv '\.(jpe?g|png|gif|webp)$' /tmp/image-urls.txt`. 결과가 있으면(특히 `.svg`, `.html`) 사용자에게 보고한다. 기존 파일은 서빙되므로 nginx 헤더가 막아 주지만, 삭제 여부는 사용자가 정한다. 누락이 있으면 전환을 중단하고, 누락 목록의 원인을 확인한다(파일명 정규화 차이, 백업 누락 등). 누락 파일을 복원한 뒤 다시 실행해 `missing=0`이 될 때까지 반복한다.
@@ -1014,7 +1014,7 @@ Expected: 첫 건수와 `ROW_COUNT()`가 같고, 마지막 건수는 `0`이다.
    - 회원가입 인증 메일의 링크가 `https://plan-be.yeonjae.kr/api/users/verify`로 시작한다.
    - 기존 이미지가 있는 화면(프로필, 도시 대표 이미지)에서 이미지가 보인다.
    - `GET https://plan-be.yeonjae.kr/api/images/1`의 `imageUrl`이 `https://plan-be.yeonjae.kr/images/...`이고 `200`이다.
-   - 새 이미지를 업로드하고 URL이 `200`이다. `ls -l /opt/home-server/data/plan-images | tail -3`에서 새 파일 권한이 `-rw-r--r--`이다.
+   - 새 이미지를 업로드하고 URL이 `200`이다. `ls -l /srv/jandi-plan | tail -3`에서 새 파일 권한이 `-rw-r--r--`이다.
    - 1MB를 넘는 이미지(최대 5MB) 업로드가 성공한다.
 
 - [ ] **Step 8: 롤백 기준**

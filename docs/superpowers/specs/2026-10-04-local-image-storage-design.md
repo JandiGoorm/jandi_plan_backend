@@ -49,9 +49,9 @@
 
 ### 저장 위치
 
-- 호스트 경로: `/opt/home-server/data/plan-images`
+- 호스트 경로: `/srv/jandi-plan`(`home-server` 저장소 밖, 소유자 `ubuntu`)
 - `jandi-plan` 컨테이너: `/app/uploads`에 읽기/쓰기로 마운트한다.
-- `nginx` 컨테이너: `/var/www/plan-images`에 읽기 전용으로 마운트한다.
+- `nginx` 컨테이너: `/var/www/plan/images`에 읽기 전용으로 마운트한다.
 - 로컬 compose에는 `jandi-plan`에 `../data/plan-images` 볼륨을 추가하고, 이 디렉터리를 서빙하는 `plan-images`(nginx, 호스트 포트 8094) 서비스를 추가한다. 로컬 compose에는 nginx 게이트웨이가 없기 때문이다.
 
 ### 백엔드
