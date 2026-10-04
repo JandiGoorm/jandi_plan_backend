@@ -1,6 +1,7 @@
 package com.jandi.plan_backend.image.controller;
 
 import com.jandi.plan_backend.image.dto.ImageRespDto;
+import com.jandi.plan_backend.image.entity.Image;
 import com.jandi.plan_backend.image.service.ImageService;
 import com.jandi.plan_backend.security.CustomUserDetails;
 import com.jandi.plan_backend.tripPlan.trip.service.TripService;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Collections;
+import java.util.Optional;
 
 /**
  * 게시글 이미지 업로드 API를 제공하는 컨트롤러.
@@ -103,14 +105,17 @@ public class PlanImageController {
         // 거부될 파일이면 기존 이미지를 지우기 전에 중단
         imageService.validateUpload(file);
 
-        // 1) 기존 프로필 이미지 삭제 (이미 userId에 연결된 profile 이미지가 있으면 제거)
-        imageService.getImageByTarget("profile", userId).ifPresent(img -> {
-            log.info("기존 프로필 이미지(imageId={}) 삭제 후 새 이미지로 교체", img.getImageId());
-            imageService.deleteImage(img.getImageId());
-        });
+        // 1) 기존 프로필 이미지 확인 (새 이미지 저장에 성공한 뒤에 삭제)
+        Optional<Image> existing = imageService.getImageByTarget("profile", userId);
 
         // 2) 새 프로필 이미지 업로드
         ImageRespDto responseDto = imageService.uploadImage(file, ownerEmail, userId, "profile");
+
+        // 3) 기존 프로필 이미지 삭제
+        existing.ifPresent(img -> {
+            log.info("기존 프로필 이미지(imageId={}) 삭제 후 새 이미지로 교체", img.getImageId());
+            imageService.deleteImage(img.getImageId());
+        });
         return ResponseEntity.ok(responseDto);
     }
 
@@ -150,15 +155,18 @@ public class PlanImageController {
         // 거부될 파일이면 기존 이미지를 지우기 전에 중단
         imageService.validateUpload(file);
 
-        // 3) 기존 이미지 삭제 (이미 trip에 이미지가 1개 존재한다면 제거)
-        imageService.getImageByTarget("trip", tripId).ifPresent(img -> {
-            log.info("기존 여행계획 이미지(imageId={}) 삭제 후 새 이미지로 교체", img.getImageId());
-            imageService.deleteImage(img.getImageId());
-        });
+        // 3) 기존 이미지 확인 (새 이미지 저장에 성공한 뒤에 삭제)
+        Optional<Image> existing = imageService.getImageByTarget("trip", tripId);
 
         // 4) 새 이미지 업로드
         ImageRespDto responseDto = imageService.uploadImage(file, ownerEmail, tripId, "trip");
         log.info("새 여행계획 이미지 업로드 완료, imageId={}", responseDto.getImageId());
+
+        // 기존 이미지 삭제 (trip에 이미지가 이미 있었다면 제거)
+        existing.ifPresent(img -> {
+            log.info("기존 여행계획 이미지(imageId={}) 삭제 후 새 이미지로 교체", img.getImageId());
+            imageService.deleteImage(img.getImageId());
+        });
 
         // 5) 응답
         return ResponseEntity.ok(responseDto);

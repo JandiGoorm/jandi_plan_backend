@@ -92,6 +92,14 @@ class LocalImageStorageServiceTest {
     }
 
     @Test
+    void 저장_디렉터리에_쓸_수_없으면_업로드가_예외를_던진다() {
+        LocalImageStorageService broken = new LocalImageStorageService(root.resolve("missing").toString());
+
+        assertThatThrownBy(() -> broken.uploadFile(new MockMultipartFile("file", "a.png", "image/png", new byte[]{1})))
+                .isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
     void 허용되지_않는_확장자는_저장하지_않고_예외를_던진다() throws IOException {
         for (String name : List.of("x.html", "x.svg", "x.png.html", "noext", "x.")) {
             assertThatThrownBy(() -> service.uploadFile(new MockMultipartFile("file", name, "text/html", new byte[]{1})))

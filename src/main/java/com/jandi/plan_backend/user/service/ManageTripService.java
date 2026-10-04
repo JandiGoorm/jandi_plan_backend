@@ -1,6 +1,7 @@
 package com.jandi.plan_backend.user.service;
 
 import com.jandi.plan_backend.image.dto.ImageRespDto;
+import com.jandi.plan_backend.image.entity.Image;
 import com.jandi.plan_backend.image.repository.ImageRepository;
 import com.jandi.plan_backend.image.service.ImageService;
 import com.jandi.plan_backend.tripPlan.trip.repository.TripRepository;
@@ -22,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ManageTripService {
@@ -171,17 +173,15 @@ public class ManageTripService {
             // 거부될 파일이면 기존 이미지를 지우기 전에 중단
             imageService.validateUpload(file);
 
-            // 기존 이미지 삭제
-            imageRepository.findByTargetTypeAndTargetId("city", cityId)
-                    .ifPresent(img -> imageService.deleteImage(img.getImageId()));
+            // 기존 이미지 확인 (새 이미지 저장에 성공한 뒤에 삭제)
+            Optional<Image> existing = imageRepository.findByTargetTypeAndTargetId("city", cityId);
 
             // 새 이미지 업로드
             ImageRespDto imageDto = imageService.uploadImage(file, user.getEmail(), cityId, "city");
             imageUrl = imageDto.getImageUrl();
 
-            if(imageUrl == null) {
-                throw new BadRequestExceptionMessage("신규 이미지 저장에 실패했습니다.");
-            }
+            // 기존 이미지 삭제
+            existing.ifPresent(img -> imageService.deleteImage(img.getImageId()));
         }
         return new CityRespDTO(city, imageUrl);
     }

@@ -58,7 +58,8 @@ public class LocalImageStorageService {
     }
 
     /**
-     * 파일을 저장하고, 성공하면 URL 인코딩된 파일명을 포함한 결과 문자열을 반환합니다.
+     * 파일을 저장하고 URL 인코딩된 파일명을 포함한 결과 문자열을 반환합니다.
+     * 저장에 실패하면 IllegalStateException을 던집니다.
      */
     public String uploadFile(MultipartFile file) {
         validateUpload(file);
@@ -80,7 +81,7 @@ public class LocalImageStorageService {
             return "파일 업로드 성공: " + encodedFileName;
         } catch (IOException e) {
             log.error("파일 업로드 실패: {}", e.getMessage());
-            return "파일 업로드 실패: " + e.getMessage();
+            throw new IllegalStateException("이미지 저장에 실패했습니다.", e);
         } finally {
             deleteQuietly(temp);
         }
