@@ -77,7 +77,7 @@ Expected: 결과를 기록한다. `PlanBackendApplicationTests.contextLoads`는 
 
 **Interfaces:**
 - Produces: `LocalImageStorageService(String storagePath)` (Spring: `@Value("${image.storage-path}")`)
-  - `String uploadFile(MultipartFile file)` — 성공 `"파일 업로드 성공: " + 인코딩된 파일명`, 실패 `"파일 업로드 실패: " + 메시지`. 이름이 비어 있으면 `IllegalArgumentException`. 확장자가 허용 목록에 없으면 저장하지 않고 실패 문자열을 반환한다.
+  - `String uploadFile(MultipartFile file)` — 성공 `"파일 업로드 성공: " + 인코딩된 파일명`, 실패 `"파일 업로드 실패: " + 메시지`. 이름이 비어 있으면 `IllegalArgumentException`. 확장자가 허용 목록에 없으면 저장하지 않고 `IllegalArgumentException`을 던진다. `GlobalExceptionHandler`가 HTTP 400으로 응답한다.
   - `boolean deleteFile(String encodedFileName)` — 삭제하면 `true`. 파일이 없거나 저장 디렉터리 밖이면 `false`.
   - `void verifyStorageDir()` — 디렉터리가 없거나 쓸 수 없으면 `IllegalStateException`. `@PostConstruct`.
 
@@ -179,10 +179,10 @@ class LocalImageStorageServiceTest {
     }
 
     @Test
-    void 허용되지_않는_확장자는_저장하지_않고_실패를_반환한다() throws IOException {
+    void 허용되지_않는_확장자는_저장하지_않고_예외를_던진다() throws IOException {
         for (String name : List.of("x.html", "x.svg", "x.png.html", "noext", "x.")) {
-            String result = service.uploadFile(new MockMultipartFile("file", name, "text/html", new byte[]{1}));
-            assertThat(result).startsWith("파일 업로드 실패: ");
+            assertThatThrownBy(() -> service.uploadFile(new MockMultipartFile("file", name, "text/html", new byte[]{1})))
+                    .isInstanceOf(IllegalArgumentException.class);
         }
         assertThat(service.uploadFile(new MockMultipartFile("file", "PHOTO.JPG", "image/jpeg", new byte[]{1})))
                 .startsWith(SUCCESS);
@@ -259,7 +259,7 @@ public class LocalImageStorageService {
         String safeName = lastSegment(originalFileName);
         if (!hasAllowedExtension(safeName)) {
             log.warn("허용되지 않는 파일 형식: {}", safeName);
-            return "파일 업로드 실패: 허용되지 않는 파일 형식입니다. (허용: jpg, jpeg, png, gif, webp)";
+            throw new IllegalArgumentException("허용되지 않는 파일 형식입니다. (허용: jpg, jpeg, png, gif, webp)");
         }
 
         String fileName = UUID.randomUUID() + "_" + safeName;
@@ -1010,7 +1010,7 @@ Expected: 첫 건수와 `ROW_COUNT()`가 같고, 마지막 건수는 `0`이다.
 5. 운영 스모크 테스트:
    - 옛 게시글을 열면 본문 이미지가 보인다(주소가 `https://plan-be.yeonjae.kr/images/`로 시작).
    - 옛 게시글을 수정(내용 저장)한 뒤에도 첨부 이미지가 남아 있다(`image` 테이블에서 해당 `target_id` 행 확인).
-   - `.html` 파일 업로드가 실패 메시지(`허용되지 않는 파일 형식입니다`)로 거부된다.
+   - `.html` 파일 업로드가 HTTP 400(`허용되지 않는 파일 형식입니다`)으로 거부된다.
    - 회원가입 인증 메일의 링크가 `https://plan-be.yeonjae.kr/api/users/verify`로 시작한다.
    - 기존 이미지가 있는 화면(프로필, 도시 대표 이미지)에서 이미지가 보인다.
    - `GET https://plan-be.yeonjae.kr/api/images/1`의 `imageUrl`이 `https://plan-be.yeonjae.kr/images/...`이고 `200`이다.
