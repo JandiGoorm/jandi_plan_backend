@@ -20,6 +20,9 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -50,6 +53,23 @@ class ImageServiceTest {
         assertThat(image.getImageUrl()).endsWith("_new.png");
         assertThat(resp.getImageUrl()).isEqualTo(PREFIX + image.getImageUrl());
         assertThat(storageDir.resolve(URLDecoder.decode(image.getImageUrl(), StandardCharsets.UTF_8))).exists();
+    }
+
+    @Test
+    void 저장에_실패하면_수정해도_기존_파일과_DB값이_그대로_남는다() {
+        LocalImageStorageService storage = mock(LocalImageStorageService.class);
+        ImageService imageService = new ImageService(storage, imageRepository, PREFIX);
+        Image image = new Image();
+        image.setImageUrl("old.png");
+        when(imageRepository.findById(1)).thenReturn(Optional.of(image));
+        when(storage.uploadFile(any())).thenThrow(new IllegalStateException("disk full"));
+
+        assertThatThrownBy(() -> imageService.updateImage(
+                1, new MockMultipartFile("file", "new.png", "image/png", new byte[]{9})))
+                .isInstanceOf(IllegalStateException.class);
+
+        verify(storage, never()).deleteFile(any());
+        assertThat(image.getImageUrl()).isEqualTo("old.png");
     }
 
     @Test

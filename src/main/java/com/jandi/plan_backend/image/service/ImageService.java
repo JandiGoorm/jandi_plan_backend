@@ -53,11 +53,6 @@ public class ImageService {
      */
     public ImageRespDto uploadImage(MultipartFile file, String owner, Integer targetId, String targetType) {
         String uploadResult = storageService.uploadFile(file);
-        if (!uploadResult.startsWith("파일 업로드 성공: ")) {
-            ImageRespDto errorDto = new ImageRespDto();
-            errorDto.setMessage(uploadResult);
-            return errorDto;
-        }
         String storedFileName = uploadResult.replace("파일 업로드 성공: ", "").trim();
         Image image = new Image();
         image.setTargetType(targetType);
@@ -121,17 +116,13 @@ public class ImageService {
         }
         Image image = optionalImage.get();
         validateUpload(newFile);
+        // 새 파일을 먼저 저장해 저장 실패 시 기존 파일을 유지
+        String uploadResult = storageService.uploadFile(newFile);
+        String newStoredFileName = uploadResult.replace("파일 업로드 성공: ", "").trim();
         boolean storageDeleted = storageService.deleteFile(image.getImageUrl());
         if (!storageDeleted) {
             log.warn("기존 파일 삭제 실패. 이미지 ID: {}", imageId);
         }
-        String uploadResult = storageService.uploadFile(newFile);
-        if (!uploadResult.startsWith("파일 업로드 성공: ")) {
-            ImageRespDto errorDto = new ImageRespDto();
-            errorDto.setMessage(uploadResult);
-            return errorDto;
-        }
-        String newStoredFileName = uploadResult.replace("파일 업로드 성공: ", "").trim();
         image.setImageUrl(newStoredFileName);
         image.setCreatedAt(TimeUtil.now());
         image = imageRepository.save(image);
