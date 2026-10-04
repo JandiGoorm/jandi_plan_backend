@@ -31,6 +31,7 @@
 3. 볼륨 마운트가 빠진 채 기동해 컨테이너 내부에 저장하고, 재배포 때 이미지가 사라진다. → Task 1의 기동 검증 테스트.
 4. 사용자가 올린 `.html`, `.svg` 파일이 API 도메인에서 실행된다. → Task 1의 확장자 허용 목록 테스트와 Task 5의 nginx 헤더·curl 확인.
 5. 한글·공백·`+`가 든 파일명이 DB 인코딩값과 복원 파일명 사이에서 어긋난다(macOS 백업의 NFD 이름 포함). → Task 1의 왕복 테스트와 Task 7의 대조 스크립트.
+6. 기존 게시글 본문(`community.contents`)에 옛 접두사가 전체 URL로 박혀 있다. 치환하지 않으면 새 접두사로 본문을 검사하는 `ImageCleanupService`가 게시글 수정 때 첨부 이미지를 전부 미사용으로 판단해 삭제하고, GCS 삭제 후에는 본문의 이미지가 깨진다. → Task 7 Step 5, 7의 URL 치환.
 
 ---
 
@@ -956,6 +957,17 @@ mysql -h 10.0.0.161 -u <계정> -p plan_backend -N -B -e "SELECT image_url FROM 
 
 Expected: `total=N missing=0`. 허용 목록 밖의 기존 파일도 확인한다: `grep -iEv '\.(jpe?g|png|gif|webp)$' /tmp/image-urls.txt`. 결과가 있으면(특히 `.svg`, `.html`) 사용자에게 보고한다. 기존 파일은 서빙되므로 nginx 헤더가 막아 주지만, 삭제 여부는 사용자가 정한다. 누락이 있으면 전환을 중단하고, 누락 목록의 원인을 확인한다(파일명 정규화 차이, 백업 누락 등). 누락 파일을 복원한 뒤 다시 실행해 `missing=0`이 될 때까지 반복한다.
 
+- [ ] **Step 5-1: 본문에 박힌 옛 URL 범위 확인**
+
+옛 접두사가 든 테이블과 건수를 확인한다. 2026-01-18 백업에서는 `community` 한 테이블에 17건이었다. 현재 DB 기준으로 다시 확인한다.
+
+```bash
+mysqldump -h 10.0.0.161 -u <계정> -p --single-transaction --skip-extended-insert plan_backend \
+  | grep "storage.googleapis.com/plan-storage/" | cut -d'(' -f1 | sort | uniq -c
+```
+
+Expected: 목록에 나온 테이블이 치환 대상이다. `community` 외 테이블이 있으면 Step 7-4의 `UPDATE`에 같은 방식으로 추가하고, 사용자에게 알린다.
+
 - [ ] **Step 6: nginx 선반영 (구버전 백엔드와 공존 가능)**
 
 1. `home-server`의 Task 5 브랜치를 PR로 병합한다(사용자가 GitHub에서 merge).
@@ -980,7 +992,24 @@ Expected: `200`, `Cache-Control`, `X-Content-Type-Options` 헤더.
 1. Task 6 브랜치를 PR로 병합한다. 서버에서 `git pull`로 설정 파일을 받는다(실행 중인 구버전 컨테이너는 이미 설정을 읽었으므로 영향이 없다).
 2. `jandi_plan_backend`의 `feature/local-image-storage` PR을 `dev`에 병합한다(사용자가 GitHub에서 merge). Jenkins가 `deploy-app.sh jandi-plan`으로 배포한다.
 3. 기동 로그에서 `이미지 저장 디렉터리를 쓸 수 없습니다`가 없는지 확인한다: `docker logs jandi-plan 2>&1 | tail -50`
-4. 운영 스모크 테스트:
+4. DB 본문 URL 치환. 배포 직후에 실행한다(구버전과 신버전 사이의 공백 시간에 옛 게시글을 수정하면 이미지가 삭제될 수 있으므로, 이용자가 적은 시간에 한다). 먼저 백업한다.
+
+```bash
+mysqldump -h 10.0.0.161 -u <계정> -p --single-transaction plan_backend community > /tmp/community-before-url-migration.sql
+mysql -h 10.0.0.161 -u <계정> -p plan_backend -e "
+SELECT COUNT(*) FROM community WHERE contents LIKE '%https://storage.googleapis.com/plan-storage/%';
+UPDATE community
+   SET contents = REPLACE(contents, 'https://storage.googleapis.com/plan-storage/', 'https://plan-be.yeonjae.kr/images/')
+ WHERE contents LIKE '%https://storage.googleapis.com/plan-storage/%';
+SELECT ROW_COUNT();
+SELECT COUNT(*) FROM community WHERE contents LIKE '%storage.googleapis.com%';"
+```
+
+Expected: 첫 건수와 `ROW_COUNT()`가 같고, 마지막 건수는 `0`이다.
+
+5. 운영 스모크 테스트:
+   - 옛 게시글을 열면 본문 이미지가 보인다(주소가 `https://plan-be.yeonjae.kr/images/`로 시작).
+   - 옛 게시글을 수정(내용 저장)한 뒤에도 첨부 이미지가 남아 있다(`image` 테이블에서 해당 `target_id` 행 확인).
    - `.html` 파일 업로드가 실패 메시지(`허용되지 않는 파일 형식입니다`)로 거부된다.
    - 회원가입 인증 메일의 링크가 `https://plan-be.yeonjae.kr/api/users/verify`로 시작한다.
    - 기존 이미지가 있는 화면(프로필, 도시 대표 이미지)에서 이미지가 보인다.
@@ -990,7 +1019,7 @@ Expected: `200`, `Cache-Control`, `X-Content-Type-Options` 헤더.
 
 - [ ] **Step 8: 롤백 기준**
 
-스모크 테스트가 실패하면 `config/jandi-plan`의 두 파일을 이전 커밋으로 되돌리고, 이전 `jandi-plan` 이미지 태그로 `deploy-app.sh jandi-plan`을 다시 실행한다. GCS 버킷은 확인 기간 동안 삭제하지 않으므로 구버전이 바로 동작한다.
+스모크 테스트가 실패하면 `/tmp/community-before-url-migration.sql`로 `community` 테이블을 복원하고 `config/jandi-plan`의 두 파일을 이전 커밋으로 되돌리고, 이전 `jandi-plan` 이미지 태그로 `deploy-app.sh jandi-plan`을 다시 실행한다. GCS 버킷은 확인 기간 동안 삭제하지 않으므로 구버전이 바로 동작한다.
 
 - [ ] **Step 9: 사후 정리 (확인 기간 후, 사용자가 직접)**
 
