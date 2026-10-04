@@ -20,6 +20,7 @@
 - 저장 디렉터리 설정 키: `image.storage-path`(컨테이너 값 `/app/uploads`). 공개 URL 접두사: `image-prefix`(운영 값 `https://plan-be.yeonjae.kr/images/`, 끝에 `/`).
 - 호스트 이미지 디렉터리: `/opt/home-server/data/plan-images`. `/opt/home-server`는 `home-server` 저장소 체크아웃의 심볼릭 링크이고 `data/`는 `.gitignore` 대상이다.
 - nginx: `client_max_body_size 6m`, `/images/` 응답에 `Cache-Control: public, max-age=31536000, immutable`, `X-Content-Type-Options: nosniff`, `Content-Security-Policy: default-src 'none'; sandbox`.
+- 업로드 확장자 허용 목록: `jpg`, `jpeg`, `png`, `gif`, `webp`(대소문자 무시). SVG와 HTML은 허용하지 않는다.
 - 업로드 파일 권한은 `rw-r--r--`. 업로드 메서드 반환 문자열 형식(`파일 업로드 성공: {인코딩된 파일명}`)은 바꾸지 않는다.
 - 비밀 값(서비스 계정 키, 클라이언트 시크릿)을 출력·로그·커밋 메시지에 옮기지 않는다.
 
@@ -28,7 +29,7 @@
 1. 업로드 파일이 `rw-------`로 남아 nginx가 403을 반환한다(임시 파일 기본 권한). → Task 1의 업로드·삭제 테스트가 권한을 확인한다.
 2. `../`, `\`, 절대 경로가 든 파일명으로 저장 디렉터리 밖을 쓰거나 지운다. → Task 1의 경로 조작 테스트.
 3. 볼륨 마운트가 빠진 채 기동해 컨테이너 내부에 저장하고, 재배포 때 이미지가 사라진다. → Task 1의 기동 검증 테스트.
-4. 사용자가 올린 `.html` 파일이 API 도메인에서 실행된다. → Task 5의 nginx 헤더와 curl 확인. 확장자 허용 목록은 이 계획에 없다(사용자 결정 필요, Task 4의 `docs/todo.md`에 기록).
+4. 사용자가 올린 `.html`, `.svg` 파일이 API 도메인에서 실행된다. → Task 1의 확장자 허용 목록 테스트와 Task 5의 nginx 헤더·curl 확인.
 5. 한글·공백·`+`가 든 파일명이 DB 인코딩값과 복원 파일명 사이에서 어긋난다(macOS 백업의 NFD 이름 포함). → Task 1의 왕복 테스트와 Task 7의 대조 스크립트.
 
 ---
@@ -75,11 +76,11 @@ Expected: 결과를 기록한다. `PlanBackendApplicationTests.contextLoads`는 
 
 **Interfaces:**
 - Produces: `LocalImageStorageService(String storagePath)` (Spring: `@Value("${image.storage-path}")`)
-  - `String uploadFile(MultipartFile file)` — 성공 `"파일 업로드 성공: " + 인코딩된 파일명`, 실패 `"파일 업로드 실패: " + 메시지`. 이름이 비어 있으면 `IllegalArgumentException`.
+  - `String uploadFile(MultipartFile file)` — 성공 `"파일 업로드 성공: " + 인코딩된 파일명`, 실패 `"파일 업로드 실패: " + 메시지`. 이름이 비어 있으면 `IllegalArgumentException`. 확장자가 허용 목록에 없으면 저장하지 않고 실패 문자열을 반환한다.
   - `boolean deleteFile(String encodedFileName)` — 삭제하면 `true`. 파일이 없거나 저장 디렉터리 밖이면 `false`.
   - `void verifyStorageDir()` — 디렉터리가 없거나 쓸 수 없으면 `IllegalStateException`. `@PostConstruct`.
 
-테스트는 4개다(권장 3개 초과). 기동 검증 테스트는 Review Focus 3번(마운트 누락)을 직접 잡는 유일한 테스트라서 추가한다.
+테스트는 5개다(권장 3개 초과). 기동 검증 테스트는 Review Focus 3번(마운트 누락), 확장자 테스트는 Review Focus 4번(HTML·SVG 실행)을 직접 잡는 유일한 테스트라서 추가한다.
 
 - [ ] **Step 1: 실패하는 테스트 작성**
 
@@ -175,6 +176,19 @@ class LocalImageStorageServiceTest {
         assertThatThrownBy(() -> service.uploadFile(new MockMultipartFile("file", "dir/", "image/png", new byte[]{1})))
                 .isInstanceOf(IllegalArgumentException.class);
     }
+
+    @Test
+    void 허용되지_않는_확장자는_저장하지_않고_실패를_반환한다() throws IOException {
+        for (String name : List.of("x.html", "x.svg", "x.png.html", "noext", "x.")) {
+            String result = service.uploadFile(new MockMultipartFile("file", name, "text/html", new byte[]{1}));
+            assertThat(result).startsWith("파일 업로드 실패: ");
+        }
+        assertThat(service.uploadFile(new MockMultipartFile("file", "PHOTO.JPG", "image/jpeg", new byte[]{1})))
+                .startsWith(SUCCESS);
+        try (Stream<Path> files = Files.list(storageDir)) {
+            assertThat(files.map(p -> p.getFileName().toString()).toList()).hasSize(1);
+        }
+    }
 }
 ```
 
@@ -205,6 +219,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.PosixFilePermissions;
+import java.util.Locale;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -213,6 +229,8 @@ import java.util.UUID;
 @Slf4j
 @Service
 public class LocalImageStorageService {
+
+    private static final Set<String> ALLOWED_EXTENSIONS = Set.of("jpg", "jpeg", "png", "gif", "webp");
 
     private final Path storageDir;
 
@@ -237,7 +255,13 @@ public class LocalImageStorageService {
             throw new IllegalArgumentException("파일의 이름이 유효하지 않습니다.");
         }
 
-        String fileName = UUID.randomUUID() + "_" + lastSegment(originalFileName);
+        String safeName = lastSegment(originalFileName);
+        if (!hasAllowedExtension(safeName)) {
+            log.warn("허용되지 않는 파일 형식: {}", safeName);
+            return "파일 업로드 실패: 허용되지 않는 파일 형식입니다. (허용: jpg, jpeg, png, gif, webp)";
+        }
+
+        String fileName = UUID.randomUUID() + "_" + safeName;
         Path target = resolveInStorageDir(fileName);
         Path temp = null;
         try {
@@ -289,6 +313,15 @@ public class LocalImageStorageService {
         return segment;
     }
 
+    // nginx가 확장자로 Content-Type을 정하므로 확장자로 제한
+    private static boolean hasAllowedExtension(String fileName) {
+        int dot = fileName.lastIndexOf('.');
+        if (dot < 0 || dot == fileName.length() - 1) {
+            return false;
+        }
+        return ALLOWED_EXTENSIONS.contains(fileName.substring(dot + 1).toLowerCase(Locale.ROOT));
+    }
+
     private Path resolveInStorageDir(String fileName) {
         Path resolved = storageDir.resolve(fileName).normalize();
         if (!resolved.startsWith(storageDir) || resolved.equals(storageDir)) {
@@ -322,7 +355,7 @@ public class LocalImageStorageService {
 - [ ] **Step 4: 테스트 통과 확인**
 
 `GRADLE_TEST --tests "com.jandi.plan_backend.image.service.LocalImageStorageServiceTest"`
-Expected: PASS (4 tests).
+Expected: PASS (5 tests).
 
 - [ ] **Step 5: 커밋**
 
@@ -587,6 +620,7 @@ EOF
 
 - 이미지 저장·삭제를 `LocalImageStorageService`로 변경했다.
 - 공개 URL 접두사를 `image-prefix` 하나로 통합했다.
+- 업로드 확장자를 `jpg`, `jpeg`, `png`, `gif`, `webp`로 제한했다.
 - GCP 의존성(`spring-cloud-gcp-starter-storage`, `spring-cloud-gcp-starter-secretmanager`)과 `GcpCredentialsConfig`를 제거했다.
 - 설계: `docs/superpowers/specs/2026-10-04-local-image-storage-design.md`
 ```
@@ -598,7 +632,6 @@ EOF
 
 - 이미지 디렉터리(`/opt/home-server/data/plan-images`) 정기 백업 구성.
 - 전환 확인 후 GCS 버킷(`plan-storage`)과 서비스 계정 삭제. 서비스 계정 키가 `home-server` 저장소 이력에 있으므로 키를 폐기한다.
-- 업로드 파일 확장자 허용 목록 도입 여부 결정. 현재는 확장자를 검사하지 않는다.
 - DB 저장 실패 시 디스크에 남는 고아 파일 정리. `image.image_url` 길이 제한은 100자다.
 ```
 
@@ -921,7 +954,7 @@ mysql -h 10.0.0.161 -u <계정> -p plan_backend -N -B -e "SELECT image_url FROM 
 /opt/home-server/scripts/check-plan-images.sh /tmp/image-urls.txt /opt/home-server/data/plan-images
 ```
 
-Expected: `total=N missing=0`. 누락이 있으면 전환을 중단하고, 누락 목록의 원인을 확인한다(파일명 정규화 차이, 백업 누락 등). 누락 파일을 복원한 뒤 다시 실행해 `missing=0`이 될 때까지 반복한다.
+Expected: `total=N missing=0`. 허용 목록 밖의 기존 파일도 확인한다: `grep -iEv '\.(jpe?g|png|gif|webp)$' /tmp/image-urls.txt`. 결과가 있으면(특히 `.svg`, `.html`) 사용자에게 보고한다. 기존 파일은 서빙되므로 nginx 헤더가 막아 주지만, 삭제 여부는 사용자가 정한다. 누락이 있으면 전환을 중단하고, 누락 목록의 원인을 확인한다(파일명 정규화 차이, 백업 누락 등). 누락 파일을 복원한 뒤 다시 실행해 `missing=0`이 될 때까지 반복한다.
 
 - [ ] **Step 6: nginx 선반영 (구버전 백엔드와 공존 가능)**
 
@@ -948,6 +981,7 @@ Expected: `200`, `Cache-Control`, `X-Content-Type-Options` 헤더.
 2. `jandi_plan_backend`의 `feature/local-image-storage` PR을 `dev`에 병합한다(사용자가 GitHub에서 merge). Jenkins가 `deploy-app.sh jandi-plan`으로 배포한다.
 3. 기동 로그에서 `이미지 저장 디렉터리를 쓸 수 없습니다`가 없는지 확인한다: `docker logs jandi-plan 2>&1 | tail -50`
 4. 운영 스모크 테스트:
+   - `.html` 파일 업로드가 실패 메시지(`허용되지 않는 파일 형식입니다`)로 거부된다.
    - 회원가입 인증 메일의 링크가 `https://plan-be.yeonjae.kr/api/users/verify`로 시작한다.
    - 기존 이미지가 있는 화면(프로필, 도시 대표 이미지)에서 이미지가 보인다.
    - `GET https://plan-be.yeonjae.kr/api/images/1`의 `imageUrl`이 `https://plan-be.yeonjae.kr/images/...`이고 `200`이다.
