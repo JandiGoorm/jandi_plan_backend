@@ -27,7 +27,7 @@ public class ImageCleanupService {
 
     /**
      * 게시글 내용에서 실제 사용 중인 이미지 파일명을 추출합니다.
-     * 예: "https://storage.googleapis.com/plan-storage/encodedFileName.jpg"에서 "encodedFileName.jpg" 추출
+     * 예: "{image-prefix}encodedFileName.jpg"에서 "encodedFileName.jpg" 추출
      */
     public Set<String> extractImageFileNamesFromContent(String content) {
         Set<String> fileNames = new HashSet<>();

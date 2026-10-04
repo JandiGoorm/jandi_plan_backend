@@ -168,6 +168,9 @@ public class ManageTripService {
         // 대체될 이미지가 있다면 기존 이미지 삭제 후 신규 이미지로 치환
         String imageUrl = null;
         if(file != null && !file.isEmpty()) {
+            // 거부될 파일이면 기존 이미지를 지우기 전에 중단
+            imageService.validateUpload(file);
+
             // 기존 이미지 삭제
             imageRepository.findByTargetTypeAndTargetId("city", cityId)
                     .ifPresent(img -> imageService.deleteImage(img.getImageId()));

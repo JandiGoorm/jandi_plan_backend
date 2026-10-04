@@ -44,7 +44,6 @@ public class TripService {
     private final ReservationRepository reservationRepository;
     private final TripParticipantRepository tripParticipantRepository;
 
-    private final String urlPrefix = "https://storage.googleapis.com/plan-storage/";
     private final Sort sortByCreate = Sort.by(Sort.Direction.DESC, "createdAt");
 
     public TripService(TripRepository tripRepository,
@@ -483,17 +482,17 @@ public class TripService {
     private TripRespDTO convertToPublicTripRespDTO(Trip trip) {
         // 작성자 프로필 이미지
         String userProfileUrl = imageService.getImageByTarget("profile", trip.getUser().getUserId())
-                .map(img -> urlPrefix + img.getImageUrl())
+                .map(img -> imageService.toPublicUrl(img.getImageUrl()))
                 .orElseGet(() -> imageService.getPublicUrlByImageId(1)); // <- 기본 이미지 처리 추가
 
         // 도시 대표 이미지
         String cityImageUrl = imageService.getImageByTarget("city", trip.getCity().getCityId())
-                .map(img -> urlPrefix + img.getImageUrl())
+                .map(img -> imageService.toPublicUrl(img.getImageUrl()))
                 .orElse(null);
 
         // 사용자 지정 여행계획 대표 이미지
         String tripImageUrl = imageService.getImageByTarget("trip", trip.getTripId())
-                .map(img -> urlPrefix + img.getImageUrl())
+                .map(img -> imageService.toPublicUrl(img.getImageUrl()))
                 .orElse(null);
 
         return new TripRespDTO(trip.getUser(), userProfileUrl, trip, cityImageUrl, tripImageUrl);
@@ -506,7 +505,7 @@ public class TripService {
     private TripRespDTO convertToPrivateTripRespDTO(Trip trip) {
         // 도시 대표 이미지
         String cityImageUrl = imageService.getImageByTarget("city", trip.getCity().getCityId())
-                .map(img -> urlPrefix + img.getImageUrl())
+                .map(img -> imageService.toPublicUrl(img.getImageUrl()))
                 .orElse(null);
 
         return new TripRespDTO(trip, cityImageUrl);

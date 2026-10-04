@@ -96,8 +96,7 @@ public class BannerUpdateService {
 
         // 새 파일이 있으면 기존 이미지 삭제 후 재업로드
         if (validatePresent(reqDTO.getFile())) {
-            bannerUtil.deleteBannerImage(banner);
-            bannerUtil.uploadBannerImage(banner, user, reqDTO.getFile());
+            bannerUtil.replaceBannerImage(banner, user, reqDTO.getFile());
         }
     }
 

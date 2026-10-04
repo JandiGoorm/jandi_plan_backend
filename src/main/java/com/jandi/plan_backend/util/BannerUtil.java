@@ -33,6 +33,13 @@ public class BannerUtil {
                 file, user.getEmail(), banner.getBannerId(), "banner");
     }
 
+    // 기존 배너 이미지 교체 (검증 실패 시 기존 이미지 유지)
+    public void replaceBannerImage(Banner banner, User user, MultipartFile file) {
+        imageService.validateUpload(file);
+        deleteBannerImage(banner);
+        uploadBannerImage(banner, user, file);
+    }
+
     // 배너 이미지 조회
     public String getBannerImage(Banner banner) {
         Image image = imageRepository.findByTargetTypeAndTargetId("banner", banner.getBannerId())
