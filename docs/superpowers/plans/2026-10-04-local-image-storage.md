@@ -598,7 +598,6 @@ EOF
 
 - 이미지 디렉터리(`/opt/home-server/data/plan-images`) 정기 백업 구성.
 - 전환 확인 후 GCS 버킷(`plan-storage`)과 서비스 계정 삭제. 서비스 계정 키가 `home-server` 저장소 이력에 있으므로 키를 폐기한다.
-- 운영 설정의 `app.verify.url`이 Cloud Run 주소를 가리킨다. 사용 여부를 확인하고 변경한다.
 - 업로드 파일 확장자 허용 목록 도입 여부 결정. 현재는 확장자를 검사하지 않는다.
 - DB 저장 실패 시 디스크에 남는 고아 파일 정리. `image.image_url` 길이 제한은 100자다.
 ```
@@ -804,10 +803,16 @@ sed -i 's#^image-prefix=.*#image-prefix=https://plan-be.yeonjae.kr/images/\nimag
 sed -i 's#^image-prefix=.*#image-prefix=http://localhost:8094/images/\nimage.storage-path=/app/uploads#' application-local.properties
 ```
 
+인증 메일 링크(`app.verify.url`)가 쓰지 않는 Cloud Run 주소를 가리킨다. 운영 도메인으로 바꾸고, 같은 값을 적은 주석 줄을 지운다.
+
+```bash
+sed -i 's#^app\.verify\.url=https://planbackend-.*run\.app/#app.verify.url=https://plan-be.yeonjae.kr/#; /^# 테스트용 app\.verify\.url=/d' application.properties
+```
+
 - [ ] **Step 3: 결과 확인 (비밀 값을 출력하지 않는다)**
 
-Run: `grep -nE "^(image-prefix|image\.storage-path)=" application.properties application-local.properties; grep -cE "gcp\.|gcs\.|storage\.googleapis" application.properties application-local.properties`
-Expected: 각 파일에 `image-prefix`와 `image.storage-path` 한 줄씩. 두 번째 명령은 `0` 두 개.
+Run: `grep -nE "^(image-prefix|image\.storage-path)=" application.properties application-local.properties; grep -cE "gcp\.|gcs\.|storage\.googleapis|run\.app" application.properties application-local.properties; grep -n "^app.verify.url=" application.properties`
+Expected: 각 파일에 `image-prefix`와 `image.storage-path` 한 줄씩. 두 번째 명령은 `0` 두 개. 세 번째 명령은 `app.verify.url=https://plan-be.yeonjae.kr/api/users/verify`.
 
 - [ ] **Step 4: 커밋**
 
@@ -943,6 +948,7 @@ Expected: `200`, `Cache-Control`, `X-Content-Type-Options` 헤더.
 2. `jandi_plan_backend`의 `feature/local-image-storage` PR을 `dev`에 병합한다(사용자가 GitHub에서 merge). Jenkins가 `deploy-app.sh jandi-plan`으로 배포한다.
 3. 기동 로그에서 `이미지 저장 디렉터리를 쓸 수 없습니다`가 없는지 확인한다: `docker logs jandi-plan 2>&1 | tail -50`
 4. 운영 스모크 테스트:
+   - 회원가입 인증 메일의 링크가 `https://plan-be.yeonjae.kr/api/users/verify`로 시작한다.
    - 기존 이미지가 있는 화면(프로필, 도시 대표 이미지)에서 이미지가 보인다.
    - `GET https://plan-be.yeonjae.kr/api/images/1`의 `imageUrl`이 `https://plan-be.yeonjae.kr/images/...`이고 `200`이다.
    - 새 이미지를 업로드하고 URL이 `200`이다. `ls -l /opt/home-server/data/plan-images | tail -3`에서 새 파일 권한이 `-rw-r--r--`이다.
